@@ -7,30 +7,27 @@
 
 
 #include "utility/Utils/Utils.h"
+#include "utility/VectorFileType/VectorFileType.h"
 
 using namespace std;
 
-void initializeDatasets(DataSet** baseDataSet, DataSet** queryDataSet, DataSet** learningDataSet, DataSet** groundtruthDataSet,char* argv[],int argc) ;
+void initializeDatasets(DataSet<float>** baseDataSet, DataSet<float>** queryDataSet, DataSet<float>** learningDataSet, DataSet<int>** groundtruthDataSet,char* argv[],int argc) ;
 
 
 int main(int argc,char* argv[]) {
 	// if(argc < 9)exit(EXIT_FAILURE);
 
-
-	DataSet* baseDataSet;
-	DataSet* queryDataSet;
-	DataSet* learningDataSet;
-	DataSet* groundtruthDataSet;
+	DataSet<float>* baseDataSet;
+	DataSet<float>* queryDataSet;
+	DataSet<float>* learningDataSet;
+	DataSet<int>* groundtruthDataSet;
 
 	initializeDatasets(&baseDataSet,&queryDataSet,&learningDataSet,&groundtruthDataSet,argv,argc);
 
 
-	baseDataSet->print();
-
-
 }
 
-void initializeDatasets(DataSet** baseDataSet, DataSet** queryDataSet, DataSet** learningDataSet, DataSet** groundtruthDataSet,char* argv[],int argc)  {
+void initializeDatasets(DataSet<float>** baseDataSet, DataSet<float>** queryDataSet, DataSet<float>** learningDataSet, DataSet<int>** groundtruthDataSet,char* argv[],int argc)  {
 
 	char* baseVectorsDataFileName;
 	char* queryVectorsDataFileName;
@@ -49,9 +46,9 @@ void initializeDatasets(DataSet** baseDataSet, DataSet** queryDataSet, DataSet**
 		}
 	}
 
-	*baseDataSet = new DataSet(baseVectorsDataFileName);
-	*queryDataSet = new DataSet(queryVectorsDataFileName);
-	// *learningDataSet = new DataSet(learningVectorsDataFileName); // it needs implementation for ints
-	*groundtruthDataSet = new DataSet(groundtruthVectorsDataFileName);
+	*baseDataSet = new DataSet<float>(baseVectorsDataFileName);
+	*queryDataSet = new DataSet<float>(queryVectorsDataFileName);
+	*groundtruthDataSet = new DataSet<int>(groundtruthVectorsDataFileName);
+	*learningDataSet = new DataSet<float>(learningVectorsDataFileName);
 
 }

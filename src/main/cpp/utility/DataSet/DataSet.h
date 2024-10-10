@@ -10,22 +10,23 @@
 #include <cstdlib>
 #include <cstring>
 # include <fcntl.h>
+#include "../Utils/Utils.h"
+
 
 using namespace std;
 
+template <typename T>
 class DataSet {
     int d;
     int numOfVectors;
-    float** vectors;
+    T** vectors;
 public:
-    DataSet();
 
-    DataSet(char *dataFileName);
-
-    DataSet(int d, int numOfVectors,float** vectors);
+    explicit DataSet(char* dataFileName);
+    ~DataSet();
     int getD();
     int getNumOfVectors();
-    float** getVectors();
+    T** getVectors();
     void print();
 };
 

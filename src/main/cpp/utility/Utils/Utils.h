@@ -17,14 +17,18 @@
 #include <fstream>
 #include <vector>
 #include <cassert>
+#define SOURCE_D "src/"
+#define MAIN_D "main/"
+#define RESOURCES_D "resources/"
 
 using namespace std;
 
 class Utils {
 public:
     static int flipCoin();
-    static vector<vector<float>> fvecs_read(const string& filename, pair<int, int> bounds = {1, -1}) ;
 
+    template<typename T>
+    static vector<vector<T>> vecs_read(const string &filename, pair<int, int> bounds);
 };
 
 

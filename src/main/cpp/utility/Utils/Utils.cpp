@@ -28,8 +28,14 @@ int Utils::flipCoin() { // Function to simulate a coin flip
 }
 
 // GPT generated for checking | Equivalent of given Matlab function
-vector<vector<float>> Utils::fvecs_read(const string& filename, pair<int, int> bounds) {
-    ifstream file(filename, ios::binary);
+template <typename T>
+vector<vector<T>> Utils::vecs_read(const string& filename, pair<int, int> bounds) {
+
+    char dataFilePath[BUFFER_SIZE] = {'\0' };
+
+    strcat(dataFilePath,SOURCE_D);strcat(dataFilePath,MAIN_D);strcat(dataFilePath,RESOURCES_D);strcat(dataFilePath,filename.c_str());
+
+    ifstream file(dataFilePath, ios::binary);
     if (!file.is_open()) {
         throw runtime_error("I/O error: Unable to open the file " + filename);
     }
@@ -37,12 +43,18 @@ vector<vector<float>> Utils::fvecs_read(const string& filename, pair<int, int> b
     // Read the vector size (dimension)
     int d;
     file.read(reinterpret_cast<char*>(&d), sizeof(int));
-    int vec_sizeof = sizeof(int) + d * sizeof(float);
+    int vec_sizeof = sizeof(int) + d * sizeof(T);
+
+    cout << "d: " << d << endl;
+
+    cout << "vec_sizeof: " << vec_sizeof << endl;
 
     // Find total number of vectors in the file
     file.seekg(0, ios::end);
     streampos file_size = file.tellg();
     int bmax = file_size / vec_sizeof;
+
+    cout << "bmax: " << bmax << endl;
 
     int a = bounds.first;
     int b = (bounds.second == -1) ? bmax : bounds.second;
@@ -59,14 +71,14 @@ vector<vector<float>> Utils::fvecs_read(const string& filename, pair<int, int> b
     file.seekg((a - 1) * vec_sizeof, ios::beg);
 
     // Read the vectors
-    vector<vector<float>> vectors(n, vector<float>(d));
+    vector<vector<T>> vectors(n, vector<T>(d));
 
     for (int i = 0; i < n; ++i) {
         int dim;
         file.read(reinterpret_cast<char*>(&dim), sizeof(int)); // Read the dimension (should be d)
 
         // Read the vector components
-        file.read(reinterpret_cast<char*>(vectors[i].data()), d * sizeof(float));
+        file.read(reinterpret_cast<char*>(vectors[i].data()), d * sizeof(T));
 
         // Check if the dimension read matches the expected dimension
         assert(dim == d);
@@ -76,3 +88,7 @@ vector<vector<float>> Utils::fvecs_read(const string& filename, pair<int, int> b
     return vectors;
 }
 
+// explicit template instantiations
+template vector<vector<int>> Utils::vecs_read(const string& filename, pair<int, int> bounds);
+template vector<vector<char>> Utils::vecs_read(const string& filename, pair<int, int> bounds);
+template vector<vector<float>> Utils::vecs_read(const string& filename, pair<int, int> bounds);

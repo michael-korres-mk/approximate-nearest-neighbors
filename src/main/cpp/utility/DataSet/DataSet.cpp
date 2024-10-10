@@ -5,66 +5,76 @@
 #include "DataSet.h"
 #include "../Utils/Utils.h"
 
-char srcD[] = "src/";
-char mainD[] = "main/";
-char resourcesD[] = "resources/";
+template <typename T>
+DataSet<T>::DataSet(char* dataFileName) {
+    // open file located at src/main/resources/
+    char dataFilePath[BUFFER_SIZE] = {'\0'};
+    strcat(dataFilePath,SOURCE_D);strcat(dataFilePath,MAIN_D);strcat(dataFilePath,RESOURCES_D);strcat(dataFilePath,dataFileName);
+    int fd = open(dataFilePath,O_RDONLY); // Open data file
+    if (fd == -1) {perror("open");exit(EXIT_FAILURE);}
 
+    // get vector dimension
+    int vectorDimension;
+    read(fd, &vectorDimension, sizeof(int));
 
-DataSet::DataSet(char* dataFileName) {
-    char dataFilePath[BUFFER_SIZE] = {'\0' };
+    // get vector size
+    int vectorSize = 4 + vectorDimension * 4;
+    int numOfVectors = (int) (lseek(fd, 0, SEEK_END)/ vectorSize);
 
-    strcat(dataFilePath,srcD);strcat(dataFilePath,mainD);strcat(dataFilePath,resourcesD);strcat(dataFilePath,dataFileName);
+    // reset file pointer
+    lseek(fd, 0, SEEK_SET);
 
-    int baseFd = open(dataFilePath,O_RDONLY); // Open data file
+    this->d = vectorDimension;
+    this->numOfVectors = numOfVectors;
 
-    if (baseFd == -1) {perror("open");exit(EXIT_FAILURE);}
-
-    int d;
-    read(baseFd, &d, sizeof(int));
-
-    cout << "d=" << d << endl;
-
-    int vectorSize = 4 + d * 4;
-
-    cout << "vectorSize=" << vectorSize << endl;
-
-    int numOfVectors = (int) (lseek(baseFd, 0, SEEK_END)/ vectorSize);    // Get number of Vectors
-
-    cout << "numOfVectors=" << numOfVectors << endl;
-
-    lseek(baseFd, sizeof(int), SEEK_SET);
-
-    float** vectors = new float*[numOfVectors];
-
+    // read vectors
+    T** vectors = new T*[numOfVectors];
+    int vec_d;
     for(int i = 0; i < numOfVectors; i++) {
-        vectors[i] = new float[vectorSize];
-        for(int j = 0; j < vectorSize; j++) {
-            read(baseFd, &vectors[i][j], sizeof(float));
+        vectors[i] = new T[vectorSize];
+        read(fd, &vec_d, sizeof(int));
+        assert(vec_d == this->getD());
+        for(int j = 0; j < this->getD(); j++) {
+            read(fd, &vectors[i][j], sizeof(T));
         }
     }
 
-    close(baseFd);
+    close(fd);
 
-    this->d = d;
-    this->numOfVectors = numOfVectors;
     this->vectors = vectors;
 
 }
 
-int DataSet::getD() {
+template <typename T>
+DataSet<T>::~DataSet() {
+    for(int i = 0; i < this->numOfVectors; i++) {
+        delete[] vectors[i];
+    }
+}
+
+template <typename T>
+int DataSet<T>::getD() {
     return this->d;
 }
 
-int DataSet::getNumOfVectors() {
+template <typename T>
+int DataSet<T>::getNumOfVectors() {
     return this->numOfVectors;
 }
 
-float** DataSet::getVectors() {
+template <typename T>
+T** DataSet<T>::getVectors() {
     return this->vectors;
 }
 
-void DataSet::print() {
-    float ** vectors = this->getVectors();
+template <typename T>
+void DataSet<T>::print() {
+
+    cout << "d=" << d << endl;
+    cout << "numOfVectors=" << numOfVectors << endl;
+    cout << "sizeof(T)=" << sizeof(T) << endl;
+
+    T** vectors = this->getVectors();
 
     for(int i = 0; i < this->getNumOfVectors(); i++) {
         fprintf(stdout, "\e[36mvector[ %d ] is:   \e[0m\n",i);
@@ -72,7 +82,10 @@ void DataSet::print() {
             cout << vectors[i][j] << " ";
         }
         cout << setw(4) << fixed << setprecision(4) << vectors[i][this->getD() - 1] << endl;
-        cout << setw(4) << fixed << setprecision(4) << vectors[i][0] << endl;
-
     }
 }
+
+// explicit template instantiations
+template class DataSet<float>;
+template class DataSet<int>;
+template class DataSet<char>;
