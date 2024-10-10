@@ -15,7 +15,7 @@ void initializeDatasets(DataSet<float>** baseDataSet, DataSet<float>** queryData
 
 
 int main(int argc,char* argv[]) {
-	// if(argc < 9)exit(EXIT_FAILURE);
+	// if(argc < 9)exit(EXIT_FAILURE
 
 	DataSet<float>* baseDataSet;
 	DataSet<float>* queryDataSet;
@@ -24,7 +24,7 @@ int main(int argc,char* argv[]) {
 
 	initializeDatasets(&baseDataSet,&queryDataSet,&learningDataSet,&groundtruthDataSet,argv,argc);
 
-
+	baseDataSet->print();
 }
 
 void initializeDatasets(DataSet<float>** baseDataSet, DataSet<float>** queryDataSet, DataSet<float>** learningDataSet, DataSet<int>** groundtruthDataSet,char* argv[],int argc)  {
