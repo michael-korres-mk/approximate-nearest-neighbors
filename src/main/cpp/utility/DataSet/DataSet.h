@@ -5,27 +5,29 @@
 #ifndef DATASET_H
 #define DATASET_H
 
-#include <iostream>
 #include <iomanip>
-#include <cstdlib>
-#include <cstring>
-# include <fcntl.h>
+#include <valarray>
+#include <vector>
+#include <cassert>
+#include <fstream>
 
 using namespace std;
 
+template <typename T>
 class DataSet {
     int d;
     int numOfVectors;
-    float** vectors;
+    vector<vector<T>> vectors;
 public:
-    DataSet();
 
-    DataSet(char *dataFileName);
-
-    DataSet(int d, int numOfVectors,float** vectors);
+    explicit DataSet(char* dataFileName);
     int getD();
     int getNumOfVectors();
-    float** getVectors();
+    vector<vector<T>> getVectors();
+    vector<T> getVector(int id);
+    vector<vector<T>> vecsRead(const string& filename, pair<int, int> bounds);
+    static float euclideanDistance(vector<T> v1,vector<T> v2);
+    int getNearestNeighbor(vector<T> q);
     void print();
 };
 
