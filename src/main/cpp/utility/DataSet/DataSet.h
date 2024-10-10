@@ -21,13 +21,13 @@ class DataSet {
 public:
 
     explicit DataSet(char* dataFileName);
-    ~DataSet();
     int getD();
     int getNumOfVectors();
     vector<vector<T>> getVectors();
+    vector<T> getVector(int id);
     vector<vector<T>> vecsRead(const string& filename, pair<int, int> bounds);
     static float euclideanDistance(vector<T> v1,vector<T> v2);
-    int getNearestNeighbor(int id);
+    int getNearestNeighbor(vector<T> q);
     void print();
 };
 

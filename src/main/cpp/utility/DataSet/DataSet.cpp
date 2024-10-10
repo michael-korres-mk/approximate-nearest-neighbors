@@ -54,16 +54,20 @@ vector<vector<T>> DataSet<T>::vecsRead(const string& filename, pair<int, int> bo
     // Read the vectors
     vector<vector<T>> vectors(n, vector<T>(d));
 
-    // TODO: Fix data input. Each vector is a column in the dataset....
+    T data;
+
     for (int i = 0; i < n; ++i) {
         int dim;
-        file.read(reinterpret_cast<char*>(&dim), sizeof(int)); // Read the dimension (should be d)
-
-        // Read the vector components
-        file.read(reinterpret_cast<char*>(vectors[i].data()), d * sizeof(T));
-
-        // Check if the dimension read matches the expected dimension
+        file.read(reinterpret_cast<char*>(&dim), sizeof(int));
         assert(dim == d);
+
+        for(int j = 0; j < d; j++) {
+            file.read(reinterpret_cast<char*>(&data),sizeof(T));
+            vectors[i][j] = data;
+        }
+
+        // file.read(reinterpret_cast<char*>(vectors[i].data()), d * sizeof(T));
+
     }
 
     file.close();
@@ -83,6 +87,11 @@ int DataSet<T>::getNumOfVectors() {
 template <typename T>
 vector<vector<T>> DataSet<T>::getVectors() {
     return this->vectors;
+}
+
+template<typename T>
+vector<T> DataSet<T>::getVector(int id) {
+    return this->vectors[id];
 }
 
 template <typename T>
@@ -115,22 +124,19 @@ float DataSet<T>::euclideanDistance(vector<T> v1, vector<T> v2) {
 
 
 template<typename T>
-int DataSet<T>::getNearestNeighbor(int id) {
-    vector<T> q = this->vectors[id];
+int DataSet<T>::getNearestNeighbor(vector<T> q) {
     int nnId = 0;
     float minDistance = numeric_limits<float>::max();
     float currDist;
 
+
     for(int i = 0; i < this->getNumOfVectors(); i++) {
         currDist = euclideanDistance(q,this->vectors[i]);
-        if((i != id) && currDist < minDistance) {
+        if(currDist < minDistance) {
             minDistance = currDist;
             nnId = i;
         }
     }
-
-    cout << "minDistance: " << minDistance << endl;
-    cout << "nnId: " << nnId << endl;
 
     return nnId;
 }
