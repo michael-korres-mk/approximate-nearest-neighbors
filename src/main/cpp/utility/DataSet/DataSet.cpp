@@ -54,6 +54,7 @@ vector<vector<T>> DataSet<T>::vecsRead(const string& filename, pair<int, int> bo
     // Read the vectors
     vector<vector<T>> vectors(n, vector<T>(d));
 
+    // TODO: Fix data input. Each vector is a column in the dataset....
     for (int i = 0; i < n; ++i) {
         int dim;
         file.read(reinterpret_cast<char*>(&dim), sizeof(int)); // Read the dimension (should be d)
@@ -109,6 +110,29 @@ float DataSet<T>::euclideanDistance(vector<T> v1, vector<T> v2) {
     }
 
     return sqrt(dist);
+}
+
+
+
+template<typename T>
+int DataSet<T>::getNearestNeighbor(int id) {
+    vector<T> q = this->vectors[id];
+    int nnId = 0;
+    float minDistance = numeric_limits<float>::max();
+    float currDist;
+
+    for(int i = 0; i < this->getNumOfVectors(); i++) {
+        currDist = euclideanDistance(q,this->vectors[i]);
+        if((i != id) && currDist < minDistance) {
+            minDistance = currDist;
+            nnId = i;
+        }
+    }
+
+    cout << "minDistance: " << minDistance << endl;
+    cout << "nnId: " << nnId << endl;
+
+    return nnId;
 }
 
 // explicit template instantiations

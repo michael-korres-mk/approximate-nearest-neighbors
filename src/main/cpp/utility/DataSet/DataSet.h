@@ -27,6 +27,7 @@ public:
     vector<vector<T>> getVectors();
     vector<vector<T>> vecsRead(const string& filename, pair<int, int> bounds);
     static float euclideanDistance(vector<T> v1,vector<T> v2);
+    int getNearestNeighbor(int id);
     void print();
 };
 

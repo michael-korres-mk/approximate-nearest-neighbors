@@ -1,4 +1,4 @@
-# approximate-nearest-neighbours - Kyndinis Marios - sdi2000223 & Korres Michail - sdi2000092 - uoa - di
+# approximate-nearest-neighbors - Kyndinis Marios - sdi2000223 & Korres Michail - sdi2000092 - uoa - di
 
 ### Build Project
 ```
@@ -24,4 +24,4 @@ make clean
 
 ### Introduction
 
-This project implements approximate nearest neighbours.
+This project implements approximate nearest neighbors.

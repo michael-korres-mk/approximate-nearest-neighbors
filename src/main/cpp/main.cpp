@@ -23,8 +23,6 @@ int main(int argc,char* argv[]) {
 	DataSet<int>* groundtruthDataSet;
 
 	initializeDatasets(&baseDataSet,&queryDataSet,&learningDataSet,&groundtruthDataSet,argv,argc);
-
-	baseDataSet->print();
 }
 
 void initializeDatasets(DataSet<float>** baseDataSet, DataSet<float>** queryDataSet, DataSet<float>** learningDataSet, DataSet<int>** groundtruthDataSet,char* argv[],int argc)  {
