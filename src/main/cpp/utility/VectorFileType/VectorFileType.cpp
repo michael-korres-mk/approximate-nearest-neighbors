@@ -2,7 +2,7 @@
 // Created by mkorres on 10/9/2024.
 //
 
-#include "VectorFileType.h"
+# include "VectorFileType.h"
 
 
 VectorFileType::Type VectorFileType::getFileType(const string &filename) {

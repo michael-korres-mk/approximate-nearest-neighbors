@@ -5,7 +5,7 @@
 #ifndef ANN_UTILS_H
 #define ANN_UTILS_H
 
-#include <iostream>
+# include <iostream>
 
 #define BUFFER_SIZE 1024
 

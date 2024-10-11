@@ -3,51 +3,61 @@
 # include "utility/DataSet/DataSet.h"
 # include <fcntl.h>
 # include <unistd.h>
-#include <iomanip>
+# include <iomanip>
 
 
-#include "utility/Utils/Utils.h"
-#include "utility/VectorFileType/VectorFileType.h"
+# include "utility/Utils/Utils.h"
+# include "utility/VectorFileType/VectorFileType.h"
 
 using namespace std;
 
-void initializeDatasets(DataSet<float>** baseDataSet, DataSet<float>** queryDataSet, DataSet<float>** learningDataSet, DataSet<int>** groundtruthDataSet,char* argv[],int argc) ;
+void initializeDatasets(DataSet<float>& baseDataSet, DataSet<float>& queryDataSet, DataSet<float>& learningDataSet, DataSet<int>& groundtruthDataSet,char* argv[],int argc) ;
 
 
 int main(int argc,char* argv[]) {
 	// if(argc < 9)exit(EXIT_FAILURE
 
-	DataSet<float>* baseDataSet;
-	DataSet<float>* queryDataSet;
-	DataSet<float>* learningDataSet;
-	DataSet<int>* groundtruthDataSet;
+	DataSet<float> baseDataSet;
+	DataSet<float> queryDataSet;
+	DataSet<float> learningDataSet;
+	DataSet<int> groundtruthDataSet;
 
-	initializeDatasets(&baseDataSet,&queryDataSet,&learningDataSet,&groundtruthDataSet,argv,argc);
+	initializeDatasets(baseDataSet,queryDataSet,learningDataSet,groundtruthDataSet,argv,argc);
 
 
-	int numOfQueries = queryDataSet->getNumOfVectors();
+	int numOfQueries = queryDataSet.getNumOfVectors();
+	int k = groundtruthDataSet.getD();
 
-	int nearestNeighborId;
-	int groundTruthNearestNeighborId;
+	vector<int> nearestNeighbors;
+	vector<int> groundTruthNearestNeighbors;
+
+	int misses = 0;
+
+	vector<float> q;
 	for(int i = 0; i < numOfQueries;i++) {
-		nearestNeighborId = baseDataSet->getNearestNeighbor(queryDataSet->getVector(i));
-		groundTruthNearestNeighborId = groundtruthDataSet->getVector(i)[0];
-		if(nearestNeighborId == groundTruthNearestNeighborId) {
+		q = queryDataSet.getVector(i);
+		nearestNeighbors = baseDataSet.getNearestNeighbors(q,k);
+		groundTruthNearestNeighbors = groundtruthDataSet.getVector(i);
+		bool equalVecs = DataSet<int>::equals(nearestNeighbors,groundTruthNearestNeighbors);
+
+		if(equalVecs) {
 			cout << "Q" << i << ": " << "SUCCESS" << endl;
 		}
 		else {
 			cout << "Q" << i << ": " << "FAILURE" << endl;
+			misses++;
 		}
 	}
 
+	if(misses > 0) cout << "misses: " << misses << endl;
 }
 
-void initializeDatasets(DataSet<float>** baseDataSet, DataSet<float>** queryDataSet, DataSet<float>** learningDataSet, DataSet<int>** groundtruthDataSet,char* argv[],int argc)  {
+void initializeDatasets(DataSet<float>& baseDataSet, DataSet<float>& queryDataSet, DataSet<float>& learningDataSet, DataSet<int>& groundtruthDataSet,char* argv[],int argc)  {
 
-	char* baseVectorsDataFileName;
-	char* queryVectorsDataFileName;
-	char* learningVectorsDataFileName;
-	char* groundtruthVectorsDataFileName;
+	string baseVectorsDataFileName;
+	string queryVectorsDataFileName;
+	string learningVectorsDataFileName;
+	string groundtruthVectorsDataFileName;
 
 	for(int i = 1; i < argc;i++){	// Get arguments
 		if (strcmp(argv[i],"-bv") == 0) {
@@ -61,52 +71,9 @@ void initializeDatasets(DataSet<float>** baseDataSet, DataSet<float>** queryData
 		}
 	}
 
-	*baseDataSet = new DataSet<float>(baseVectorsDataFileName);
-	*queryDataSet = new DataSet<float>(queryVectorsDataFileName);
-	*groundtruthDataSet = new DataSet<int>(groundtruthVectorsDataFileName);
-	*learningDataSet = new DataSet<float>(learningVectorsDataFileName);
-
-}
-
-
-void printDatasets(DataSet<float>* baseDataSet, DataSet<float>* queryDataSet, DataSet<float>* learningDataSet, DataSet<int>* groundtruthDataSet) {
-	cout << endl << "base set | 1st 3 vectors : " << endl;
-	for(int i = 0; i < 3; i++) {
-		cout << "v{" << i << "}: " << endl;
-		for(int j = 0; j < baseDataSet->getD();j++) {
-			cout << baseDataSet->getVectors()[i][j] << " ";
-		}
-		cout << endl;
-	}
-
-	cout << endl << "learning set | 1st 3 vectors : " << endl;
-	for(int i = 0; i < 3; i++) {
-		cout << "v{" << i << "}: " << endl;
-		for(int j = 0; j < learningDataSet->getD();j++) {
-			cout << learningDataSet->getVectors()[i][j] << " ";
-		}
-		cout << endl;
-	}
-
-
-	cout << endl << "query set | 1st 3 vectors : " << endl;
-	for(int i = 0; i < 3; i++) {
-		cout << "v{" << i << "}: " << endl;
-		for(int j = 0; j < queryDataSet->getD();j++) {
-			cout << queryDataSet->getVectors()[i][j] << " ";
-		}
-		cout << endl;
-	}
-
-
-	cout << endl << "groundtruth set | 1st 3 vectors : " << endl;
-	for(int i = 0; i < 3; i++) {
-		cout << "v{" << i << "}:  neighbors: ";
-		for(int j = 0; j < groundtruthDataSet->getD();j++) {
-
-			cout << i << "."<< j << "|" <<groundtruthDataSet->getVectors()[i][j] << " ";
-		}
-		cout << endl;
-	}
+	baseDataSet = DataSet<float>(baseVectorsDataFileName);
+	queryDataSet = DataSet<float>(queryVectorsDataFileName);
+	groundtruthDataSet = DataSet<int>(groundtruthVectorsDataFileName);
+	learningDataSet = DataSet<float>(learningVectorsDataFileName);
 
 }
