@@ -4,7 +4,7 @@
 
 #ifndef VECTORFILEDATATYPE_H
 #define VECTORFILEDATATYPE_H
-#include <string>
+# include <string>
 using namespace std;
 
 class VectorFileType {
