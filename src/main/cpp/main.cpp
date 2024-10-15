@@ -24,32 +24,33 @@ int main(int argc,char* argv[]) {
 
 	initializeDatasets(baseDataSet,queryDataSet,learningDataSet,groundtruthDataSet,argv,argc);
 
+	// Graph(baseDataSet)
 
-	int numOfQueries = queryDataSet.getNumOfVectors();
-	int k = groundtruthDataSet.getD();
-
-	vector<int> nearestNeighbors;
-	vector<int> groundTruthNearestNeighbors;
-
-	int misses = 0;
-
-	vector<float> q;
-	for(int i = 0; i < numOfQueries;i++) {
-		q = queryDataSet.getVector(i);
-		nearestNeighbors = baseDataSet.getNearestNeighbors(q,k);
-		groundTruthNearestNeighbors = groundtruthDataSet.getVector(i);
-		bool equalVecs = DataSet<int>::equals(nearestNeighbors,groundTruthNearestNeighbors);
-
-		if(equalVecs) {
-			cout << "Q" << i << ": " << "SUCCESS" << endl;
-		}
-		else {
-			cout << "Q" << i << ": " << "FAILURE" << endl;
-			misses++;
-		}
-	}
-
-	if(misses > 0) cout << "misses: " << misses << endl;
+	// int numOfQueries = queryDataSet.getNumOfVectors();
+	// int k = groundtruthDataSet.getD();
+	//
+	// vector<int> nearestNeighbors;
+	// vector<int> groundTruthNearestNeighbors;
+	//
+	// int misses = 0;
+	//
+	// vector<float> q;
+	// for(int i = 0; i < numOfQueries;i++) {
+	// 	q = queryDataSet.getVector(i);
+	// 	nearestNeighbors = baseDataSet.getNearestNeighbors(q,k);
+	// 	groundTruthNearestNeighbors = groundtruthDataSet.getVector(i);
+	// 	bool equalVecs = DataSet<int>::equals(nearestNeighbors,groundTruthNearestNeighbors);
+	//
+	// 	if(equalVecs) {
+	// 		cout << "Q" << i << ": " << "SUCCESS" << endl;
+	// 	}
+	// 	else {
+	// 		cout << "Q" << i << ": " << "FAILURE" << endl;
+	// 		misses++;
+	// 	}
+	// }
+	//
+	// if(misses > 0) cout << "misses: " << misses << endl;
 }
 
 void initializeDatasets(DataSet<float>& baseDataSet, DataSet<float>& queryDataSet, DataSet<float>& learningDataSet, DataSet<int>& groundtruthDataSet,char* argv[],int argc)  {
