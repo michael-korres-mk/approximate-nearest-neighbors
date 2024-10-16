@@ -1,32 +1,45 @@
-//
-// Created by mkorres on 10/11/2024.
-//
+#ifndef NODE_HPP
+#define NODE_HPP
 
-#ifndef VERTEX_H
-#define VERTEX_H
-
-# include <iomanip>
-# include <valarray>
-# include <vector>
-# include <cassert>
-# include <fstream>
-# include "../Edge/Edge.h"
+#include <list>
+#include "../Edge/Edge.h"
 
 using namespace std;
 
-template <typename T>
-class Vertex {
-    int id;
-    vector<T> vec;
-    vector<Edge<int>> neighbors;
-    // + outneighbors
+template <typename IDType>
+class Node {
+private:
+    IDType id;
+    list<Edge<IDType>> incomingEdges;
+    list<Edge<IDType>> outgoingEdges;
+
 public:
-    Vertex(int& id, const vector<T>& vector);
-    int getId() const ;
-    vector<T> getVector() const ;
-    vector<Edge<T>> getNeighbors() const ;
+    Node(const IDType& id) : id(id) {}
+
+    const IDType& getId() const { return id; }
+
+    void addIncomingEdge(const Edge<IDType>& edge) {
+        incomingEdges.push_back(edge);
+    }
+
+    void addOutgoingEdge(const Edge<IDType>& edge) {
+        outgoingEdges.push_back(edge);
+    }
+
+    void removeIncomingEdge(Node<IDType>* sourceNode) {
+        incomingEdges.remove_if([sourceNode](const Edge<IDType>& edge) {
+            return edge.getSource() == sourceNode;
+        });
+    }
+
+    void removeOutgoingEdge(Node<IDType>* destNode) {
+        outgoingEdges.remove_if([destNode](const Edge<IDType>& edge) {
+            return edge.getDestination() == destNode;
+        });
+    }
+
+    const list<Edge<IDType>>& getIncomingEdges() const { return incomingEdges; }
+    const list<Edge<IDType>>& getOutgoingEdges() const { return outgoingEdges; }
 };
 
-
-
-#endif //VERTEX_H
+#endif // NODE_HPP

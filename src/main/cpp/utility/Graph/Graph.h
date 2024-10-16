@@ -1,39 +1,34 @@
-//
-// Created by mkorres on 10/11/2024.
-//
+#ifndef GRAPH_HPP
+#define GRAPH_HPP
 
-#ifndef GRAPH_H
-#define GRAPH_H
-
-#pragma once
+#include <iostream>
 #include <vector>
-
-#include "../Edge/Edge.h"
+#include <list>
+#include <unordered_map>
 #include "../Vertex/Vertex.h"
-#include "../DataSet/DataSet.h"
+#include "../Edge/Edge.h"
 
 using namespace std;
 
-template<typename T>
+template <typename IDType>
 class Graph {
-    vector<Vertex<T>> vertices;
-    int vertexCount;
-    vector<Edge<T>> edges;
-    int edgesCount;
+private:
+    unordered_map<IDType, Node<IDType>> nodes;
 
 public:
-    Graph<T>::Graph(DataSet<T> dataSet) ;
-    int size();
-    void insertVertex(Vertex<T> vertex);
-    vector<Vertex<T>> getVertices();
-    void removeVertex(Vertex<T> vertex);
-    void insertEdge(Vertex<T> src, Vertex<T> dest, float weight);
-    void removeEdge(Vertex<T> src, Vertex<T> dest);
-    int getWeight(Vertex<T> src, Vertex<T> dest);
-    vector<Vertex<T>> getNeighbors(Vertex<T> vertex);
-    void search(Vertex<T> vertex);
+    Graph();
     ~Graph();
+    Graph(const vector<vector<IDType>>& vec);       // Νέος κατασκευαστής που δέχεται ένα vector από vectors
+
+    bool insertNode(const IDType& id);
+    bool insertEdge(const IDType& sourceId, const IDType& destId);
+    bool deleteEdge(const IDType& sourceId, const IDType& destId);
+    bool printOutgoingTransactions(const IDType& id);
+    bool printIncomingTransactions(const IDType& id);
+    void printGraph(std::ostream& out);
 };
 
+// Συμπεριλαμβάνουμε το αρχείο υλοποίησης
+#include "Graph.cpp"
 
-#endif //GRAPH_H
+#endif // GRAPH_HPP

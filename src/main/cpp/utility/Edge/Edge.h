@@ -1,23 +1,27 @@
-//
-// Created by mkorres on 10/11/2024.
-//
+#ifndef EDGE_HPP
+#define EDGE_HPP
 
-#ifndef EDGE_H
-#define EDGE_H
-#include "../Vertex/Vertex.h"
+#include <iostream>
 
-template <typename T>
-class Edge {
-    int dest;
-    float distance;
+using namespace std;
+
+template <typename IDType>
+class Node; // Προκαταρκτική δήλωση της κλάσης Node
+
+template <typename IDType>
+class Edge{
+private:
+    Node<IDType>* source;      // Κόμβος πηγής
+    Node<IDType>* destination; // Κόμβος προορισμού
+
 public:
-    Edge(const Vertex<T>& src,const Vertex<T>& dest,float& distance);
-    Vertex<T> getSrc() const ;
-    Vertex<Edge<T>> getDest() const ;
-    float getDistance() const ;
-    ~Edge();
+    Edge(Node<IDType>* source, Node<IDType>* destination) : source(source), destination(destination) {}
+
+    Edge(const Edge& other) = default;            // Προεπιλεγμένος copy constructor
+    Edge& operator=(const Edge& other) = default; // Προεπιλεγμένος operator=
+
+    Node<IDType>* getSource() const { return source; }
+    Node<IDType>* getDestination() const { return destination; }
 };
 
-
-
-#endif //EDGE_H
+#endif // EDGE_HPP
