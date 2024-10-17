@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++17 -g
+CXXFLAGS = -std=c++20 -g
 
 # Source file directory
 SRC_DIR = src/main/cpp
