@@ -5,7 +5,7 @@
 
 
 template <typename T>
-Graph<T>::Graph(vector<vector<T>> vecs,int k){
+Graph<T>::Graph(vector<vector<T>> vecs, const int k):k(k){
     for(int i = 0; i < vecs.size() ; i++ ) {
         vertexMap.insert({i,vecs[i]});
     }
@@ -52,10 +52,11 @@ float Graph<T>::euclideanDistance(const vector<T>& v1,const vector<T>& v2) {
 
 template<typename T>
 bool Graph<T>::equals(vector<T>& v1, vector<T>& v2) {
+    if(v1.size() == 0 || v2.size() == 0) return false;
     const int dim = v1.size();
     for(int i = 0; i < dim; i++){
         if(v1[i] != v2[i]) {
-            if(( i == dim -1) || (v2[i+1] != v2[i+1])) { // lookahead for equally distant neighbors handling
+            if(i == dim - 1 || v2[i+1] != v2[i+1]) { // lookahead for equally distant neighbors handling
                 return false;
             }
             else {
@@ -85,7 +86,7 @@ vector<Edge> Graph<T>::calculateNearestNeighbors(const vector<T>& q,const int& k
     vector<Edge> kNearest;
 
     for (int i = 0; i < k && i < distances.size(); i++) {
-        kNearest.push_back(Edge(distances[i].first,distances[i].second));
+        kNearest.emplace_back(distances[i].first,distances[i].second);
     }
 
     return kNearest;
@@ -115,6 +116,78 @@ vector<Edge> Graph<T>::getNearestNeighbors(const vector<T>& q) {
 
 }
 
+template<typename T>
+vector<int> Graph<T>::greedySearch(const vector<T>& q) {
+    vector<Edge> L{Edge(0,euclideanDistance(q,vertexMap[0]))};
+    set<int> setL{0};
+    set<int> visited;
+    set<int> diff = setDiff(setL, visited);
+
+    while(!diff.empty()){
+        int neighbor = -1;
+        float minDist = numeric_limits<float>::max();
+        for(auto it : diff){
+            float dist = euclideanDistance(q,vertexMap[it]);
+            if(dist < minDist){
+                minDist = dist;
+                neighbor = it;
+            }
+        }
+
+        vector<Edge> neighbors = g[neighbor];
+
+        for (Edge n : neighbors) {
+            // if (find_if(L.begin(), L.end(),[&n](const Edge& e){ return e.getDestination() == n.getDestination(); }) == L.end()) {
+            //     L.push_back(n);
+            // }
+
+            if(!setL.contains(n.getDestination())){
+                setL.insert(n.getDestination());
+                L.push_back(n);
+            }
+
+        }
+
+        visited.insert(neighbor);
+
+        diff = setDiff(setL,visited);
+    }
+
+    auto comparator = [&](const Edge& a, const Edge& b) {
+        return a.getWeight() < b.getWeight(); // Sort by distance in ascending order
+    };
+
+    sort(L.begin(), L.end(), comparator);
+
+    vector<Edge> kNearest;
+
+    for (int i = 0; i < k && i < L.size(); i++) {
+        kNearest.emplace_back(L[i]);
+    }
+
+    return edgesToVertices(kNearest);
+}
+
+template<typename T>
+set<int> Graph<T>::setDiff(set<int>& A,set<int>& B){
+    set<int> diff;
+    for(auto a : A){
+        if(find(B.begin(), B.end(), a) == B.end()){
+            diff.insert(a);
+        }
+    }
+    return diff;
+}
+
+template<typename T>
+vector<int> Graph<T>::edgesToVertices(vector<Edge> edges) {
+    vector<int> v;
+    // Use a lambda to extract destinations and push to v
+    transform(edges.begin(), edges.end(), back_inserter(v), [](const Edge& e) {
+        return e.getDestination(); // Return the destination to be inserted into v
+    });
+    return v;
+}
 
 template<typename T>
 vector<Edge> Graph<T>::getNeighbors(int vertex) {
@@ -136,7 +209,7 @@ template <typename T>
 void Graph<T>::printVectorNeighbors(vector<Edge>& neighbors,ostream& out) {
 
     out << "Neighbors:" << endl;
-    if(neighbors.size() > 0) {
+    if(!neighbors.empty()) {
         for(Edge neighbor : neighbors){
 
             for(int j = 0; j < vertexMap[neighbor.getDestination()].size(); j++) {

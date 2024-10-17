@@ -15,31 +15,72 @@ void initializeDatasets(DataSet<float>& baseDataSet, DataSet<float>& queryDataSe
 int main(int argc,char* argv[]) {
 	// if(argc < 9)exit(EXIT_FAILURE
 
-	vector<vector<int>> vecs {
-		vector<int> {0},
-		vector<int> {1},
-		vector<int> {2},
-		vector<int> {3},
-		vector<int> {100},
-		vector<int> {101},
-		vector<int> {102},
-		vector<int> {103},
-		vector<int> {200},
-		vector<int> {201},
-		vector<int> {202},
-		vector<int> {203},
-	};
+	// vector<vector<int>> vecs {
+	// 	vector<int> {0},
+	// 	vector<int> {1},
+	// 	vector<int> {2},
+	// 	vector<int> {3},
+	// 	vector<int> {100},
+	// 	vector<int> {101},
+	// 	vector<int> {102},
+	// 	vector<int> {103},
+	// 	vector<int> {200},
+	// 	vector<int> {201},
+	// 	vector<int> {202},
+	// 	vector<int> {203},
+	// };
+	//
+	// int k = 2;
+	//
+	// Graph graph(vecs,k);
+	//
+	// // graph.printGraph();
+	//
+	// vector<int> q {204};
+	// vector<Edge> qNeighbors = graph.getNearestNeighbors(q);
+	//
+	// graph.printVectorNeighbors(qNeighbors);
 
-	int k = 2;
 
-	Graph graph(vecs,k);
+	DataSet<float> baseDataSet;
+	DataSet<float> queryDataSet;
+	DataSet<int> groundtruthDataSet;
 
-	// graph.printGraph();
+	initializeDatasets(baseDataSet,queryDataSet,groundtruthDataSet,argv,argc);
 
-	vector<int> q {204};
-	vector<Edge> qNeighbors = graph.getNearestNeighbors(q);
 
-	graph.printVectorNeighbors(qNeighbors);
+	int numOfQueries = queryDataSet.getNumOfVectors();
+	int k = groundtruthDataSet.getD();
+
+	vector<vector<float>> subset;
+	for(int i = 0; i < 2000; i++)subset.push_back(baseDataSet.getVector(i));
+
+	Graph graph(subset,k);
+
+	vector<Edge> nearestNeighborsEdges;
+	vector<int> groundTruthNearestNeighbors;
+
+	int misses = 0;
+
+	vector<float> q;
+	for(int i = 0; i < numOfQueries;i++) {
+		q = queryDataSet.getVector(i);
+		vector<int> neighbors = graph.greedySearch(q);
+
+		groundTruthNearestNeighbors = groundtruthDataSet.getVector(i);
+		bool equalVecs = Graph<int>::equals(neighbors,groundTruthNearestNeighbors);
+
+		if(equalVecs) {
+			cout << "Q" << i << ": " << "SUCCESS" << endl;
+		}
+		else {
+			cout << "Q" << i << ": " << "FAILURE" << endl;
+			misses++;
+		}
+	}
+
+	if(misses > 0) cout << "misses: " << misses << endl;
+
 
 }
 

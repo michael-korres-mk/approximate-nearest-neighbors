@@ -17,11 +17,10 @@ RESOURCES_DIR = src/main/resources
 DATASET = siftsmall
 BASE_DATA_FILE = $(DATASET)/$(DATASET)_base.fvecs
 GROUNDTRUTH_DATA_FILE = $(DATASET)/$(DATASET)_groundtruth.ivecs
-LEARN_DATA_FILE = $(DATASET)/$(DATASET)_learn.fvecs
 QUERY_DATA_FILE = $(DATASET)/$(DATASET)_query.fvecs
 
 main:
-	$(BUILD_DIR)/ann -bv $(BASE_DATA_FILE) -gv $(GROUNDTRUTH_DATA_FILE) -lv $(LEARN_DATA_FILE) -qv $(QUERY_DATA_FILE)
+	$(BUILD_DIR)/ann -bv $(BASE_DATA_FILE) -gv $(GROUNDTRUTH_DATA_FILE) -qv $(QUERY_DATA_FILE)
 
 
 valgrind-ann:
