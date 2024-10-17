@@ -12,10 +12,6 @@ add_executable(approximate_nearest_neighbors src/main/cpp/main.cpp
         src/main/cpp/utility/VectorFileType/VectorFileType.h
         src/main/cpp/utility/Graph/Graph.cpp
         src/main/cpp/utility/Graph/Graph.h
-        src/main/cpp/utility/Vertex/Vertex.cpp
-        src/main/cpp/utility/Vertex/Vertex.h
         src/main/cpp/utility/Edge/Edge.cpp
         src/main/cpp/utility/Edge/Edge.h
 )
-
-

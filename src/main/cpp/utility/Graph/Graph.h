@@ -2,30 +2,36 @@
 #define GRAPH_HPP
 
 #include <iostream>
+#include <map>
 #include <vector>
-#include <list>
-#include <unordered_map>
-#include "../Vertex/Vertex.h"
+#include "../DataSet/DataSet.h"
 #include "../Edge/Edge.h"
+#include "../DataSet/DataSet.h"
 
+# define K 5
 using namespace std;
 
-template <typename IDType>
+template <typename T>
 class Graph {
-private:
-    unordered_map<IDType, Node<IDType>> nodes;
-
+    map<int, vector<T> > vertexMap;
+    map<int,vector<Edge>> g;
 public:
-    Graph();
-    ~Graph();
-    Graph(const vector<vector<IDType>>& vec);       // Νέος κατασκευαστής που δέχεται ένα vector από vectors
+    Graph(vector<vector<T>> vecs,int k);
+    void addVertex(vector<T> vertex);
+    void addEdge(int src, int dest,float dist);
+    void removeEdge(int src, int dest);
+    vector<Edge> calculateNearestNeighbors(const vector<T>& q,const int& k);
+    vector<Edge> getNearestNeighbors(const vector<T> &q);
+    vector<Edge> getNeighbors(int vertex);
+    void printGraph(ostream& out = cout);
 
-    bool insertNode(const IDType& id);
-    bool insertEdge(const IDType& sourceId, const IDType& destId);
-    bool deleteEdge(const IDType& sourceId, const IDType& destId);
-    bool printOutgoingTransactions(const IDType& id);
-    bool printIncomingTransactions(const IDType& id);
-    void printGraph(std::ostream& out);
+    // static
+    static float euclideanDistance(const vector<T>& v1,const vector<T>& v2);
+    static void printVector(pair<int,vector<T>>,ostream& out = cout);
+
+    void printVectorNeighbors(vector<Edge>& neighbors, ostream &out = cout);
+
+    static bool equals(vector<T> &v1, vector<T> &v2);
 };
 
 // Συμπεριλαμβάνουμε το αρχείο υλοποίησης

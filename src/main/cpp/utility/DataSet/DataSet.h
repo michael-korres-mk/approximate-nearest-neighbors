@@ -10,7 +10,8 @@
 # include <vector>
 # include <cassert>
 # include <fstream>
-
+#include <map>
+# include "../Edge/Edge.h"
 using namespace std;
 
 template <typename T>
@@ -28,14 +29,7 @@ public:
     vector<vector<T>> getVectors();
     vector<T> getVector(int id);
     vector<vector<T>> vecsRead(const string& filename, pair<int, int> bounds);
-    int getNearestNeighbor(const vector<T> &q);
-    vector<int> getNearestNeighbors(const vector<T> &q,const int& k);
     void print();
-
-    // static
-    static float euclideanDistance(vector<T> v1,vector<T> v2);
-    static void printVector(vector<T> v);
-    static bool equals(vector<T> &v1, vector<T> &v2);
 };
 
 
