@@ -24,7 +24,7 @@ public:
     void removeEdge(int src, int dest);
     vector<Edge> calculateNearestNeighbors(const vector<T>& q,const int& k);
     vector<Edge> getNearestNeighbors(const vector<T> &q);
-    vector<int> greedySearch(const vector<T>& q);
+    pair<vector<int>,vector<int>> greedySearch(const vector<T>& q);
     set<int> setDiff(set<int>& A, set<int>& B);
     vector<int> edgesToVertices(vector<Edge> edges);
     vector<Edge> getNeighbors(int vertex);

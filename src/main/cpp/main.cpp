@@ -65,7 +65,10 @@ int main(int argc,char* argv[]) {
 	vector<float> q;
 	for(int i = 0; i < numOfQueries;i++) {
 		q = queryDataSet.getVector(i);
-		vector<int> neighbors = graph.greedySearch(q);
+		pair<vector<int>,vector<int>> gS = graph.greedySearch(q);
+
+		vector<int> neighbors = gS.first;
+		vector<int> v = gS.second;
 
 		groundTruthNearestNeighbors = groundtruthDataSet.getVector(i);
 		bool equalVecs = Graph<int>::equals(neighbors,groundTruthNearestNeighbors);

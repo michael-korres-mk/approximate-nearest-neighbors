@@ -117,7 +117,7 @@ vector<Edge> Graph<T>::getNearestNeighbors(const vector<T>& q) {
 }
 
 template<typename T>
-vector<int> Graph<T>::greedySearch(const vector<T>& q) {
+pair<vector<int>,vector<int>> Graph<T>::greedySearch(const vector<T>& q) {
     vector<Edge> L{Edge(0,euclideanDistance(q,vertexMap[0]))};
     set<int> setL{0};
     set<int> visited;
@@ -162,7 +162,7 @@ vector<int> Graph<T>::greedySearch(const vector<T>& q) {
         kNearest.emplace_back(L[i]);
     }
 
-    return edgesToVertices(kNearest);
+    return {edgesToVertices(kNearest),visited};
 }
 
 template<typename T>
