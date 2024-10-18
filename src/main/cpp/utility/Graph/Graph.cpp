@@ -5,15 +5,16 @@
 
 
 template <typename T>
-Graph<T>::Graph(vector<vector<T>> vecs, const int k):k(k){
+Graph<T>::Graph(vector<vector<T>> vecs, const int k):AUTO_INCREMENT(0),k(k){
     for(int i = 0; i < vecs.size() ; i++ ) {
-        vertexMap.insert({i,vecs[i]});
+        vertexMap.insert({AUTO_INCREMENT,vecs[i]});
+        AUTO_INCREMENT++;
     }
 
-    for(int i = 0; i < vecs.size() ; i++ ) {
-        vector<Edge> neighbors = calculateNearestNeighbors(vertexMap[i],k);
-        g.insert({i,neighbors});
-        if(i > 0 && (i+1) % 1000 == 0) cout<< i + 1 << " nodes' neighbors have been calculated"<< endl;
+    for(auto pair : vertexMap) {
+        vector<Edge> neighbors = calculateNearestNeighbors(pair.second,k);
+        g.insert({pair.first,neighbors});
+        if(pair.first > 0 && (pair.first+1) % 1000 == 0) cout<< pair.first + 1 << " nodes' neighbors have been calculated"<< endl;
     }
 }
 
@@ -162,7 +163,10 @@ pair<vector<int>,vector<int>> Graph<T>::greedySearch(const vector<T>& q) {
         kNearest.emplace_back(L[i]);
     }
 
-    return {edgesToVertices(kNearest),visited};
+    vector<int> visitedVec;
+    for(auto v : visited) visitedVec.push_back(v);
+
+    return {edgesToVertices(kNearest),visitedVec};
 }
 
 template<typename T>

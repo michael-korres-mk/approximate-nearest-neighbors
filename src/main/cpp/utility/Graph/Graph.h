@@ -14,6 +14,7 @@ using namespace std;
 
 template <typename T>
 class Graph {
+    int AUTO_INCREMENT;
     map<int, vector<T> > vertexMap;
     map<int,vector<Edge>> g;
     int k;
