@@ -137,9 +137,6 @@ vector<int> Graph<T>::greedySearch(const vector<T>& q) {
         vector<Edge> neighbors = g[neighbor];
 
         for (Edge n : neighbors) {
-            // if (find_if(L.begin(), L.end(),[&n](const Edge& e){ return e.getDestination() == n.getDestination(); }) == L.end()) {
-            //     L.push_back(n);
-            // }
 
             if(!setL.contains(n.getDestination())){
                 setL.insert(n.getDestination());
