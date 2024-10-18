@@ -20,7 +20,7 @@ Graph<T>::Graph(vector<vector<T>> vecs, const int k):k(k){
 template <typename T>
 void Graph<T>::addEdge(int src, int dest,float dist){
     vector<Edge>& srcNeighbors = g[src];
-    srcNeighbors.emplace_back(dest,dist);
+    srcNeighbors.push_back(Edge(dest,dist));
 }
 
 template <typename T>
