@@ -2,22 +2,61 @@
 #define GRAPH_CPP
 
 #include "Graph.h"
+#include "../Utils/Utils.h"
 
 
 template <typename T>
-Graph<T>::Graph(vector<vector<T>> vecs, const int k):AUTO_INCREMENT(0),k(k){
+Graph<T>::Graph(vector<vector<T>> vecs, const int L, const int R,float a):AUTO_INCREMENT(0),L(L),R(R),k(100),a(2){ // TODO: remove k from here
     for(int i = 0; i < vecs.size() ; i++ ) {
         vertexMap.insert({AUTO_INCREMENT,vecs[i]});
         AUTO_INCREMENT++;
     }
 
-    int medoidId = medoid();
+    vamana();
 
-    // for(auto pair : vertexMap) {
-    //     vector<Edge> neighbors = calculateNearestNeighbors(pair.second,k);
-    //     g.insert({pair.first,neighbors});
-    //     if(pair.first > 0 && (pair.first+1) % 1000 == 0) cout<< pair.first + 1 << " nodes' neighbors have been calculated"<< endl;
-    // }
+}
+
+template <typename T>
+void Graph<T>::robustPrune(int p, vector<int>& V,float a,int R){
+    return;
+}
+
+template <typename T>
+void Graph<T>::vamana(){
+    initializeRandomEdges();
+    int s = medoid();
+    auto sigma = Utils<T>::shuffle;
+
+    vector<int> L;
+    vector<int> V;
+    for(auto x: vertexMap){
+        auto vertices = edgesToVertices(g[x.first]);
+        pair<vector<int>,vector<int>> gS = greedySearch(s,sigma(vertices),1);
+        L = gS.first;
+        V = gS.second;
+
+        vector<int> neighbors = getVerticesIds();
+        // robustPrune(?,V,a,R);
+
+        for(auto y: edgesToVertices(g[x.first])){
+            if(g[y].size() > R){ // TODO: Fix the condition
+                // robustPrune(y,g[y],a,R);
+            }
+            else{
+                // g[y.first].push_back(y); // TODO: Fix this
+            }
+        }
+    }
+
+}
+
+template <typename T>
+void Graph<T>::initializeRandomEdges(){
+    for(auto pair : vertexMap) {
+        vector<Edge> neighbors = calculateNearestNeighbors(pair.second,k);
+        g.insert({pair.first,neighbors});
+        if(pair.first > 0 && (pair.first+1) % 1000 == 0) cout<< pair.first + 1 << " nodes' neighbors have been calculated"<< endl;
+    }
 }
 
 template <typename T>
@@ -141,54 +180,65 @@ vector<Edge> Graph<T>::getNearestNeighbors(const vector<T>& q) {
 
 }
 
+
 template<typename T>
-pair<vector<int>,vector<int>> Graph<T>::greedySearch(const vector<T>& q) {
-    vector<Edge> L{Edge(0,euclideanDistance(q,vertexMap[0]))};
-    set<int> setL{0};
-    set<int> visited;
-    set<int> diff = setDiff(setL, visited);
+int Graph<T>::argmindist(const vector<T>& p, const set<int>& P) {
+    float minDist = numeric_limits<float>::max();
+    int pStar = -1;
+    for(auto p2 : P){
+        if(float dist = euclideanDistance(p,vertexMap[p2]); dist < minDist){
+            minDist = dist;
+            pStar = p2;
+        }
+    }
+
+    return pStar;
+}
+
+template <typename T>
+vector<int> Graph<T>::getVerticesIds() {
+    vector<int> keys;
+    for (const auto& pair : vertexMap) keys.push_back(pair.first);
+    return keys;
+}
+
+template<typename T>
+pair<vector<int>,vector<int>> Graph<T>::greedySearch(int s, const vector<T>& q,int k) {
+    vector<Edge> edges{Edge(s,euclideanDistance(q,vertexMap[0]))};
+    set<int> L{s};
+    set<int> V;
+    set<int> diff = setDiff(L, V);
 
     while(!diff.empty()){
-        int neighbor = -1;
-        float minDist = numeric_limits<float>::max();
-        for(auto it : diff){
-            float dist = euclideanDistance(q,vertexMap[it]);
-            if(dist < minDist){
-                minDist = dist;
-                neighbor = it;
-            }
+        int pStar = argmindist(q,diff);
+
+        vector<Edge> neighbors = g[pStar];
+
+        for (Edge n : neighbors)
+        if(!L.contains(n.getDestination())){
+            L.insert(n.getDestination());
+            edges.push_back(n);
         }
 
-        vector<Edge> neighbors = g[neighbor];
+        V.insert(pStar);
 
-        for (Edge n : neighbors) {
-
-            if(!setL.contains(n.getDestination())){
-                setL.insert(n.getDestination());
-                L.push_back(n);
-            }
-
-        }
-
-        visited.insert(neighbor);
-
-        diff = setDiff(setL,visited);
+        diff = setDiff(L,V);
     }
 
     auto comparator = [&](const Edge& a, const Edge& b) {
         return a.getWeight() < b.getWeight(); // Sort by distance in ascending order
     };
 
-    sort(L.begin(), L.end(), comparator);
+    sort(edges.begin(), edges.end(), comparator);
 
     vector<Edge> kNearest;
 
-    for (int i = 0; i < k && i < L.size(); i++) {
-        kNearest.emplace_back(L[i]);
+    for (int i = 0; i < k && i < edges.size(); i++) {
+        kNearest.emplace_back(edges[i]);
     }
 
     vector<int> visitedVec;
-    for(auto v : visited) visitedVec.push_back(v);
+    for(auto v : V) visitedVec.push_back(v);
 
     return {edgesToVertices(kNearest),visitedVec};
 }

@@ -17,10 +17,10 @@
 
 using namespace std;
 
-template <typename  T>
+template <typename  K>
 class Utils {
 public:
-    static void shuffle(vector<vector<T>>& v);
+    static vector<K>& shuffle(vector<K>& v);
     static int flipCoin();
 };
 

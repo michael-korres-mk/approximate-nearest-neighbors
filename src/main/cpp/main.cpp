@@ -23,8 +23,11 @@ int main(int argc,char* argv[]) {
 	};
 
 	int k = 2;
+	int L = 10000000;
+	int R = 100;
+	float a = 1.8;
 
-	Graph graph(vecs,k);
+	Graph graph(vecs,L,R,a);
 
 	int medoidId = graph.medoid();
 

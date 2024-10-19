@@ -9,7 +9,6 @@
 #include "../DataSet/DataSet.h"
 #include <set>
 
-# define K 5
 using namespace std;
 
 template <typename T>
@@ -17,16 +16,26 @@ class Graph {
     int AUTO_INCREMENT;
     map<int, vector<T> > vertexMap;
     map<int,vector<Edge>> g;
+    int L;
+    int R;
     int k;
+    float a;
 public:
-    Graph(vector<vector<T>> vecs,int k);
+    Graph(vector<vector<T>> vecs,int L,int R,float a);
+    void robustPrune(int p, vector<int>& V, float a, int R);
+    void vamana();
+    void initializeRandomEdges();
     int medoid();
     void addVertex(vector<T> vertex);
     void addEdge(int src, int dest,float dist);
     void removeEdge(int src, int dest);
     vector<Edge> calculateNearestNeighbors(const vector<T>& q,const int& k);
     vector<Edge> getNearestNeighbors(const vector<T> &q);
-    pair<vector<int>,vector<int>> greedySearch(const vector<T>& q);
+    int argmindist(const vector<T>& p, const set<int>& P);
+    vector<int> getVerticesIds();
+    vector<int> getKeys(
+        const map<int, T>& m);
+    pair<vector<int>,vector<int>> greedySearch(int s, const vector<T>& q,int k);
     set<int> setDiff(set<int>& A, set<int>& B);
     vector<int> edgesToVertices(vector<Edge> edges);
     vector<Edge> getNeighbors(int vertex);
