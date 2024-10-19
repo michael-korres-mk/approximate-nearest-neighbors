@@ -6,6 +6,7 @@
 #define ANN_UTILS_H
 
 # include <iostream>
+#include <vector>
 
 #define BUFFER_SIZE 1024
 
@@ -16,8 +17,10 @@
 
 using namespace std;
 
+template <typename  T>
 class Utils {
 public:
+    static void shuffle(vector<vector<T>>& v);
     static int flipCoin();
 };
 
