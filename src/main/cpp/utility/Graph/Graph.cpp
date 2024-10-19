@@ -26,9 +26,9 @@ void Graph<T>::addEdge(int src, int dest,float dist){
 
 template <typename T>
 void Graph<T>::addVertex(vector<T> vertex){
-    int id = vertexMap.size();
-    vertexMap.insert({id,vertex});
-    g.insert({id,vector<Edge>()});
+    vertexMap.insert({AUTO_INCREMENT,vertex});
+    g.insert({AUTO_INCREMENT,vector<Edge>()});
+    AUTO_INCREMENT++;
 }
 
 template <typename T>
