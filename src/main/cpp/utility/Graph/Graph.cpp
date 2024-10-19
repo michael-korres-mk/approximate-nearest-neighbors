@@ -11,11 +11,35 @@ Graph<T>::Graph(vector<vector<T>> vecs, const int k):AUTO_INCREMENT(0),k(k){
         AUTO_INCREMENT++;
     }
 
-    for(auto pair : vertexMap) {
-        vector<Edge> neighbors = calculateNearestNeighbors(pair.second,k);
-        g.insert({pair.first,neighbors});
-        if(pair.first > 0 && (pair.first+1) % 1000 == 0) cout<< pair.first + 1 << " nodes' neighbors have been calculated"<< endl;
+    int medoidId = medoid();
+
+    // for(auto pair : vertexMap) {
+    //     vector<Edge> neighbors = calculateNearestNeighbors(pair.second,k);
+    //     g.insert({pair.first,neighbors});
+    //     if(pair.first > 0 && (pair.first+1) % 1000 == 0) cout<< pair.first + 1 << " nodes' neighbors have been calculated"<< endl;
+    // }
+}
+
+template <typename T>
+int Graph<T>::medoid(){
+    map<int, float> sumOfDistances;
+
+    for(auto x_i : vertexMap) {
+        sumOfDistances[x_i.first] = 0;
+        for (auto x_j : vertexMap){
+            sumOfDistances[x_i.first] += euclideanDistance(x_i.second, x_j.second);
+        }
     }
+
+    auto comparator = [&](const pair<int, float>& a, const pair<int, float>& b) {
+        return a.second < b.second; // Sort by distance in ascending order
+    };
+
+    vector<pair<int, float>> distanceVec(sumOfDistances.begin(), sumOfDistances.end());
+
+    sort(distanceVec.begin(), distanceVec.end(), comparator);
+
+    return distanceVec.begin()->first;
 }
 
 template <typename T>
@@ -195,6 +219,16 @@ vector<Edge> Graph<T>::getNeighbors(int vertex) {
     return g[vertex];
 }
 
+
+template <typename T>
+void Graph<T>::printVector(int id,ostream& out) {
+    out << "Vertex[" << id << "] = ";
+
+    for(int j = 0; j < vertexMap[id].size(); j++) {
+        out << vertexMap[id][j] << " ";
+    }
+    out<< endl;
+}
 
 template <typename T>
 void Graph<T>::printVector(pair<int,vector<T>> pair,ostream& out) {

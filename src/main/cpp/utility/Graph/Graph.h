@@ -20,6 +20,7 @@ class Graph {
     int k;
 public:
     Graph(vector<vector<T>> vecs,int k);
+    int medoid();
     void addVertex(vector<T> vertex);
     void addEdge(int src, int dest,float dist);
     void removeEdge(int src, int dest);
@@ -29,6 +30,7 @@ public:
     set<int> setDiff(set<int>& A, set<int>& B);
     vector<int> edgesToVertices(vector<Edge> edges);
     vector<Edge> getNeighbors(int vertex);
+    void printVector(int id, ostream& out = cout);
     void printGraph(ostream& out = cout);
     void printVectorNeighbors(vector<Edge>& neighbors, ostream &out = cout);
 
