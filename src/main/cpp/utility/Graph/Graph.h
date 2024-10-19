@@ -25,6 +25,7 @@ public:
     void robustPrune(int p, vector<int>& V, float a, int R);
     void vamana();
     void initializeRandomEdges();
+    vector<Edge> randomNeighbors(int pId, int R);
     int medoid();
     void addVertex(vector<T> vertex);
     void addEdge(int src, int dest,float dist);
