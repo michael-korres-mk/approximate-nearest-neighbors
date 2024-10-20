@@ -25,6 +25,7 @@ public:
     vector<Edge> calculateNearestNeighbors(const vector<T>& q,const int& k);
     vector<Edge> getNearestNeighbors(const vector<T> &q);
     vector<int> greedySearch(const vector<T>& q);
+    vector<int> robustPrune(int p, const std::vector<int>& V, double a, int R);
     set<int> setDiff(set<int>& A, set<int>& B);
     vector<int> edgesToVertices(vector<Edge> edges);
     vector<Edge> getNeighbors(int vertex);
