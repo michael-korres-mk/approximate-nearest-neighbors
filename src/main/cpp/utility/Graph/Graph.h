@@ -32,6 +32,8 @@ public:
     void removeEdge(int src, int dest);
     vector<Edge> calculateNearestNeighbors(const vector<T>& q,const int& k);
     vector<Edge> getNearestNeighbors(const vector<T> &q);
+    vector<int> greedySearch(const vector<T>& q);
+    vector<int> robustPrune(int p, const std::vector<int>& V, double a, int R);
     int argmindist(const vector<T>& p, const set<int>& P);
     vector<int> getVerticesIds();
     vector<int> getKeys(
