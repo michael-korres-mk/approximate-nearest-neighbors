@@ -9,26 +9,34 @@
 #include "../DataSet/DataSet.h"
 #include <set>
 
-# define K 5
 using namespace std;
 
 template <typename T>
 class Graph {
+    int AUTO_INCREMENT;
     map<int, vector<T> > vertexMap;
     map<int,vector<Edge>> g;
+    int R;
     int k;
+    double a;
 public:
-    Graph(vector<vector<T>> vecs,int k);
+    Graph(vector<vector<T>> vecs,int L,int R,double a);
+    void vamana();
+    void initializeRandomEdges();
+    vector<Edge> randomNeighbors(int pId, int R);
+    int medoid();
     void addVertex(vector<T> vertex);
     void addEdge(int src, int dest,float dist);
     void removeEdge(int src, int dest);
     vector<Edge> calculateNearestNeighbors(const vector<T>& q,const int& k);
-    vector<Edge> getNearestNeighbors(const vector<T> &q);
-    vector<int> greedySearch(const vector<T>& q);
-    vector<int> robustPrune(int p, const std::vector<int>& V, double a, int R);
+    vector<Edge> robustPrune(int p, const std::vector<int> &V, double a, int R);
+    int argmindist(const vector<T>& p, const set<int>& P);
+    vector<int> getVerticesIds();
+    pair<vector<int>,vector<int>> greedySearch(int s, const vector<T>& q,int k);
     set<int> setDiff(set<int>& A, set<int>& B);
     vector<int> edgesToVertices(vector<Edge> edges);
     vector<Edge> getNeighbors(int vertex);
+    void printVector(int id, ostream& out = cout);
     void printGraph(ostream& out = cout);
     void printVectorNeighbors(vector<Edge>& neighbors, ostream &out = cout);
 

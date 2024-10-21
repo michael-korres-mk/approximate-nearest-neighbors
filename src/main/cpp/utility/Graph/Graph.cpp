@@ -2,19 +2,115 @@
 #define GRAPH_CPP
 
 #include "Graph.h"
+#include "../Utils/Utils.h"
 
 
 template <typename T>
-Graph<T>::Graph(vector<vector<T>> vecs, const int k):k(k){
+Graph<T>::Graph(vector<vector<T>> vecs, const int R,const int k,double a):AUTO_INCREMENT(0),R(R),k(k),a(a){
     for(int i = 0; i < vecs.size() ; i++ ) {
-        vertexMap.insert({i,vecs[i]});
+        vertexMap.insert({AUTO_INCREMENT,vecs[i]});
+        AUTO_INCREMENT++;
     }
 
-    for(int i = 0; i < vecs.size() ; i++ ) {
-        vector<Edge> neighbors = calculateNearestNeighbors(vertexMap[i],k);
-        g.insert({i,neighbors});
-        if(i > 0 && (i+1) % 1000 == 0) cout<< i + 1 << " nodes' neighbors have been calculated"<< endl;
+    vamana();
+
+}
+
+template <typename T>
+void Graph<T>::vamana(){
+    cout << "vamana started" << endl;
+
+    initializeRandomEdges();
+    cout << "random edges initialized" << endl;
+    int s = medoid();
+    auto sigma = Utils<T>::shuffle;
+
+    cout << "medoid calculated" << endl;
+
+    vector<int> L;
+    vector<int> V;
+    int loop = 1;
+    for(auto x: vertexMap){
+        cout << "loop: " << loop << "| point.id = " << x.first << endl;
+
+        auto vertices = edgesToVertices(g[x.first]);
+        pair<vector<int>,vector<int>> gS = greedySearch(s,x.second,1);
+        cout << "greedy search completed" << endl;
+        L = gS.first;
+        V = gS.second;
+
+        vector<int> neighbors = getVerticesIds();
+        g[x.first] = robustPrune(x.first,V,a,R);
+        cout << "robust prune completed" << endl;
+
+        for(auto y: edgesToVertices(g[x.first])){
+            if((g[y].size() + 1) > R){
+                vector<int> V = edgesToVertices(g[y]);
+                V.push_back(x.first);
+                g[y] = robustPrune(y,V,a,R);
+            }
+            else{
+                g[y].push_back(Edge(x.first,euclideanDistance(vertexMap[y],x.second)));
+            }
+        }
+        cout << "reverse edge addition completed" << endl;
+
+        loop++;
     }
+
+}
+
+template <typename T>
+void Graph<T>::initializeRandomEdges(){
+    for(auto pair : vertexMap) {
+        vector<Edge> neighbors = randomNeighbors(pair.first,k);
+        g.insert({pair.first,neighbors});
+        if(pair.first > 0 && (pair.first+1) % 1000 == 0) cout<< pair.first + 1 << " nodes' neighbors have been calculated"<< endl;
+    }
+}
+
+template <typename T>
+vector<Edge> Graph<T>::randomNeighbors(int pId,int R) {
+    vector<Edge> neighbors;
+    vector<int> vertexIds;
+
+    for (const auto& pair : vertexMap) {
+        if (pair.first != pId) vertexIds.push_back(pair.first);
+    }
+
+    Utils<int>::shuffle(vertexIds);
+
+
+    vector<T> p = vertexMap[pId];
+    for (int i = 0; i < min(R, static_cast<int>(vertexIds.size())); ++i) {
+        vector<T> vec = vertexMap[vertexIds[i]];
+        neighbors.push_back(Edge(vertexIds[i], euclideanDistance(p,vec)));
+    }
+
+    return neighbors;
+}
+
+
+template <typename T>
+int Graph<T>::medoid(){
+    map<int, float> sumOfDistances;
+
+    for(auto x_i : vertexMap) {
+        sumOfDistances[x_i.first] = 0;
+        for (auto x_j : vertexMap){
+            sumOfDistances[x_i.first] += euclideanDistance(x_i.second, x_j.second);
+        }
+    }
+
+    auto comparator = [&](const pair<int, float>& a, const pair<int, float>& b) {
+        return a.second < b.second; // Sort by distance in ascending order
+    };
+
+    vector<pair<int, float>> distanceVec(sumOfDistances.begin(), sumOfDistances.end());
+
+    sort(distanceVec.begin(), distanceVec.end(), comparator);
+
+    return distanceVec.begin()->first;
 }
 
 template <typename T>
@@ -25,9 +121,9 @@ void Graph<T>::addEdge(int src, int dest,float dist){
 
 template <typename T>
 void Graph<T>::addVertex(vector<T> vertex){
-    int id = vertexMap.size();
-    vertexMap.insert({id,vertex});
-    g.insert({id,vector<Edge>()});
+    vertexMap.insert({AUTO_INCREMENT,vertex});
+    g.insert({AUTO_INCREMENT,vector<Edge>()});
+    AUTO_INCREMENT++;
 }
 
 template <typename T>
@@ -92,77 +188,68 @@ vector<Edge> Graph<T>::calculateNearestNeighbors(const vector<T>& q,const int& k
     return kNearest;
 }
 
-template<typename T>
-vector<Edge> Graph<T>::getNearestNeighbors(const vector<T>& q) {
-    pair<int, float> minDistance = {-1,numeric_limits<float>::max()};
 
-    for(int i = 0; i < vertexMap.size(); i++) {
-        float dist = euclideanDistance(q,vertexMap[i]);
-        if(dist != 0) {
-           if(dist < minDistance.second) {
-               minDistance = {i, dist};
-           }
-        }
-        else {
-            return g[i];
+
+template<typename T>
+int Graph<T>::argmindist(const vector<T>& p, const set<int>& P) {
+    float minDist = numeric_limits<float>::max();
+    int pStar = -1;
+    for(auto p2 : P){
+        if(float dist = euclideanDistance(p,vertexMap[p2]); dist < minDist){
+            minDist = dist;
+            pStar = p2;
         }
     }
 
+    return pStar;
+}
 
-
-    vector<Edge> kNearest{Edge(minDistance.first,minDistance.second)};
-    for(int i = 0; i < g[minDistance.first].size() - 1; i++) kNearest.push_back(g[minDistance.first][i]);
-    return kNearest;
-
+template <typename T>
+vector<int> Graph<T>::getVerticesIds() {
+    vector<int> keys;
+    for (const auto& pair : vertexMap) keys.push_back(pair.first);
+    return keys;
 }
 
 template<typename T>
-vector<int> Graph<T>::greedySearch(const vector<T>& q) {
-    vector<Edge> L{Edge(0,euclideanDistance(q,vertexMap[0]))};
-    set<int> setL{0};
-    set<int> visited;
-    set<int> diff = setDiff(setL, visited);
+pair<vector<int>,vector<int>> Graph<T>::greedySearch(int s, const vector<T>& q,int k) {
+    vector<Edge> edges{Edge(s,euclideanDistance(q,vertexMap[0]))};
+    set<int> L{s};
+    set<int> V;
+    set<int> diff = setDiff(L, V);
 
     while(!diff.empty()){
-        int neighbor = -1;
-        float minDist = numeric_limits<float>::max();
-        for(auto it : diff){
-            float dist = euclideanDistance(q,vertexMap[it]);
-            if(dist < minDist){
-                minDist = dist;
-                neighbor = it;
-            }
+        int pStar = argmindist(q,diff);
+
+        vector<Edge> neighbors = g[pStar];
+
+        for (Edge n : neighbors)
+        if(!L.contains(n.getDestination())){
+            L.insert(n.getDestination());
+            edges.push_back(n);
         }
 
-        vector<Edge> neighbors = g[neighbor];
+        V.insert(pStar);
 
-        for (Edge n : neighbors) {
-
-            if(!setL.contains(n.getDestination())){
-                setL.insert(n.getDestination());
-                L.push_back(n);
-            }
-
-        }
-
-        visited.insert(neighbor);
-
-        diff = setDiff(setL,visited);
+        diff = setDiff(L,V);
     }
 
     auto comparator = [&](const Edge& a, const Edge& b) {
         return a.getWeight() < b.getWeight(); // Sort by distance in ascending order
     };
 
-    sort(L.begin(), L.end(), comparator);
+    sort(edges.begin(), edges.end(), comparator);
 
     vector<Edge> kNearest;
 
-    for (int i = 0; i < k && i < L.size(); i++) {
-        kNearest.emplace_back(L[i]);
+    for (int i = 0; i < k && i < edges.size(); i++) {
+        kNearest.emplace_back(edges[i]);
     }
 
-    return edgesToVertices(kNearest);
+    vector<int> visitedVec;
+    for(auto v : V) visitedVec.push_back(v);
+
+    return {edgesToVertices(kNearest),visitedVec};
 }
 
 template<typename T>
@@ -197,12 +284,12 @@ vector<Edge> Graph<T>::getNeighbors(int vertex) {
 //              3) a -> Ένα κατώφλι (threshold) για την απόσταση, με τιμή μεγαλύτερη ή ίση του 1. Χρησιμοποιείται για να κρίνει αν θα αφαιρεθεί κάποιος γείτονας.
 //              4) R -> Το μέγιστο όριο γειτόνων που μπορούμε να διατηρήσουμε (degree bound).
 template <typename T>
-vector<int> Graph<T>::robustPrune(int p, const vector<int>& V, double a, int R) {
+vector<Edge> Graph<T>::robustPrune(int p, const vector<int> &V, double a, int R) {
     // Αντιγραφή του συνόλου V, αφού θα το τροποποιήσουμε και αφαίρεση του p από το σύνολο των υποψήφιων γειτόνων
     vector<int> candidateNeighbors = V;
     candidateNeighbors.erase(remove(candidateNeighbors.begin(), candidateNeighbors.end(), p), candidateNeighbors.end());
 
-    vector<int> N_out; // Νέοι εξωτερικοί γείτονες
+    vector<Edge> N_out; // Νέοι εξωτερικοί γείτονες
 
     // Ενώ υπάρχουν υποψήφιοι γείτονες
     while (!candidateNeighbors.empty()) {
@@ -212,8 +299,9 @@ vector<int> Graph<T>::robustPrune(int p, const vector<int>& V, double a, int R) 
                 return euclideanDistance(vertexMap[p], vertexMap[pPrime1]) < euclideanDistance(vertexMap[p], vertexMap[pPrime2]);
             });
 
+
         int p_star = *minIt; // Ο κοντινότερος γείτονας
-        N_out.push_back(p_star); // Προσθήκη του στο σύνολο των νέων γειτόνων
+        N_out.push_back(Edge(p,euclideanDistance(vertexMap[p],vertexMap[candidateNeighbors[*minIt]]))); // Προσθήκη του στο σύνολο των νέων γειτόνων
         candidateNeighbors.erase(minIt); // Αφαίρεση του από τους υποψήφιους
 
         // Αν το πλήθος των νέων γειτόνων φτάσει το όριο R, σταματάμε
@@ -235,6 +323,16 @@ vector<int> Graph<T>::robustPrune(int p, const vector<int>& V, double a, int R) 
 }
 
 
+
+template <typename T>
+void Graph<T>::printVector(int id,ostream& out) {
+    out << "Vertex[" << id << "] = ";
+
+    for(int j = 0; j < vertexMap[id].size(); j++) {
+        out << vertexMap[id][j] << " ";
+    }
+    out<< endl;
+}
 
 template <typename T>
 void Graph<T>::printVector(pair<int,vector<T>> pair,ostream& out) {

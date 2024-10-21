@@ -3,6 +3,7 @@
 //
 
 # include "Utils.h"
+#include <chrono>
 # include <iostream>
 # include <cstring>
 # include <cstdlib>
@@ -12,7 +13,16 @@
 
 using namespace std;
 
-int Utils::flipCoin() { // Function to simulate a coin flip
+template <typename K>
+vector<K>& Utils<K>::shuffle(vector<K>& v){
+    const unsigned seed = chrono::system_clock::now().time_since_epoch().count();
+    mt19937 rng(seed);
+    std::shuffle(v.begin(), v.end(), rng);
+    return v;
+}
+
+template <typename K>
+int Utils<K>::flipCoin() { // Function to simulate a coin flip
     // seed engine
     random_device seed;
 
@@ -26,3 +36,10 @@ int Utils::flipCoin() { // Function to simulate a coin flip
     return distribution(generator);
 
 }
+
+template class Utils<float>;
+template class Utils<int>;
+template class Utils<char>;
+template class Utils<vector<float>>;
+template class Utils<vector<int>>;
+template class Utils<vector<char>>;

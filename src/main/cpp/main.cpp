@@ -6,7 +6,6 @@
 # include <iomanip>
 #include "utility/Graph/Graph.h"
 # include "utility/Utils/Utils.h"
-# include "utility/VectorFileType/VectorFileType.h"
 
 using namespace std;
 
@@ -14,33 +13,6 @@ void initializeDatasets(DataSet<float>& baseDataSet, DataSet<float>& queryDataSe
 
 int main(int argc,char* argv[]) {
 	// if(argc < 9)exit(EXIT_FAILURE
-
-	// vector<vector<int>> vecs {
-	// 	vector<int> {0},
-	// 	vector<int> {1},
-	// 	vector<int> {2},
-	// 	vector<int> {3},
-	// 	vector<int> {100},
-	// 	vector<int> {101},
-	// 	vector<int> {102},
-	// 	vector<int> {103},
-	// 	vector<int> {200},
-	// 	vector<int> {201},
-	// 	vector<int> {202},
-	// 	vector<int> {203},
-	// };
-	//
-	// int k = 2;
-	//
-	// Graph graph(vecs,k);
-	//
-	// // graph.printGraph();
-	//
-	// vector<int> q {204};
-	// vector<Edge> qNeighbors = graph.getNearestNeighbors(q);
-	//
-	// graph.printVectorNeighbors(qNeighbors);
-
 
 	DataSet<float> baseDataSet;
 	DataSet<float> queryDataSet;
@@ -51,21 +23,30 @@ int main(int argc,char* argv[]) {
 
 	int numOfQueries = queryDataSet.getNumOfVectors();
 	int k = groundtruthDataSet.getD();
+	int R = 150;
+	double a = 1.8;
+
+	// Graph graph(vecs,L,R,a);
 
 	vector<vector<float>> subset;
 	for(int i = 0; i < 2000; i++)subset.push_back(baseDataSet.getVector(i));
 
-	Graph graph(subset,k);
+	Graph graph(baseDataSet.getVectors(),R,k,a);
 
 	vector<Edge> nearestNeighborsEdges;
 	vector<int> groundTruthNearestNeighbors;
 
 	int misses = 0;
 
+	int medoidId = graph.medoid();
+
 	vector<float> q;
 	for(int i = 0; i < numOfQueries;i++) {
 		q = queryDataSet.getVector(i);
-		vector<int> neighbors = graph.greedySearch(q);
+		pair<vector<int>,vector<int>> gS = graph.greedySearch(medoidId,q,k);
+
+		vector<int> neighbors = gS.first;
+		vector<int> v = gS.second;
 
 		groundTruthNearestNeighbors = groundtruthDataSet.getVector(i);
 		bool equalVecs = Graph<int>::equals(neighbors,groundTruthNearestNeighbors);
