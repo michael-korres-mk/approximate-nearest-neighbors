@@ -191,6 +191,50 @@ vector<Edge> Graph<T>::getNeighbors(int vertex) {
     return g[vertex];
 }
 
+// επιστρέφει μια λίστα που περιέχει τα id των γειτόνων που επιλέχθηκαν μετά τη διαδικασία του pruning
+// δέχεται:     1) p -> Το σημείο για το οποίο εκτελείται το pruning (ο κόμβος του γράφου).
+//              2) V -> Το σύνολο των υποψήφιων γειτόνων που θα εξεταστούν για το pruning.
+//              3) a -> Ένα κατώφλι (threshold) για την απόσταση, με τιμή μεγαλύτερη ή ίση του 1. Χρησιμοποιείται για να κρίνει αν θα αφαιρεθεί κάποιος γείτονας.
+//              4) R -> Το μέγιστο όριο γειτόνων που μπορούμε να διατηρήσουμε (degree bound).
+template <typename T>
+vector<int> Graph<T>::robustPrune(int p, const vector<int>& V, double a, int R) {
+    // Αντιγραφή του συνόλου V, αφού θα το τροποποιήσουμε και αφαίρεση του p από το σύνολο των υποψήφιων γειτόνων
+    vector<int> candidateNeighbors = V;
+    candidateNeighbors.erase(remove(candidateNeighbors.begin(), candidateNeighbors.end(), p), candidateNeighbors.end());
+
+    vector<int> N_out; // Νέοι εξωτερικοί γείτονες
+
+    // Ενώ υπάρχουν υποψήφιοι γείτονες
+    while (!candidateNeighbors.empty()) {
+        // Βρίσκουμε τον γείτονα που έχει την ελάχιστη απόσταση από το p
+        auto minIt = min_element(candidateNeighbors.begin(), candidateNeighbors.end(),
+            [&](int pPrime1, int pPrime2) {
+                return euclideanDistance(vertexMap[p], vertexMap[pPrime1]) < euclideanDistance(vertexMap[p], vertexMap[pPrime2]);
+            });
+
+        int p_star = *minIt; // Ο κοντινότερος γείτονας
+        N_out.push_back(p_star); // Προσθήκη του στο σύνολο των νέων γειτόνων
+        candidateNeighbors.erase(minIt); // Αφαίρεση του από τους υποψήφιους
+
+        // Αν το πλήθος των νέων γειτόνων φτάσει το όριο R, σταματάμε
+        if (N_out.size() == R) {
+            break;
+        }
+
+        // Κλαδεύουμε τους υπόλοιπους υποψήφιους γείτονες
+        for (auto it = candidateNeighbors.begin(); it != candidateNeighbors.end();) {
+            if (a * euclideanDistance(vertexMap[p], vertexMap[p_star]) <= euclideanDistance(vertexMap[p], vertexMap[*it])) {
+                it = candidateNeighbors.erase(it); // Αφαίρεση των γειτόνων που δεν πληρούν τα κριτήρια
+            } else {
+                ++it;
+            }
+        }
+    }
+
+    return N_out; // Επιστροφή των επιλεγμένων γειτόνων
+}
+
+
 
 template <typename T>
 void Graph<T>::printVector(pair<int,vector<T>> pair,ostream& out) {
