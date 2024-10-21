@@ -14,66 +14,53 @@ void initializeDatasets(DataSet<float>& baseDataSet, DataSet<float>& queryDataSe
 int main(int argc,char* argv[]) {
 	// if(argc < 9)exit(EXIT_FAILURE
 
-	vector<vector<int>> vecs {
-		vector<int> {0},
-		vector<int> {50},
-		vector<int> {100},
-		vector<int> {150},
-		vector<int> {200}
-	};
+	DataSet<float> baseDataSet;
+	DataSet<float> queryDataSet;
+	DataSet<int> groundtruthDataSet;
 
-	int k = 2;
-	int L = 10000000;
-	int R = 100;
-	float a = 1.8;
+	initializeDatasets(baseDataSet,queryDataSet,groundtruthDataSet,argv,argc);
 
-	Graph graph(vecs,L,R,a);
+
+	int numOfQueries = queryDataSet.getNumOfVectors();
+	int k = groundtruthDataSet.getD();
+	int R = 150;
+	double a = 1.8;
+
+	// Graph graph(vecs,L,R,a);
+
+	vector<vector<float>> subset;
+	for(int i = 0; i < 2000; i++)subset.push_back(baseDataSet.getVector(i));
+
+	Graph graph(baseDataSet.getVectors(),R,k,a);
+
+	vector<Edge> nearestNeighborsEdges;
+	vector<int> groundTruthNearestNeighbors;
+
+	int misses = 0;
 
 	int medoidId = graph.medoid();
 
-	graph.printVector(medoidId);
+	vector<float> q;
+	for(int i = 0; i < numOfQueries;i++) {
+		q = queryDataSet.getVector(i);
+		pair<vector<int>,vector<int>> gS = graph.greedySearch(medoidId,q,k);
 
-	// DataSet<float> baseDataSet;
-	// DataSet<float> queryDataSet;
-	// DataSet<int> groundtruthDataSet;
-	//
-	// initializeDatasets(baseDataSet,queryDataSet,groundtruthDataSet,argv,argc);
-	//
-	//
-	// int numOfQueries = queryDataSet.getNumOfVectors();
-	// int k = groundtruthDataSet.getD();
-	//
-	// vector<vector<float>> subset;
-	// for(int i = 0; i < 2000; i++)subset.push_back(baseDataSet.getVector(i));
-	//
-	// Graph graph(subset,k);
-	//
-	// vector<Edge> nearestNeighborsEdges;
-	// vector<int> groundTruthNearestNeighbors;
-	//
-	// int misses = 0;
-	//
-	// vector<float> q;
-	// for(int i = 0; i < numOfQueries;i++) {
-	// 	q = queryDataSet.getVector(i);
-	// 	pair<vector<int>,vector<int>> gS = graph.greedySearch(q);
-	//
-	// 	vector<int> neighbors = gS.first;
-	// 	vector<int> v = gS.second;
-	//
-	// 	groundTruthNearestNeighbors = groundtruthDataSet.getVector(i);
-	// 	bool equalVecs = Graph<int>::equals(neighbors,groundTruthNearestNeighbors);
-	//
-	// 	if(equalVecs) {
-	// 		cout << "Q" << i << ": " << "SUCCESS" << endl;
-	// 	}
-	// 	else {
-	// 		cout << "Q" << i << ": " << "FAILURE" << endl;
-	// 		misses++;
-	// 	}
-	// }
-	//
-	// if(misses > 0) cout << "misses: " << misses << endl;
+		vector<int> neighbors = gS.first;
+		vector<int> v = gS.second;
+
+		groundTruthNearestNeighbors = groundtruthDataSet.getVector(i);
+		bool equalVecs = Graph<int>::equals(neighbors,groundTruthNearestNeighbors);
+
+		if(equalVecs) {
+			cout << "Q" << i << ": " << "SUCCESS" << endl;
+		}
+		else {
+			cout << "Q" << i << ": " << "FAILURE" << endl;
+			misses++;
+		}
+	}
+
+	if(misses > 0) cout << "misses: " << misses << endl;
 
 
 }

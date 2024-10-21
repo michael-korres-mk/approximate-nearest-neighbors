@@ -6,7 +6,7 @@
 
 
 template <typename T>
-Graph<T>::Graph(vector<vector<T>> vecs, const int L, const int R,float a):AUTO_INCREMENT(0),L(L),R(R),k(100),a(2){ // TODO: remove k from here
+Graph<T>::Graph(vector<vector<T>> vecs, const int R,const int k,double a):AUTO_INCREMENT(0),R(R),k(k),a(a){
     for(int i = 0; i < vecs.size() ; i++ ) {
         vertexMap.insert({AUTO_INCREMENT,vecs[i]});
         AUTO_INCREMENT++;
@@ -17,35 +17,45 @@ Graph<T>::Graph(vector<vector<T>> vecs, const int L, const int R,float a):AUTO_I
 }
 
 template <typename T>
-void Graph<T>::robustPrune(int p, vector<int>& V,float a,int R){
-    return;
-}
-
-template <typename T>
 void Graph<T>::vamana(){
+    cout << "vamana started" << endl;
+
     initializeRandomEdges();
+    cout << "random edges initialized" << endl;
     int s = medoid();
     auto sigma = Utils<T>::shuffle;
 
+    cout << "medoid calculated" << endl;
+
     vector<int> L;
     vector<int> V;
+    int loop = 1;
     for(auto x: vertexMap){
+        cout << "loop: " << loop << "| point.id = " << x.first << endl;
+
         auto vertices = edgesToVertices(g[x.first]);
-        pair<vector<int>,vector<int>> gS = greedySearch(s,sigma(vertices),1);
+        pair<vector<int>,vector<int>> gS = greedySearch(s,x.second,1);
+        cout << "greedy search completed" << endl;
         L = gS.first;
         V = gS.second;
 
         vector<int> neighbors = getVerticesIds();
-        // robustPrune(?,V,a,R);
+        g[x.first] = robustPrune(x.first,V,a,R);
+        cout << "robust prune completed" << endl;
 
         for(auto y: edgesToVertices(g[x.first])){
-            if(g[y].size() > R){ // TODO: Fix the condition
-                // robustPrune(y,g[y],a,R);
+            if((g[y].size() + 1) > R){
+                vector<int> V = edgesToVertices(g[y]);
+                V.push_back(x.first);
+                g[y] = robustPrune(y,V,a,R);
             }
             else{
-                // g[y.first].push_back(y); // TODO: Fix this
+                g[y].push_back(Edge(x.first,euclideanDistance(vertexMap[y],x.second)));
             }
         }
+        cout << "reverse edge addition completed" << endl;
+
+        loop++;
     }
 
 }
@@ -71,9 +81,9 @@ vector<Edge> Graph<T>::randomNeighbors(int pId,int R) {
     Utils<int>::shuffle(vertexIds);
 
 
-    vector<int> p = vertexMap[pId];
+    vector<T> p = vertexMap[pId];
     for (int i = 0; i < min(R, static_cast<int>(vertexIds.size())); ++i) {
-        vector<int> vec = vertexMap[vertexIds[i]];
+        vector<T> vec = vertexMap[vertexIds[i]];
         neighbors.push_back(Edge(vertexIds[i], euclideanDistance(p,vec)));
     }
 
@@ -178,29 +188,6 @@ vector<Edge> Graph<T>::calculateNearestNeighbors(const vector<T>& q,const int& k
     return kNearest;
 }
 
-template<typename T>
-vector<Edge> Graph<T>::getNearestNeighbors(const vector<T>& q) {
-    pair<int, float> minDistance = {-1,numeric_limits<float>::max()};
-
-    for(int i = 0; i < vertexMap.size(); i++) {
-        float dist = euclideanDistance(q,vertexMap[i]);
-        if(dist != 0) {
-           if(dist < minDistance.second) {
-               minDistance = {i, dist};
-           }
-        }
-        else {
-            return g[i];
-        }
-    }
-
-
-
-    vector<Edge> kNearest{Edge(minDistance.first,minDistance.second)};
-    for(int i = 0; i < g[minDistance.first].size() - 1; i++) kNearest.push_back(g[minDistance.first][i]);
-    return kNearest;
-
-}
 
 
 template<typename T>
@@ -297,12 +284,12 @@ vector<Edge> Graph<T>::getNeighbors(int vertex) {
 //              3) a -> Ένα κατώφλι (threshold) για την απόσταση, με τιμή μεγαλύτερη ή ίση του 1. Χρησιμοποιείται για να κρίνει αν θα αφαιρεθεί κάποιος γείτονας.
 //              4) R -> Το μέγιστο όριο γειτόνων που μπορούμε να διατηρήσουμε (degree bound).
 template <typename T>
-vector<int> Graph<T>::robustPrune(int p, const vector<int>& V, double a, int R) {
+vector<Edge> Graph<T>::robustPrune(int p, const vector<int> &V, double a, int R) {
     // Αντιγραφή του συνόλου V, αφού θα το τροποποιήσουμε και αφαίρεση του p από το σύνολο των υποψήφιων γειτόνων
     vector<int> candidateNeighbors = V;
     candidateNeighbors.erase(remove(candidateNeighbors.begin(), candidateNeighbors.end(), p), candidateNeighbors.end());
 
-    vector<int> N_out; // Νέοι εξωτερικοί γείτονες
+    vector<Edge> N_out; // Νέοι εξωτερικοί γείτονες
 
     // Ενώ υπάρχουν υποψήφιοι γείτονες
     while (!candidateNeighbors.empty()) {
@@ -312,8 +299,9 @@ vector<int> Graph<T>::robustPrune(int p, const vector<int>& V, double a, int R) 
                 return euclideanDistance(vertexMap[p], vertexMap[pPrime1]) < euclideanDistance(vertexMap[p], vertexMap[pPrime2]);
             });
 
+
         int p_star = *minIt; // Ο κοντινότερος γείτονας
-        N_out.push_back(p_star); // Προσθήκη του στο σύνολο των νέων γειτόνων
+        N_out.push_back(Edge(p,euclideanDistance(vertexMap[p],vertexMap[candidateNeighbors[*minIt]]))); // Προσθήκη του στο σύνολο των νέων γειτόνων
         candidateNeighbors.erase(minIt); // Αφαίρεση του από τους υποψήφιους
 
         // Αν το πλήθος των νέων γειτόνων φτάσει το όριο R, σταματάμε
