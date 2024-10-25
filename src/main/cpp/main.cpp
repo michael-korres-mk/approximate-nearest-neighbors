@@ -9,7 +9,8 @@
 
 using namespace std;
 
-void initializeDatasets(DataSet<float>& baseDataSet, DataSet<float>& queryDataSet, DataSet<int>& groundtruthDataSet,char* argv[],int argc) ;
+void initializeDatasets(DataSet<float>& baseDataSet, DataSet<float>& queryDataSet, DataSet<int>& groundtruthDataSet,char* argv[],int argc);
+tuple<int, int, double, int> calculate_parameters(int num_nodes);
 
 int main(int argc,char* argv[]) {
 	// if(argc < 9)exit(EXIT_FAILURE
@@ -21,48 +22,34 @@ int main(int argc,char* argv[]) {
 	initializeDatasets(baseDataSet,queryDataSet,groundtruthDataSet,argv,argc);
 
 
-	int numOfQueries = queryDataSet.getNumOfVectors();
-	int k = groundtruthDataSet.getD();
-	int R = 150;
-	double a = 1.8;
+	// int numOfQueries = queryDataSet.getNumOfVectors();
+	// int k = groundtruthDataSet.getD();
+	// int R = 50;
+	// double a = 1.8;
 
-	// Graph graph(vecs,L,R,a);
+	int num_nodes = 1000;
 
 	vector<vector<float>> subset;
-	for(int i = 0; i < 2000; i++)subset.push_back(baseDataSet.getVector(i));
+	for(int i = 0; i < num_nodes; i++)subset.push_back(baseDataSet.getVector(i));
 
-	Graph graph(baseDataSet.getVectors(),R,k,a);
+	auto [R, k, a, L] = calculate_parameters(num_nodes);
+	cout << "Για " << num_nodes << " nodes:\n";
+	cout << "R = " << R << "\n";
+	cout << "k = " << k << "\n";
+	cout << "a = " << a << "\n";
+	cout << "L = " << L << "\n";
 
-	vector<Edge> nearestNeighborsEdges;
-	vector<int> groundTruthNearestNeighbors;
+	Graph graph(subset,k,R,a,L);
 
-	int misses = 0;
+}
 
-	int medoidId = graph.medoid();
+tuple<int, int, double, int> calculate_parameters(int num_nodes) {
+	int R = 10 + 10 * std::log10(num_nodes);                   // Μέγιστος αριθμός γειτόνων
+	int k = 5 + std::sqrt(num_nodes / 1000.0);                 // Αριθμός γειτόνων προς αναζήτηση
+	double a = 1.2 + 0.1 * std::log10(num_nodes);              // Κατώφλι απόστασης
+	int L = 2 * k + num_nodes / 1000;                          // Μέγεθος λίστας αναζήτησης
 
-	vector<float> q;
-	for(int i = 0; i < numOfQueries;i++) {
-		q = queryDataSet.getVector(i);
-		pair<vector<int>,vector<int>> gS = graph.greedySearch(medoidId,q,k);
-
-		vector<int> neighbors = gS.first;
-		vector<int> v = gS.second;
-
-		groundTruthNearestNeighbors = groundtruthDataSet.getVector(i);
-		bool equalVecs = Graph<int>::equals(neighbors,groundTruthNearestNeighbors);
-
-		if(equalVecs) {
-			cout << "Q" << i << ": " << "SUCCESS" << endl;
-		}
-		else {
-			cout << "Q" << i << ": " << "FAILURE" << endl;
-			misses++;
-		}
-	}
-
-	if(misses > 0) cout << "misses: " << misses << endl;
-
-
+	return {R, k, a, L};
 }
 
 void initializeDatasets(DataSet<float>& baseDataSet, DataSet<float>& queryDataSet, DataSet<int>& groundtruthDataSet,char* argv[],int argc)  {

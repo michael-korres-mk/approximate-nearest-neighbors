@@ -1,49 +1,43 @@
 #ifndef GRAPH_HPP
 #define GRAPH_HPP
 
-#include <iostream>
-#include <map>
-#include <vector>
-#include "../DataSet/DataSet.h"
+#include <bits/stdc++.h>
 #include "../Edge/Edge.h"
-#include "../DataSet/DataSet.h"
-#include <set>
 
 using namespace std;
 
 template <typename T>
 class Graph {
-    int AUTO_INCREMENT;
     map<int, vector<T> > vertexMap;
     map<int,vector<Edge>> g;
-    int R;
-    int k;
-    double a;
-public:
-    Graph(vector<vector<T>> vecs,int L,int R,double a);
-    void vamana();
-    void initializeRandomEdges();
-    vector<Edge> randomNeighbors(int pId, int R);
-    int medoid();
-    void addVertex(vector<T> vertex);
-    void addEdge(int src, int dest,float dist);
-    void removeEdge(int src, int dest);
-    vector<Edge> calculateNearestNeighbors(const vector<T>& q,const int& k);
-    vector<Edge> robustPrune(int p, const std::vector<int> &V, double a, int R);
-    int argmindist(const vector<T>& p, const set<int>& P);
-    vector<int> getVerticesIds();
-    pair<vector<int>,vector<int>> greedySearch(int s, const vector<T>& q,int k);
-    set<int> setDiff(set<int>& A, set<int>& B);
-    vector<int> edgesToVertices(vector<Edge> edges);
-    vector<Edge> getNeighbors(int vertex);
-    void printVector(int id, ostream& out = cout);
-    void printGraph(ostream& out = cout);
-    void printVectorNeighbors(vector<Edge>& neighbors, ostream &out = cout);
+    int AUTO_INCREMENT;     // Χρησιμοποιείται για την ανάθεση μοναδικών ID σε κάθε κορυφή. Ξεκινά από το 0 και αυξάνεται αυτόματα κατά την εισαγωγή κάθε νέας κορυφής.
+    int R;                          // Μέγιστος αριθμός εξερχόμενων ακμών
+    int k;                          // Αριθμός γειτόνων που θα βρούμε
+    double a;                       // Παράμετρος για το RobustPrune (κατώφλι απόστασης)
+    int L;                         // Παράμετρος για το GreedySearch που καθορίζει το μέγεθος της λίστας αναζήτησης.
 
-    // static
-    static float euclideanDistance(const vector<T>& v1,const vector<T>& v2);
-    static void printVector(pair<int,vector<T>>,ostream& out = cout);
-    static bool equals(vector<T> &v1, vector<T> &v2);
+public:
+    Graph(const vector<vector<T>>& vecs, int R, int k, double a, int L);
+
+    void addVertex(const vector<T>& vertex);
+    void addEdge(int src, int dest, float dist);
+    vector<int> getOutNeighbors(int vertex);
+
+    void initializeRandomGraph(int R);
+    int findMedoid();
+    int findMedoidSample(int sample_size);
+    vector<int> generateRandomPermutation(int n);
+
+    void vamanaIndexing(const vector<vector<T>>& P, int L, int R, double a);
+    vector<int> robustPrune(int p, const vector<int>& V, double a, int R);
+    pair<vector<int>, unordered_set<int>> greedySearch(int s, const vector<T>& x_q, int k, int L);
+
+    void setOutNeighbors(int node, const std::vector<int>& neighbors);
+    void addOutNeighbor(int node, int neighbor);
+    static double euclideanDistance(const vector<T>& v1, const vector<T>& v2);  // Συνάρτηση για υπολογισμό Ευκλείδειας απόστασης
+
+    void printGraph(ostream& out);
+    void generateDotFile(const string& filename);
 };
 
 #include "Graph.cpp"
