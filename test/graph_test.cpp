@@ -141,7 +141,51 @@ void test_getOutNeighbors() {
 }
 
 void test_initializeRandomGraph(){
-    TEST_ASSERT(false);
+    int R = 5;
+    int numVertices = 100;
+    Graph<int> graph({}, R, 3, 0.5, 10);
+    mt19937 rng(42);
+    uniform_int_distribution<int> dist(-100, 100);
+    for (int i = 0; i < numVertices; ++i) {
+        vector<int> point = {dist(rng), dist(rng)};
+        graph.addVertex(point);
+    }
+
+    // Αρχικοποίηση τυχαίου γραφήματος
+    graph.initializeRandomGraph(R);
+
+    // Έλεγχος για το αν τηρείται το όριο γειτόνων R
+    const auto& vertexMap = graph.getVertexMap();
+    for (const auto& [vertex, neighbors] : vertexMap) {
+        vector<int> outNeighbors = graph.getOutNeighbors(vertex);
+        TEST_ASSERT(outNeighbors.size() <= R);
+    }
+
+    // Έλεγχος για self-loops
+    for (const auto& [vertex, neighbors] : vertexMap) {
+        vector<int> outNeighbors = graph.getOutNeighbors(vertex);
+        for (int neighbor : outNeighbors) {
+            TEST_ASSERT(neighbor != vertex);
+        }
+    }
+
+    // Έλεγχος της τυχαιότητας με επανάληψη
+    map<int, vector<int>> neighbors_snapshot;
+    for (const auto& [vertex, neighbors] : vertexMap) {
+        neighbors_snapshot[vertex] = graph.getOutNeighbors(vertex);
+    }
+
+    // Επανεκτέλεση της `initializeRandomGraph` και έλεγχος ότι οι γείτονες αλλάζουν
+    graph.initializeRandomGraph(R);
+    bool neighbors_changed = false;
+    for (const auto& [vertex, old_neighbors] : neighbors_snapshot) {
+        const auto& new_neighbors = graph.getOutNeighbors(vertex);
+        if (new_neighbors != old_neighbors) {
+            neighbors_changed = true;
+            break;
+        }
+    }
+    TEST_ASSERT(neighbors_changed);
 }
 
 
