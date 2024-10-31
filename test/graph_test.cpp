@@ -301,18 +301,6 @@ void test_findMedoidSample() {
     TEST_ASSERT(fabs(sample_distance2 - min_total_distance) < tolerance);
 }
 
-void test_vamanaIndexing() {
-    TEST_ASSERT(false);
-}
-
-void test_robustPrune() {
-    TEST_ASSERT(false);
-}
-
-void test_greedySearch() {
-    TEST_ASSERT(false);
-}
-
 void test_setOutNeighbors() {
     Graph<int> graph({}, 5, 3, 0.5, 10);
     graph.addVertex({1, 2});    // ID 0
@@ -334,7 +322,6 @@ void test_setOutNeighbors() {
     TEST_ASSERT(edges.size() == 1);             // Πρέπει να υπάρχει μόνο 1 ακμή
     TEST_ASSERT(edges[0].getDestination() == 3);// και να είναι ο 3
 }
-
 
 void test_addOutNeighbor() {
     Graph<int> graph({}, 5, 3, 0.5, 10);
@@ -368,6 +355,19 @@ void test_euclideanDistance() {
     TEST_ASSERT(fabs(distance - 5.0) < 1e-6); // Αναμένουμε απόσταση 5.0
 }
 
+void test_greedySearch() {
+    TEST_ASSERT(false);
+}
+
+void test_robustPrune() {
+    TEST_ASSERT(false);
+}
+
+void test_vamanaIndexing() {
+    TEST_ASSERT(false);
+}
+
+
 // Λίστα με όλα τα tests
 TEST_LIST = {
     { "addVertex", test_addVertex },
@@ -376,11 +376,11 @@ TEST_LIST = {
     { "initializeRandomGraph", test_initializeRandomGraph },
     { "findMedoid", test_findMedoid },
     { "findMedoidSample", test_findMedoidSample },
-    { "vamanaIndexing", test_vamanaIndexing },
-    { "robustPrune", test_robustPrune },
-    { "greedySearch", test_greedySearch },
     { "setOutNeighbors", test_setOutNeighbors },
     { "addOutNeighbor", test_addOutNeighbor },
     { "euclideanDistance", test_euclideanDistance },
+    { "greedySearch", test_greedySearch },
+    { "robustPrune", test_robustPrune },
+    { "vamanaIndexing", test_vamanaIndexing },
     { NULL, NULL } // Τερματισμός της λίστας
 };
