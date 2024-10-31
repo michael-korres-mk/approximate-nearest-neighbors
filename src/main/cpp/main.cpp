@@ -27,7 +27,7 @@ int main(int argc,char* argv[]) {
 	// int R = 50;
 	// double a = 1.8;
 
-	int num_nodes = 1000;
+	int num_nodes = 10000;
 
 	vector<vector<float>> subset;
 	for(int i = 0; i < num_nodes; i++)subset.push_back(baseDataSet.getVector(i));
@@ -40,6 +40,8 @@ int main(int argc,char* argv[]) {
 	cout << "L = " << L << "\n";
 
 	Graph graph(subset,k,R,a,L);
+
+	graph.printGraph(std::cout);
 
 }
 

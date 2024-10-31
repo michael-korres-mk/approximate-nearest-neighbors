@@ -12,7 +12,7 @@ Graph<T>::Graph(const vector<vector<T>>& vecs, int R, int k, double a, int L)
     }
     //this->printGraph(std::cout);
     this->vamanaIndexing(vecs, L, R, a);
-    this->printGraph(std::cout);
+    //this->printGraph(std::cout);
 }
 
 template <typename T>
@@ -22,14 +22,23 @@ void Graph<T>::addVertex(const vector<T>& vertex) {
 
 template <typename T>
 void Graph<T>::addEdge(int src, int dest, float dist) {
-    g[src].emplace_back(Edge(dest, dist)); // Προσθέτει μια ακμή από το src στο dest
+    if (vertexMap.find(src) == vertexMap.end() || vertexMap.find(dest) == vertexMap.end()) {
+        throw std::out_of_range("Source or destination vertex does not exist");
+    }
+    // Έλεγχος για διπλή ακμή
+    auto& edges = g[src];
+    auto it = std::find_if(edges.begin(), edges.end(),
+                           [&](const Edge& edge) { return edge.getDestination() == dest; });
+    if (it == edges.end()) {
+        g[src].emplace_back(Edge(dest, dist)); // Προσθέτει μια ακμή από το src στο dest
+    }
 }
 
 template <typename T>
 vector<int> Graph<T>::getOutNeighbors(int vertex) {
     vector<int> neighbors;
     for (const auto& edge : g[vertex]) {
-        neighbors.push_back(edge.getDestination()); // Επιστρέφει τους γείτονες του vertex
+        neighbors.push_back(edge.getDestination());
     }
     return neighbors;
 }
@@ -180,11 +189,11 @@ void Graph<T>::addOutNeighbor(int node, int neighbor) {
 
 template <typename T>
 void Graph<T>::vamanaIndexing(const vector<vector<T>>& P, int L, int R, double a) {
-    cout << "vamana started" << endl;
+    //cout << "vamana started" << endl;
 
     // Αρχικοποίηση του G ως τυχαίο R-regular γράφημα
     this->initializeRandomGraph(R);
-    cout << "random edges initialized" << endl;
+    //cout << "random edges initialized" << endl;
 
     // Υπολογισμός του medoid του συνόλου P
     int s;
@@ -193,27 +202,14 @@ void Graph<T>::vamanaIndexing(const vector<vector<T>>& P, int L, int R, double a
     }else {
         s = findMedoidSample(P.size()/10);  // Το δείγμα θα πρέπει να είναι περίπου το 10% του συνολικού αριθμού των κόμβων
     }
-    cout << "Medoid found: " << s << endl;
+    //cout << "Medoid found: " << s << endl;
 
     // Δημιουργία τυχαίας διάταξης των σημείων 1..n
     vector<int> sigma = generateRandomPermutation(P.size());
-    cout << "Random permutation generated" << endl;
+    //cout << "Random permutation generated" << endl;
 
-
-    this->generateDotFile("graph0.dot");
-    int m = 0;
     // Για κάθε σημείο στη διάταξη
     for (int i = 0; i < P.size(); i++) {
-        if (m == 100)   this->generateDotFile("graph100.dot");
-        if (m == 200)   this->generateDotFile("graph200.dot");
-        if (m == 300)   this->generateDotFile("graph300.dot");
-        if (m == 400)   this->generateDotFile("graph400.dot");
-        if (m == 500)   this->generateDotFile("graph500.dot");
-        if (m == 600)   this->generateDotFile("graph600.dot");
-        if (m == 700)   this->generateDotFile("graph700.dot");
-        if (m == 800)   this->generateDotFile("graph800.dot");
-        if (m == 900)   this->generateDotFile("graph900.dot");
-        m++;
         int sigma_i = sigma[i];
 
         // Εκτελούμε GreedySearch για το σ(i)
@@ -240,7 +236,6 @@ void Graph<T>::vamanaIndexing(const vector<vector<T>>& P, int L, int R, double a
             }
         }
     }
-    this->generateDotFile("graph1000.dot");
 }
 
 
@@ -407,5 +402,43 @@ void Graph<T>::generateDotFile(const string& filename) {
     file.close();
     cout << "DOT file created: " << filename << endl;
 }
+
+
+// For testing
+template <typename T>
+int Graph<T>::getTotalVertices() const {
+    return vertexMap.size();
+}
+
+template <typename T>
+const vector<T>& Graph<T>::getVertexData(int id) const {
+    auto it = vertexMap.find(id);
+    if (it != vertexMap.end()) {
+        return it->second;
+    } else {
+        throw std::out_of_range("Vertex ID not found");
+    }
+}
+
+template <typename T>
+const vector<Edge>& Graph<T>::getEdges(int id) const {
+    auto it = g.find(id);
+    if (it != g.end()) {
+        return it->second;
+    } else {
+        static const vector<Edge> empty;
+        return empty;
+    }
+}
+
+template <typename T>
+int Graph<T>::getTotalEdges() const {
+    int count = 0;
+    for (const auto& pair : g) {
+        count += pair.second.size();
+    }
+    return count;
+}
+
 
 #endif // GRAPH_CPP

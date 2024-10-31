@@ -38,6 +38,17 @@ public:
 
     void printGraph(ostream& out);
     void generateDotFile(const string& filename);
+
+
+    // For testing
+    int getTotalVertices() const;
+    const vector<T>& getVertexData(int id) const;
+    const vector<Edge>& getEdges(int node) const;
+    int getTotalEdges() const;
+    const map<int, vector<T>>& getVertexMap() const {
+        return vertexMap;
+    }
+
 };
 
 #include "Graph.cpp"
