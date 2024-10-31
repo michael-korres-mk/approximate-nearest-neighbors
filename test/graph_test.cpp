@@ -314,11 +314,51 @@ void test_greedySearch() {
 }
 
 void test_setOutNeighbors() {
-    TEST_ASSERT(false);
+    Graph<int> graph({}, 5, 3, 0.5, 10);
+    graph.addVertex({1, 2});    // ID 0
+    graph.addVertex({3, 4});    // ID 1
+    graph.addVertex({5, 6});    // ID 2
+    graph.addVertex({7, 8});    // ID 3
+
+    graph.setOutNeighbors(0, {1, 2});
+    auto edges = graph.getEdges(0);
+    TEST_ASSERT(edges.size() == 2);      // Πρέπει να υπάρχουν 2 ακμές
+
+    // Έλεγχος των δεδομένων κάθε ακμής
+    TEST_ASSERT(edges[0].getDestination() == 1);
+    TEST_ASSERT(edges[1].getDestination() == 2);
+
+    // Έλεγχος ότι οι παλιοί γείτονες έχουν διαγραφεί και ο νέος γείτονας έχει προστεθεί
+    graph.setOutNeighbors(0, {3});
+    edges = graph.getEdges(0);
+    TEST_ASSERT(edges.size() == 1);             // Πρέπει να υπάρχει μόνο 1 ακμή
+    TEST_ASSERT(edges[0].getDestination() == 3);// και να είναι ο 3
 }
 
+
 void test_addOutNeighbor() {
-    TEST_ASSERT(false);
+    Graph<int> graph({}, 5, 3, 0.5, 10);
+    graph.addVertex({1, 2});    // ID 0
+    graph.addVertex({3, 4});    // ID 1
+    graph.addVertex({5, 6});    // ID 2
+    graph.addVertex({7, 8});    // ID 3
+
+    graph.addOutNeighbor(0, 1);
+    auto edges = graph.getEdges(0);
+    TEST_ASSERT(edges.size() == 1);
+    TEST_ASSERT(edges[0].getDestination() == 1);
+    double expectedDist01 = graph.euclideanDistance({1, 2}, {3, 4});
+    TEST_ASSERT(edges[0].getWeight() == expectedDist01);
+
+    graph.addOutNeighbor(0, 1);
+    edges = graph.getEdges(0);
+    TEST_ASSERT(edges.size() == 1);
+    graph.addOutNeighbor(0, 2);
+    edges = graph.getEdges(0);
+    TEST_ASSERT(edges.size() == 2);
+    TEST_ASSERT(edges[1].getDestination() == 2);
+    double expectedDist02 = graph.euclideanDistance({1, 2}, {5, 6});
+    TEST_ASSERT(edges[1].getWeight() == expectedDist02);
 }
 
 void test_euclideanDistance() {

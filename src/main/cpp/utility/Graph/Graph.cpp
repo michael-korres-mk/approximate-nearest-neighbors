@@ -147,29 +147,19 @@ double Graph<T>::euclideanDistance(const vector<T>& v1,const vector<T>& v2) {
 
 template <typename T>
 void Graph<T>::setOutNeighbors(int node, const std::vector<int>& neighbors) {
-    // Καθαρίζουμε τους υπάρχοντες γείτονες του κόμβου
     g[node].clear();
-
-    // Για κάθε γείτονα στη νέα λίστα
     for (int neighbor : neighbors) {
-        // Υπολογίζουμε την απόσταση μεταξύ του κόμβου και του γείτονά του
         double dist = euclideanDistance(vertexMap[node], vertexMap[neighbor]);
-
-        // Δημιουργούμε μια νέα ακμή από τον κόμβο προς τον γείτονά του
         Edge edge(neighbor, dist);
-
-        // Προσθέτουμε την ακμή στη λίστα των εξερχόμενων ακμών του κόμβου
         g[node].push_back(edge);
     }
 }
 
 template <typename T>
 void Graph<T>::addOutNeighbor(int node, int neighbor) {
-    // Έλεγχος αν ο neighbor υπάρχει ήδη
     auto it = std::find_if(g[node].begin(), g[node].end(),
                            [&](const Edge& edge) { return edge.getDestination() == neighbor; });
     if (it == g[node].end()) {
-        // Υπολογίζουμε την απόσταση και προσθέτουμε τον neighbor
         double dist = euclideanDistance(vertexMap[node], vertexMap[neighbor]);
         Edge edge(neighbor, dist);
         g[node].push_back(edge);
