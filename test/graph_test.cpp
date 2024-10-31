@@ -349,26 +349,21 @@ void test_addOutNeighbor() {
 }
 
 void test_euclideanDistance() {
-    // 1. Έλεγχος μηδενικής απόστασης για ταυτόσημα διανύσματα
     std::vector<int> v1 = {1, 2, 3};
     TEST_ASSERT(Graph<int>::euclideanDistance(v1, v1) == 0);
 
-    // 2. Έλεγχος απόστασης για διανύσματα με γνωστή απόσταση
     std::vector<int> v2 = {4, 6, 3};
     double expectedDist1 = sqrt((4 - 1) * (4 - 1) + (6 - 2) * (6 - 2) + (3 - 3) * (3 - 3));
     TEST_ASSERT(fabs(Graph<int>::euclideanDistance(v1, v2) - expectedDist1) < 1e-6);
 
-    // 3. Έλεγχος απόστασης για διανύσματα με αρνητικές τιμές
     std::vector<int> v3 = {-1, -2, -3};
     double expectedDist2 = sqrt((1 + 1) * (1 + 1) + (2 + 2) * (2 + 2) + (3 + 3) * (3 + 3));
     TEST_ASSERT(fabs(Graph<int>::euclideanDistance(v1, v3) - expectedDist2) < 1e-6);
 
-    // 4. Έλεγχος για διανύσματα με μηδενικές τιμές
     std::vector<int> v4 = {0, 0, 0};
     double expectedDist3 = sqrt(1*1 + 2*2 + 3*3);
     TEST_ASSERT(fabs(Graph<int>::euclideanDistance(v1, v4) - expectedDist3) < 1e-6);
 
-    // 5. Έλεγχος για διανύσματα μεγαλύτερης διάστασης
     std::vector<int> v5 = {1, 2, 3, 4, 5};
     std::vector<int> v6 = {4, 6, 3, 4, 10};
     double expectedDist4 = sqrt((4 - 1) * (4 - 1) + (6 - 2) * (6 - 2) + (3 - 3) * (3 - 3) + (4 - 4) * (4 - 4) + (10 - 5) * (10 - 5));
