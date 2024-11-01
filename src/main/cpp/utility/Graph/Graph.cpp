@@ -91,26 +91,39 @@ vector<Edge> Graph<T>::randomNeighbors(int pId,int R) {
 }
 
 
+// Μειώνεται η πολυπλοκότητα από O(n^2) σε O(m^2), όπου m είναι το μέγεθος του δείγματος (m << n).
+// Το δείγμα θα πρέπει να είναι περίπου το 10% του συνολικού αριθμού των κόμβων
 template <typename T>
-int Graph<T>::medoid(){
-    map<int, float> sumOfDistances;
+int Graph<T>::medoid() {
+    int n = vertexMap.size();
+    int sample_size = n/10;
+    sample_size = min(sample_size, n);
 
-    for(auto x_i : vertexMap) {
-        sumOfDistances[x_i.first] = 0;
-        for (auto x_j : vertexMap){
-            sumOfDistances[x_i.first] += euclideanDistance(x_i.second, x_j.second);
+    // Επιλέγουμε τυχαία ένα δείγμα από τα IDs των σημείων
+    vector<int> sample_ids;
+    for (const auto& [id, vec] : vertexMap) {
+        sample_ids.push_back(id);
+    }
+    random_shuffle(sample_ids.begin(), sample_ids.end());
+    sample_ids.resize(sample_size);
+
+    int medoid_id = -1;
+    double min_total_distance = numeric_limits<double>::infinity();
+
+    // Υπολογίζουμε το medoid στο δείγμα
+    for (int id_i : sample_ids) {
+        double total_distance = 0.0;
+        for (int id_j : sample_ids) {
+            if (id_i != id_j) {
+                total_distance += euclideanDistance(vertexMap[id_i], vertexMap[id_j]);
+            }
+        }
+        if (total_distance < min_total_distance) {
+            min_total_distance = total_distance;
+            medoid_id = id_i;
         }
     }
-
-    auto comparator = [&](const pair<int, float>& a, const pair<int, float>& b) {
-        return a.second < b.second; // Sort by distance in ascending order
-    };
-
-    vector<pair<int, float>> distanceVec(sumOfDistances.begin(), sumOfDistances.end());
-
-    sort(distanceVec.begin(), distanceVec.end(), comparator);
-
-    return distanceVec.begin()->first;
+    return medoid_id;
 }
 
 template <typename T>
