@@ -23,7 +23,7 @@ int main(int argc,char* argv[]) {
 
 	int numOfQueries = queryDataSet.getNumOfVectors();
 	int k = groundtruthDataSet.getD();
-	int R = 150;
+	int R = 60;
 	double a = 1.8;
 
 	// Graph graph(vecs,L,R,a);

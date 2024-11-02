@@ -59,29 +59,28 @@ void Graph<T>::vamana(){
 
 template <typename T>
 void Graph<T>::initializeRandomEdges(){
+    clock_t start = clock();
     for(auto pair : vertexMap) {
         vector<Edge> neighbors = randomNeighbors(pair.first,k);
         g.insert({pair.first,neighbors});
-        if(pair.first > 0 && (pair.first+1) % 1000 == 0) cout<< pair.first + 1 << " nodes' neighbors have been calculated"<< endl;
+        // if(pair.first > 0 && (pair.first+1) % 1000 == 0) cout<< pair.first + 1 << " nodes' neighbors have been calculated"<< endl;
     }
+
+    clock_t end = clock();
+    double timeSpent = (double)(end - start) / CLOCKS_PER_SEC;
+    printf("graph initialization: %f seconds\n", timeSpent);
 }
 
 template <typename T>
 vector<Edge> Graph<T>::randomNeighbors(int pId,int R) {
     vector<Edge> neighbors;
-    vector<int> vertexIds;
-
-    for (const auto& pair : vertexMap) {
-        if (pair.first != pId) vertexIds.push_back(pair.first);
-    }
-
-    Utils<int>::shuffle(vertexIds);
-
 
     vector<T> p = vertexMap[pId];
-    for (int i = 0; i < min(R, static_cast<int>(vertexIds.size())); ++i) {
-        vector<T> vec = vertexMap[vertexIds[i]];
-        neighbors.push_back(Edge(vertexIds[i], euclideanDistance(p,vec)));
+    int randomId = Utils<int>::random(0,AUTO_INCREMENT - 1);
+    for (int i = 0; i < R; ++i) {
+        while (randomId == pId) randomId = Utils<int>::random(0,AUTO_INCREMENT - 1);
+        vector<T> vec = vertexMap[randomId];
+        neighbors.push_back(Edge(randomId, euclideanDistance(p,vec)));
     }
 
     return neighbors;
