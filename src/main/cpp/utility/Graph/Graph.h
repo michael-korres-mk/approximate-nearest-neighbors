@@ -13,12 +13,12 @@ using namespace std;
 
 template <typename T>
 class Graph {
-    int AUTO_INCREMENT;
+    int AUTO_INCREMENT;             // Χρησιμοποιείται για την ανάθεση μοναδικών ID σε κάθε κορυφή. Ξεκινά από το 0 και αυξάνεται αυτόματα κατά την εισαγωγή κάθε νέας κορυφής.
     map<int, vector<T> > vertexMap;
     map<int,vector<Edge>> g;
-    int R;
-    int k;
-    double a;
+    int R;                          // Μέγιστος αριθμός εξερχόμενων ακμών
+    int k;                          // Αριθμός γειτόνων που θα βρούμε
+    double a;                       // Παράμετρος για το RobustPrune (κατώφλι απόστασης)
 public:
     Graph(vector<vector<T>> vecs,int L,int R,double a);
     void vamana();
@@ -30,9 +30,10 @@ public:
     void removeEdge(int src, int dest);
     vector<Edge> calculateNearestNeighbors(const vector<T>& q,const int& k);
     vector<Edge> robustPrune(int p, const std::vector<int> &V, double a, int R);
+    int argminDist(const vector<T>& p, const vector<int>& P);
     int argmindist(const vector<T>& p, const set<int>& P);
     vector<int> getVerticesIds();
-    pair<vector<int>,vector<int>> greedySearch(int s, const vector<T>& q,int k);
+    pair<vector<int>,vector<int>> greedySearch(int s, const vector<T>& x_q,int k, int ef);
     set<int> setDiff(set<int>& A, set<int>& B);
     vector<int> edgesToVertices(vector<Edge> edges);
     vector<Edge> getNeighbors(int vertex);
