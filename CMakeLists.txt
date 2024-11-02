@@ -12,4 +12,6 @@ add_executable(approximate_nearest_neighbors src/main/cpp/main.cpp
         src/main/cpp/utility/Graph/Graph.h
         src/main/cpp/utility/Edge/Edge.cpp
         src/main/cpp/utility/Edge/Edge.h
+        src/main/cpp/utility/SortedContainer/SortedContainer.cpp
+        src/main/cpp/utility/SortedContainer/SortedContainer.h
 )

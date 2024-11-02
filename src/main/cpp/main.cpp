@@ -24,15 +24,18 @@ int main(int argc,char* argv[]) {
 	int numOfQueries = queryDataSet.getNumOfVectors();
 	int k = groundtruthDataSet.getD();
 	int R = 60;
-	double a = 1.8;
+	double a = 1.2;
 
-	// Graph graph(vecs,L,R,a);
-
-	vector<vector<float>> subset;
-	for(int i = 0; i < 2000; i++)subset.push_back(baseDataSet.getVector(i));
 
 	Graph graph(baseDataSet.getVectors(),R,k,a);
+
+	clock_t start = clock();
+
 	graph.vamana();
+
+	clock_t end = clock();
+	double timeSpent = (double)(end - start) / CLOCKS_PER_SEC;
+	printf("index build: %f seconds\n", timeSpent);
 
 	vector<Edge> nearestNeighborsEdges;
 	vector<int> groundTruthNearestNeighbors;

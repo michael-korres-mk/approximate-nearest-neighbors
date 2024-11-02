@@ -18,7 +18,7 @@ void Graph<T>::vamana(){
     cout << "vamana started" << endl;
 
     initializeRandomEdges();
-    cout << "random edges initialized" << endl;
+
     int s = medoid();
     auto sigma = Utils<T>::shuffle;
 
@@ -26,33 +26,25 @@ void Graph<T>::vamana(){
 
     vector<int> L;
     vector<int> V;
-    int loop = 1;
-    for(auto x: vertexMap){
-        cout << "loop: " << loop << "| point.id = " << x.first << endl;
+    for(const auto& [vertex,neighbors] : vertexMap){
+        // (vertex % 1000 == 0) && printf("%d\n",vertex);
 
-        auto vertices = edgesToVertices(g[x.first]);
-        pair<vector<int>,vector<int>> gS = greedySearch(s,x.second,k,120);
-        cout << "greedy search completed" << endl;
-        L = gS.first;
-        V = gS.second;
 
-        vector<int> neighbors = getVerticesIds();
-        g[x.first] = robustPrune(x.first,V,a,R);
-        cout << "robust prune completed" << endl;
+        const auto& [L,V] = greedySearch(s,neighbors,k,120);
 
-        for(auto y: edgesToVertices(g[x.first])){
+        vector<int> neighborIds = getVerticesIds();
+        g[vertex] = robustPrune(vertex,V,a,R);
+
+        for(auto y: edgesToVertices(g[vertex])){
             if((g[y].size() + 1) > R){
                 vector<int> V = edgesToVertices(g[y]);
-                V.push_back(x.first);
+                V.push_back(vertex);
                 g[y] = robustPrune(y,V,a,R);
             }
-            else{
-                g[y].push_back(Edge(x.first,euclideanDistance(vertexMap[y],x.second)));
-            }
+        //     else{
+        //         g[y].push_back(Edge(vertex,euclideanDistance(vertexMap[y],neighbors)));
+        //     }
         }
-        cout << "reverse edge addition completed" << endl;
-
-        loop++;
     }
 
 }
@@ -60,9 +52,9 @@ void Graph<T>::vamana(){
 template <typename T>
 void Graph<T>::initializeRandomEdges(){
     clock_t start = clock();
-    for(auto pair : vertexMap) {
-        vector<Edge> neighbors = randomNeighbors(pair.first,k);
-        g.insert({pair.first,neighbors});
+    for(const auto& [key, value] : vertexMap) {
+        vector<Edge> neighbors = randomNeighbors(key,k);
+        g.insert({key,neighbors});
         // if(pair.first > 0 && (pair.first+1) % 1000 == 0) cout<< pair.first + 1 << " nodes' neighbors have been calculated"<< endl;
     }
 
@@ -219,74 +211,49 @@ vector<int> Graph<T>::getVerticesIds() {
     for (const auto& pair : vertexMap) keys.push_back(pair.first);
     return keys;
 }
-// επιστρέφει:      1) Τους k πιο κοντινούς γείτονες.
-//                  2) Το σύνολο των κόμβων που έχουν επισκεφθεί.
-// δέχεται:   1) s -> Το αρχικό σημείο (start node).
-//            2) x_q -> Το σημείο ερώτημα (query point), δηλαδή το σημείο για το οποίο ψάχνουμε τους κοντινότερους γείτονες.
-//            3) k -> Το πλήθος των γειτόνων που θέλουμε να βρούμε (μέγεθος του αποτελέσματος).
-//            4) ef -> Το μέγεθος της λίστας αναζήτησης, το οποίο πρέπει να είναι τουλάχιστον ίσο με το k.
-template<typename T>
-pair<vector<int>,vector<int>> Graph<T>::greedySearch(int s, const vector<T>& x_q, int k, int ef) {
-    // Αρχικοποίηση του αρχικού συνόλου με τον κόμβο εκκίνησης και το σύνολο επισκέψεων
-    vector<Edge> edges{Edge(s,euclideanDistance(x_q,vertexMap[0]))};
-    set<int> L{s};      // Σύνολο αναζήτησης
-    set<int> V;         // Σύνολο επισκεφθέντων κόμβων
-    set<int> diff = setDiff(L, V);
 
-    // Επαναληπτική αναζήτηση μέχρι να εξαντληθούν οι κόμβοι που μπορούν να εξερευνηθούν
+
+template<typename T>
+pair<vector<int>,vector<int>> Graph<T>::greedySearch(int s, const vector<T>& q, const int k, int L) {
+
+    // clock_t start = clock();
+
+    SortedContainer l(L); l.insert({s,euclideanDistance(q,vertexMap[s])});      // Σύνολο αναζήτησης
+    set<int> V;         // Σύνολο επισκεφθέντων κόμβων
+    set<int> diff = setDiff(l, V);
+
     while(!diff.empty()){
-        int pStar = argmindist(x_q,diff);   // Βρίσκουμε το p* (τον πιο κοντινό κόμβο που δεν έχει επισκεφτεί ακόμα)
+        int pStar = argmindist(q,diff);   // Βρίσκουμε το p* (τον πιο κοντινό κόμβο που δεν έχει επισκεφτεί ακόμα)
 
         vector<Edge> neighbors = g[pStar];  // Βρίσκουμε τους γείτονες του p*
 
         // Ενημερώνουμε το L με τους νέους γείτονες
         for (Edge n : neighbors) {
-            if(!L.contains(n.getDestination())){
-                L.insert(n.getDestination());
-                edges.push_back(n);
+            if(!l.contains(n.getDestination())){
+                l.insert({n.getDestination(),n.getWeight()});
             }
         }
 
         V.insert(pStar);    // Προσθέτουμε το p* στο σύνολο επισκέψεων
+        diff = setDiff(l,V);
 
-        // Έλεγχος για το μέγεθος της λίστας αναζήτησης
-        if (L.size() > ef) {
-            // Διατηρούμε τα πιο κοντινά ef σημεία από το x_q
-            auto comparator = [&](int a, int b) {
-                return euclideanDistance(vertexMap[a], x_q) < euclideanDistance(vertexMap[b], x_q);
-            };
-            // Ταξινομούμε τα στοιχεία του L ως προς την απόσταση και κρατάμε τα ef κοντινότερα
-            vector<int> L_vec(L.begin(), L.end());
-            sort(L_vec.begin(), L_vec.end(), comparator);
-            L = set<int>(L_vec.begin(), L_vec.begin() + ef);
-        }
-
-        // Ενημερώνουμε το diff για την επόμενη επανάληψη
-        diff = setDiff(L,V);
-
-    }
-    // Ταξινόμηση των ακμών ως προς την απόσταση
-    auto comparator = [&](const Edge& a, const Edge& b) {
-        return a.getWeight() < b.getWeight(); // Sort by distance in ascending order
-    };
-
-    sort(edges.begin(), edges.end(), comparator);
-
-    // Αποθήκευση των k πιο κοντινών γειτόνων
-    vector<Edge> kNearest;
-    for (int i = 0; i < k && i < edges.size(); i++) {
-        kNearest.emplace_back(edges[i]);
     }
 
     // Μετατροπή των αποτελεσμάτων για επιστροφή
     vector<int> visitedVec(V.begin(), V.end());
-    return {edgesToVertices(kNearest), visitedVec};
+
+    // clock_t end = clock();
+    // double timeSpent = (double)(end - start) / CLOCKS_PER_SEC;
+    // printf("greedy search: %f seconds\n", timeSpent);
+
+    return {l.subset(k), visitedVec};
 }
 
 template<typename T>
-set<int> Graph<T>::setDiff(set<int>& A,set<int>& B){
+set<int> Graph<T>::setDiff(SortedContainer& A,set<int>& B){
     set<int> diff;
-    for(auto a : A){
+    vector<int> itemsOfA = A.subset(-1);
+    for(auto a : itemsOfA){
         if(find(B.begin(), B.end(), a) == B.end()){
             diff.insert(a);
         }

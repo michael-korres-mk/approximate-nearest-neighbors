@@ -7,6 +7,7 @@
 #include "../DataSet/DataSet.h"
 #include "../Edge/Edge.h"
 #include "../DataSet/DataSet.h"
+#include "../SortedContainer/SortedContainer.h"
 #include <set>
 
 using namespace std;
@@ -14,7 +15,7 @@ using namespace std;
 template <typename T>
 class Graph {
     int AUTO_INCREMENT;             // Χρησιμοποιείται για την ανάθεση μοναδικών ID σε κάθε κορυφή. Ξεκινά από το 0 και αυξάνεται αυτόματα κατά την εισαγωγή κάθε νέας κορυφής.
-    map<int, vector<T> > vertexMap;
+    map<int, vector<T>> vertexMap;
     map<int,vector<Edge>> g;
     int R;                          // Μέγιστος αριθμός εξερχόμενων ακμών
     int k;                          // Αριθμός γειτόνων που θα βρούμε
@@ -33,8 +34,8 @@ public:
     int argminDist(const vector<T>& p, const vector<int>& P);
     int argmindist(const vector<T>& p, const set<int>& P);
     vector<int> getVerticesIds();
-    pair<vector<int>,vector<int>> greedySearch(int s, const vector<T>& x_q,int k, int ef);
-    set<int> setDiff(set<int>& A, set<int>& B);
+    pair<vector<int>,vector<int>> greedySearch(int s, const vector<T>& q,int k, int L);
+    set<int> setDiff(SortedContainer& A, set<int>& B);
     vector<int> edgesToVertices(vector<Edge> edges);
     vector<Edge> getNeighbors(int vertex);
     void printVector(int id, ostream& out = cout);
