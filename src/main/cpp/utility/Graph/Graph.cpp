@@ -11,9 +11,6 @@ Graph<T>::Graph(vector<vector<T>> vecs, const int R,const int k,double a):AUTO_I
         vertexMap.insert({AUTO_INCREMENT,vecs[i]});
         AUTO_INCREMENT++;
     }
-
-    vamana();
-
 }
 
 template <typename T>
@@ -34,7 +31,7 @@ void Graph<T>::vamana(){
         cout << "loop: " << loop << "| point.id = " << x.first << endl;
 
         auto vertices = edgesToVertices(g[x.first]);
-        pair<vector<int>,vector<int>> gS = greedySearch(s,x.second,1);
+        pair<vector<int>,vector<int>> gS = greedySearch(s,x.second,k,120);
         cout << "greedy search completed" << endl;
         L = gS.first;
         V = gS.second;
@@ -223,46 +220,68 @@ vector<int> Graph<T>::getVerticesIds() {
     for (const auto& pair : vertexMap) keys.push_back(pair.first);
     return keys;
 }
-
+// επιστρέφει:      1) Τους k πιο κοντινούς γείτονες.
+//                  2) Το σύνολο των κόμβων που έχουν επισκεφθεί.
+// δέχεται:   1) s -> Το αρχικό σημείο (start node).
+//            2) x_q -> Το σημείο ερώτημα (query point), δηλαδή το σημείο για το οποίο ψάχνουμε τους κοντινότερους γείτονες.
+//            3) k -> Το πλήθος των γειτόνων που θέλουμε να βρούμε (μέγεθος του αποτελέσματος).
+//            4) ef -> Το μέγεθος της λίστας αναζήτησης, το οποίο πρέπει να είναι τουλάχιστον ίσο με το k.
 template<typename T>
-pair<vector<int>,vector<int>> Graph<T>::greedySearch(int s, const vector<T>& q,int k) {
-    vector<Edge> edges{Edge(s,euclideanDistance(q,vertexMap[0]))};
-    set<int> L{s};
-    set<int> V;
+pair<vector<int>,vector<int>> Graph<T>::greedySearch(int s, const vector<T>& x_q, int k, int ef) {
+    // Αρχικοποίηση του αρχικού συνόλου με τον κόμβο εκκίνησης και το σύνολο επισκέψεων
+    vector<Edge> edges{Edge(s,euclideanDistance(x_q,vertexMap[0]))};
+    set<int> L{s};      // Σύνολο αναζήτησης
+    set<int> V;         // Σύνολο επισκεφθέντων κόμβων
     set<int> diff = setDiff(L, V);
 
+    // Επαναληπτική αναζήτηση μέχρι να εξαντληθούν οι κόμβοι που μπορούν να εξερευνηθούν
     while(!diff.empty()){
-        int pStar = argmindist(q,diff);
+        int pStar = argmindist(x_q,diff);   // Βρίσκουμε το p* (τον πιο κοντινό κόμβο που δεν έχει επισκεφτεί ακόμα)
 
-        vector<Edge> neighbors = g[pStar];
+        vector<Edge> neighbors = g[pStar];  // Βρίσκουμε τους γείτονες του p*
 
-        for (Edge n : neighbors)
-        if(!L.contains(n.getDestination())){
-            L.insert(n.getDestination());
-            edges.push_back(n);
+        // Ενημερώνουμε το L με τους νέους γείτονες
+        for (Edge n : neighbors) {
+            if(!L.contains(n.getDestination())){
+                L.insert(n.getDestination());
+                edges.push_back(n);
+            }
         }
 
-        V.insert(pStar);
+        V.insert(pStar);    // Προσθέτουμε το p* στο σύνολο επισκέψεων
 
+        // Έλεγχος για το μέγεθος της λίστας αναζήτησης
+        if (L.size() > ef) {
+            // Διατηρούμε τα πιο κοντινά ef σημεία από το x_q
+            auto comparator = [&](int a, int b) {
+                return euclideanDistance(vertexMap[a], x_q) < euclideanDistance(vertexMap[b], x_q);
+            };
+            // Ταξινομούμε τα στοιχεία του L ως προς την απόσταση και κρατάμε τα ef κοντινότερα
+            vector<int> L_vec(L.begin(), L.end());
+            sort(L_vec.begin(), L_vec.end(), comparator);
+            L = set<int>(L_vec.begin(), L_vec.begin() + ef);
+        }
+
+        // Ενημερώνουμε το diff για την επόμενη επανάληψη
         diff = setDiff(L,V);
-    }
 
+    }
+    // Ταξινόμηση των ακμών ως προς την απόσταση
     auto comparator = [&](const Edge& a, const Edge& b) {
         return a.getWeight() < b.getWeight(); // Sort by distance in ascending order
     };
 
     sort(edges.begin(), edges.end(), comparator);
 
+    // Αποθήκευση των k πιο κοντινών γειτόνων
     vector<Edge> kNearest;
-
     for (int i = 0; i < k && i < edges.size(); i++) {
         kNearest.emplace_back(edges[i]);
     }
 
-    vector<int> visitedVec;
-    for(auto v : V) visitedVec.push_back(v);
-
-    return {edgesToVertices(kNearest),visitedVec};
+    // Μετατροπή των αποτελεσμάτων για επιστροφή
+    vector<int> visitedVec(V.begin(), V.end());
+    return {edgesToVertices(kNearest), visitedVec};
 }
 
 template<typename T>
@@ -291,6 +310,21 @@ vector<Edge> Graph<T>::getNeighbors(int vertex) {
     return g[vertex];
 }
 
+template<typename T>
+int Graph<T>::argminDist(const vector<T>& p, const vector<int>& P) {
+    double minDist = std::numeric_limits<double>::max();
+    int pStar = -1;
+    for (int p2 : P) {
+        double dist = euclideanDistance(p, vertexMap[p2]);
+        if (dist < minDist) {
+            minDist = dist;
+            pStar = p2;
+        }
+    }
+    return pStar;
+}
+
+
 // επιστρέφει μια λίστα που περιέχει τα id των γειτόνων που επιλέχθηκαν μετά τη διαδικασία του pruning
 // δέχεται:     1) p -> Το σημείο για το οποίο εκτελείται το pruning (ο κόμβος του γράφου).
 //              2) V -> Το σύνολο των υποψήφιων γειτόνων που θα εξεταστούν για το pruning.
@@ -307,15 +341,14 @@ vector<Edge> Graph<T>::robustPrune(int p, const vector<int> &V, double a, int R)
     // Ενώ υπάρχουν υποψήφιοι γείτονες
     while (!candidateNeighbors.empty()) {
         // Βρίσκουμε τον γείτονα που έχει την ελάχιστη απόσταση από το p
-        auto minIt = min_element(candidateNeighbors.begin(), candidateNeighbors.end(),
-            [&](int pPrime1, int pPrime2) {
-                return euclideanDistance(vertexMap[p], vertexMap[pPrime1]) < euclideanDistance(vertexMap[p], vertexMap[pPrime2]);
-            });
+        int p_star = argminDist(vertexMap[p], candidateNeighbors); // Χρήση της συνάρτησής σου
 
+        // Προσθήκη του p_star στους νέους γείτονες
+        N_out.push_back(Edge(p_star, euclideanDistance(vertexMap[p], vertexMap[p_star])));
 
-        int p_star = *minIt; // Ο κοντινότερος γείτονας
-        N_out.push_back(Edge(p,euclideanDistance(vertexMap[p],vertexMap[candidateNeighbors[*minIt]]))); // Προσθήκη του στο σύνολο των νέων γειτόνων
-        candidateNeighbors.erase(minIt); // Αφαίρεση του από τους υποψήφιους
+        // Αφαίρεση του p_star από τους υποψήφιους
+        candidateNeighbors.erase(std::remove(candidateNeighbors.begin(), candidateNeighbors.end(), p_star), candidateNeighbors.end());
+
 
         // Αν το πλήθος των νέων γειτόνων φτάσει το όριο R, σταματάμε
         if (N_out.size() == R) {
@@ -324,7 +357,7 @@ vector<Edge> Graph<T>::robustPrune(int p, const vector<int> &V, double a, int R)
 
         // Κλαδεύουμε τους υπόλοιπους υποψήφιους γείτονες
         for (auto it = candidateNeighbors.begin(); it != candidateNeighbors.end();) {
-            if (a * euclideanDistance(vertexMap[p], vertexMap[p_star]) <= euclideanDistance(vertexMap[p], vertexMap[*it])) {
+            if (a * euclideanDistance(vertexMap[p_star], vertexMap[*it]) <= euclideanDistance(vertexMap[p], vertexMap[*it])) {
                 it = candidateNeighbors.erase(it); // Αφαίρεση των γειτόνων που δεν πληρούν τα κριτήρια
             } else {
                 ++it;

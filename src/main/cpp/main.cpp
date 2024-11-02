@@ -32,6 +32,7 @@ int main(int argc,char* argv[]) {
 	for(int i = 0; i < 2000; i++)subset.push_back(baseDataSet.getVector(i));
 
 	Graph graph(baseDataSet.getVectors(),R,k,a);
+	graph.vamana();
 
 	vector<Edge> nearestNeighborsEdges;
 	vector<int> groundTruthNearestNeighbors;
@@ -43,7 +44,7 @@ int main(int argc,char* argv[]) {
 	vector<float> q;
 	for(int i = 0; i < numOfQueries;i++) {
 		q = queryDataSet.getVector(i);
-		pair<vector<int>,vector<int>> gS = graph.greedySearch(medoidId,q,k);
+		pair<vector<int>,vector<int>> gS = graph.greedySearch(medoidId,q,k,120);
 
 		vector<int> neighbors = gS.first;
 		vector<int> v = gS.second;
