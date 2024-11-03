@@ -28,7 +28,7 @@ void Graph<T>::vamana(){
     int x;
     set<int> done;
     while(done.size() != vertexMap.size()){
-        (done.size() % 1000 == 0) && printf("%llu\n",done.size());
+        (!done.empty() && done.size() % 1000 == 0) && printf("completed %llu %% ... \n",done.size()/100);
 
         while (done.find(x = Utils<int>::random(0,AUTO_INCREMENT - 1)) != done.end()) {}
         done.insert(x);
@@ -51,7 +51,7 @@ void Graph<T>::vamana(){
             }
         }
     }
-
+    printf("completed %llu %%\n",done.size()/100);
 }
 
 template <typename T>
