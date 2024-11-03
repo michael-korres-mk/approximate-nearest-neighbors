@@ -50,7 +50,6 @@ void Utils<K>::printDivider() {
     cout << "-----------------------------------------------------------" << endl;
 }
 
-template class Utils<void>;
 template class Utils<float>;
 template class Utils<int>;
 template class Utils<char>;
