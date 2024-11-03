@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.29)
 project(approximate_nearest_neighbors)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 
 add_executable(approximate_nearest_neighbors src/main/cpp/main.cpp
         src/main/cpp/utility/DataSet/DataSet.cpp

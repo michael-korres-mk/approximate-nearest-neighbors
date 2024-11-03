@@ -71,7 +71,7 @@ vector<Edge> Graph<T>::randomNeighbors(int pId,int R) {
     set<int> added;
 
     for (int i = 0; i < R; ++i) {
-        while (randomId == pId || added.contains(randomId)) {
+        while (randomId == pId || added.find(randomId) != added.end()) {
             randomId = Utils<int>::random(0,AUTO_INCREMENT - 1);
         }
 

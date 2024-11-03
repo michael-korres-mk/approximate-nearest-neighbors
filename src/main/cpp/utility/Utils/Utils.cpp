@@ -3,6 +3,8 @@
 //
 
 # include "Utils.h"
+
+#include <algorithm>
 #include <chrono>
 # include <iostream>
 # include <cstring>
