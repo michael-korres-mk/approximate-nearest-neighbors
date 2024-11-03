@@ -26,5 +26,4 @@ public:
     static void printDivider();
 };
 
-
 #endif //ANN_UTILS_H
