@@ -43,6 +43,7 @@ public:
     void printVector(int id, ostream& out = cout);
     void printGraph(ostream& out = cout);
     void printVectorNeighbors(vector<Edge>& neighbors, ostream &out = cout);
+    vector<T> getVertex(int id);
 
     // static
     static float euclideanDistance(const vector<T>& v1,const vector<T>& v2);
