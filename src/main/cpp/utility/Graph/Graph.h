@@ -48,6 +48,16 @@ public:
     static float euclideanDistance(const vector<T>& v1,const vector<T>& v2);
     static void printVector(pair<int,vector<T>>,ostream& out = cout);
     static double equals(const vector<T> &v1, vector<T> &v2);
+
+    // For testing
+    int getTotalVertices() const;
+    const vector<T>& getVertexData(int id) const;
+    const vector<Edge>& getEdges(int node) const;
+    int getTotalEdges() const;
+    const map<int, vector<T>>& getVertexMap() const {
+        return vertexMap;
+    }
+
 };
 
 #include "Graph.cpp"
