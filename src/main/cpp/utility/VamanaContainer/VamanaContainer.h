@@ -11,12 +11,12 @@
 
 using namespace std;
 
-class SortedContainer {
+class VamanaContainer {
 private:
     vector<pair<int,double>> items;
     size_t maxSize;
 public:
-    SortedContainer(size_t L);
+    VamanaContainer(size_t L);
     void insert(const pair<int,double>& newItem);
     bool contains(int id) const;
     vector<int> subset(int k);

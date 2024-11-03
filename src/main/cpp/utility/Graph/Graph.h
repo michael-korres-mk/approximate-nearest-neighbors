@@ -7,7 +7,7 @@
 #include "../DataSet/DataSet.h"
 #include "../Edge/Edge.h"
 #include "../DataSet/DataSet.h"
-#include "../SortedContainer/SortedContainer.h"
+#include "../VamanaContainer/VamanaContainer.h"
 #include <set>
 
 using namespace std;
@@ -36,7 +36,7 @@ public:
     int argmindist(const vector<T>& p, const set<int>& P);
     vector<int> getVerticesIds();
     pair<vector<int>,vector<int>> greedySearch(int s, const vector<T>& q,int k, int L);
-    set<int> setDiff(SortedContainer& A, set<int>& B);
+    set<int> setDiff(VamanaContainer& A, set<int>& B);
     vector<int> edgesToVertices(vector<Edge> edges);
     vector<Edge> getNeighbors(int vertex);
     void printVector(int id, ostream& out = cout);
@@ -46,7 +46,7 @@ public:
     // static
     static float euclideanDistance(const vector<T>& v1,const vector<T>& v2);
     static void printVector(pair<int,vector<T>>,ostream& out = cout);
-    static bool equals(vector<T> &v1, vector<T> &v2);
+    static double equals(const vector<T> &v1, vector<T> &v2);
 };
 
 #include "Graph.cpp"

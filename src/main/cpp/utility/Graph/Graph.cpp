@@ -24,26 +24,24 @@ void Graph<T>::vamana(){
 
     cout << "medoid calculated" << endl;
 
-    vector<int> L;
     vector<int> V;
     for(const auto& [vertex,neighbors] : vertexMap){
-        // (vertex % 1000 == 0) && printf("%d\n",vertex);
+        (vertex % 1000 == 0) && printf("%d\n",vertex);
 
-
-        const auto& [L,V] = greedySearch(s,neighbors,k,120);
+        const auto& [L,V] = greedySearch(s,neighbors,k,this->L);
 
         vector<int> neighborIds = getVerticesIds();
         g[vertex] = robustPrune(vertex,V,a,R);
 
         for(auto y: edgesToVertices(g[vertex])){
-            if((g[y].size() + 1) > R){
+            if(g[y].size() + 1 > R){
                 vector<int> V = edgesToVertices(g[y]);
                 V.push_back(vertex);
                 g[y] = robustPrune(y,V,a,R);
             }
-        //     else{
-        //         g[y].push_back(Edge(vertex,euclideanDistance(vertexMap[y],neighbors)));
-        //     }
+            else{
+                g[y].push_back(Edge(vertex,euclideanDistance(vertexMap[y],neighbors)));
+            }
         }
     }
 
@@ -53,7 +51,7 @@ template <typename T>
 void Graph<T>::initializeRandomEdges(){
     clock_t start = clock();
     for(const auto& [key, value] : vertexMap) {
-        vector<Edge> neighbors = randomNeighbors(key,k);
+        vector<Edge> neighbors = randomNeighbors(key,R);
         g.insert({key,neighbors});
         // if(pair.first > 0 && (pair.first+1) % 1000 == 0) cout<< pair.first + 1 << " nodes' neighbors have been calculated"<< endl;
     }
@@ -69,8 +67,15 @@ vector<Edge> Graph<T>::randomNeighbors(int pId,int R) {
 
     vector<T> p = vertexMap[pId];
     int randomId = Utils<int>::random(0,AUTO_INCREMENT - 1);
+
+    set<int> added;
+
     for (int i = 0; i < R; ++i) {
-        while (randomId == pId) randomId = Utils<int>::random(0,AUTO_INCREMENT - 1);
+        while (randomId == pId || added.contains(randomId)) {
+            randomId = Utils<int>::random(0,AUTO_INCREMENT - 1);
+        }
+
+        added.insert(randomId);
         vector<T> vec = vertexMap[randomId];
         neighbors.push_back(Edge(randomId, euclideanDistance(p,vec)));
     }
@@ -148,13 +153,16 @@ float Graph<T>::euclideanDistance(const vector<T>& v1,const vector<T>& v2) {
 }
 
 template<typename T>
-bool Graph<T>::equals(vector<T>& v1, vector<T>& v2) {
+double Graph<T>::equals(const vector<T>& v1, vector<T>& v2) {
     if(v1.size() == 0 || v2.size() == 0) return false;
     const int dim = v1.size();
+
+    int misses = 0;
+
     for(int i = 0; i < dim; i++){
         if(v1[i] != v2[i]) {
             if(i == dim - 1 || v2[i+1] != v2[i+1]) { // lookahead for equally distant neighbors handling
-                return false;
+                misses++;
             }
             else {
                 i++; // do not check next
@@ -163,7 +171,10 @@ bool Graph<T>::equals(vector<T>& v1, vector<T>& v2) {
 
     }
 
-    return true;
+    cout << "misses: " << misses << endl;
+    cout << "dim: " << dim << endl;
+
+    return (static_cast<double>(dim) - misses) / dim;
 }
 
 template<typename T>
@@ -218,7 +229,7 @@ pair<vector<int>,vector<int>> Graph<T>::greedySearch(int s, const vector<T>& q, 
 
     // clock_t start = clock();
 
-    SortedContainer l(L); l.insert({s,euclideanDistance(q,vertexMap[s])});      // Σύνολο αναζήτησης
+    VamanaContainer l(L); l.insert({s,euclideanDistance(q,vertexMap[s])});      // Σύνολο αναζήτησης
     set<int> V;         // Σύνολο επισκεφθέντων κόμβων
     set<int> diff = setDiff(l, V);
 
@@ -229,9 +240,7 @@ pair<vector<int>,vector<int>> Graph<T>::greedySearch(int s, const vector<T>& q, 
 
         // Ενημερώνουμε το L με τους νέους γείτονες
         for (Edge n : neighbors) {
-            if(!l.contains(n.getDestination())){
-                l.insert({n.getDestination(),n.getWeight()});
-            }
+            l.insert({n.getDestination(),n.getWeight()});
         }
 
         V.insert(pStar);    // Προσθέτουμε το p* στο σύνολο επισκέψεων
@@ -250,7 +259,7 @@ pair<vector<int>,vector<int>> Graph<T>::greedySearch(int s, const vector<T>& q, 
 }
 
 template<typename T>
-set<int> Graph<T>::setDiff(SortedContainer& A,set<int>& B){
+set<int> Graph<T>::setDiff(VamanaContainer& A,set<int>& B){
     set<int> diff;
     vector<int> itemsOfA = A.subset(-1);
     for(auto a : itemsOfA){
@@ -363,8 +372,8 @@ void Graph<T>::printVectorNeighbors(vector<Edge>& neighbors,ostream& out) {
     if(!neighbors.empty()) {
         for(Edge neighbor : neighbors){
 
+            out << "[" << neighbor.getDestination() << "] = ";
             for(int j = 0; j < vertexMap[neighbor.getDestination()].size(); j++) {
-                out << "[" << neighbor.getDestination() << "] = ";
                 out << vertexMap[neighbor.getDestination()][j] << " ";
             }
             out << "(" << neighbor.getWeight() << ")" << " ";
