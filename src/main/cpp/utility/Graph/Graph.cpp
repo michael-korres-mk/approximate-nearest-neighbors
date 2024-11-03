@@ -25,22 +25,27 @@ void Graph<T>::vamana(){
     cout << "medoid calculated" << endl;
 
     vector<int> V;
-    for(const auto& [vertex,neighbors] : vertexMap){
-        (vertex % 1000 == 0) && printf("%d\n",vertex);
+    int x;
+    set<int> done;
+    while(done.size() == vertexMap.size()){
+        // (vertex % 1000 == 0) && printf("%d\n",vertex);
 
-        const auto& [L,V] = greedySearch(s,neighbors,k,this->L);
+        while (done.find(x = Utils<int>::random(0,AUTO_INCREMENT - 1)) != done.end()) {}
+        done.insert(x);
+
+        const auto& [l,V] = greedySearch(s,vertexMap[x],k,L);
 
         vector<int> neighborIds = getVerticesIds();
-        g[vertex] = robustPrune(vertex,V,a,R);
+        g[x] = robustPrune(x,V,a,R);
 
-        for(auto y: edgesToVertices(g[vertex])){
+        for(auto y: edgesToVertices(g[x])){
             if(g[y].size() + 1 > R){
                 vector<int> V = edgesToVertices(g[y]);
-                V.push_back(vertex);
+                V.push_back(x);
                 g[y] = robustPrune(y,V,a,R);
             }
             else{
-                g[y].push_back(Edge(vertex,euclideanDistance(vertexMap[y],neighbors)));
+                g[y].push_back(Edge(x,euclideanDistance(vertexMap[y],vertexMap[x])));
             }
         }
     }
@@ -92,21 +97,24 @@ int Graph<T>::medoid() {
     int sample_size = n/10;
     sample_size = min(sample_size, n);
 
-    // Επιλέγουμε τυχαία ένα δείγμα από τα IDs των σημείων
-    vector<int> sample_ids;
-    for (const auto& [id, vec] : vertexMap) {
-        sample_ids.push_back(id);
+    int randomId = Utils<int>::random(0,AUTO_INCREMENT - 1);
+
+    set<int> randomIds;
+
+    for (int i = 0; i < R; ++i) {
+        while (randomIds.find(randomId) != randomIds.end()) {
+            randomId = Utils<int>::random(0,AUTO_INCREMENT - 1);
+        }
+        randomIds.insert(randomId);
     }
-    random_shuffle(sample_ids.begin(), sample_ids.end());
-    sample_ids.resize(sample_size);
 
     int medoid_id = -1;
     double min_total_distance = numeric_limits<double>::infinity();
 
     // Υπολογίζουμε το medoid στο δείγμα
-    for (int id_i : sample_ids) {
+    for (int id_i : randomIds) {
         double total_distance = 0.0;
-        for (int id_j : sample_ids) {
+        for (int id_j : randomIds) {
             if (id_i != id_j) {
                 total_distance += euclideanDistance(vertexMap[id_i], vertexMap[id_j]);
             }
