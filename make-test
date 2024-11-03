@@ -4,20 +4,25 @@ CXXFLAGS = -O2 -std=c++17 -g
 
 SRCS = src/main/cpp
 
-TEST_SOURCES = $(wildcard tests/*)
-TEST_EXECUTABLES = $(patsubst %.cpp,build/%,$(TEST_SOURCES))
+# Find all test sources
+TEST_SOURCES = $(wildcard tests/*.cpp)
+TEST_EXECUTABLES = $(patsubst tests/%.cpp, build/tests/%,$(TEST_SOURCES))
 
-build/%: $(wildcard $(SRCS)/utility/*.cpp)
-	$(CXX) $(CFLAGS) $< $(wildcard $(SRCS)/utility/*.cpp) -o $@
+# Rule to create each test executable
+build/tests/%: tests/%.cpp $(wildcard $(SRCS)/utility/**/*.cpp)
+	@mkdir -p build/tests # Ensure the build/tests directory exists
+	$(CXX) $(CXXFLAGS) $< $(filter-out $(SRCS)/utility/*/main.cpp, $(wildcard $(SRCS)/utility/**/*.cpp)) -o $@
 
 # Target: all (default target)
 all: $(TEST_EXECUTABLES)
 
+# Run tests
 tests: $(TEST_EXECUTABLES)
 	@for test in $(TEST_EXECUTABLES); do \
 		echo "Running $$test"; \
 		$$test; \
 	done
 
+# Clean up build directory
 clean:
-	rm -f $(TEST_EXECUTABLE)
+	rm -rf build/tests/*

@@ -383,6 +383,12 @@ void Graph<T>::printVectorNeighbors(vector<Edge>& neighbors,ostream& out) {
     }
 }
 
+template<typename T>
+vector<T> Graph<T>::getVertex(int id) {
+    if(id >= vertexMap.size()) return vector<T>();
+    return vertexMap[id];
+}
+
 
 template <typename T>
 void Graph<T>::printGraph(ostream& out){
