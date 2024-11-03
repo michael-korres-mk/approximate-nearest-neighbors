@@ -32,6 +32,6 @@ void test_invalidIdIsNullptr() {
 
 TEST_LIST = {
     { "addVertex", test_additionIsSuccess },
-//    { "Add Vertex - Weight added properly", test_invalidIdIsNullptr },
+    { "Add Vertex - Weight added properly", test_invalidIdIsNullptr },
     { NULL, NULL }
 };
