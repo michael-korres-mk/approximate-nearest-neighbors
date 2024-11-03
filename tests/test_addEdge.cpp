@@ -1,5 +1,5 @@
-#include "acutest.h"
-#include "Graph/Graph.h"
+#include "../include/acutest.h"
+#include "../src/main/cpp/utility/Graph/Graph.h"
 #include <vector>
 
 void test_addEdge() {

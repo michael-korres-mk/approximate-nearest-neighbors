@@ -26,7 +26,4 @@ public:
     static void printDivider();
 };
 
-#include "Utils.cpp"
-
-
 #endif //ANN_UTILS_H
