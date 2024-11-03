@@ -421,4 +421,41 @@ void Graph<T>::printGraph(ostream& out){
     }
 }
 
+// For testing
+template <typename T>
+int Graph<T>::getTotalVertices() const {
+    return vertexMap.size();
+}
+
+template <typename T>
+const vector<T>& Graph<T>::getVertexData(int id) const {
+    auto it = vertexMap.find(id);
+    if (it != vertexMap.end()) {
+        return it->second;
+    } else {
+        throw std::out_of_range("Vertex ID not found");
+    }
+}
+
+template <typename T>
+const vector<Edge>& Graph<T>::getEdges(int id) const {
+    auto it = g.find(id);
+    if (it != g.end()) {
+        return it->second;
+    } else {
+        static const vector<Edge> empty;
+        return empty;
+    }
+}
+
+template <typename T>
+int Graph<T>::getTotalEdges() const {
+    int count = 0;
+    for (const auto& pair : g) {
+        count += pair.second.size();
+    }
+    return count;
+}
+
+
 #endif // GRAPH_CPP

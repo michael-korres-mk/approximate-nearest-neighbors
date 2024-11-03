@@ -24,5 +24,6 @@ public:
     static int flipCoin();
 };
 
+#include "Utils.cpp"
 
 #endif //ANN_UTILS_H
