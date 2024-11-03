@@ -103,7 +103,7 @@ int Graph<T>::medoid() {
 
     set<int> randomIds;
 
-    for (int i = 0; i < R; ++i) {
+    for (int i = 0; i < sample_size; ++i) {
         while (randomIds.find(randomId) != randomIds.end()) {
             randomId = Utils<int>::random(0,AUTO_INCREMENT - 1);
         }
