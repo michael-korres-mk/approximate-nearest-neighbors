@@ -19,7 +19,7 @@ void Graph<T>::vamana(){
 
     initializeRandomEdges();
 
-    int s = medoid();
+    const int s = medoid();
     auto sigma = Utils<T>::shuffle;
 
     cout << "medoid calculated" << endl;
@@ -27,8 +27,8 @@ void Graph<T>::vamana(){
     vector<int> V;
     int x;
     set<int> done;
-    while(done.size() == vertexMap.size()){
-        // (vertex % 1000 == 0) && printf("%d\n",vertex);
+    while(done.size() != vertexMap.size()){
+        (done.size() % 1000 == 0) && printf("%llu\n",done.size());
 
         while (done.find(x = Utils<int>::random(0,AUTO_INCREMENT - 1)) != done.end()) {}
         done.insert(x);
@@ -38,7 +38,9 @@ void Graph<T>::vamana(){
         vector<int> neighborIds = getVerticesIds();
         g[x] = robustPrune(x,V,a,R);
 
-        for(auto y: edgesToVertices(g[x])){
+        vector<int> xNeighbors =  edgesToVertices(g[x]);
+
+        for(auto y: xNeighbors){
             if(g[y].size() + 1 > R){
                 vector<int> V = edgesToVertices(g[y]);
                 V.push_back(x);
@@ -334,9 +336,8 @@ vector<Edge> Graph<T>::robustPrune(int p, const vector<int> &V, double a, int R)
 
 
         // Αν το πλήθος των νέων γειτόνων φτάσει το όριο R, σταματάμε
-        if (N_out.size() == R) {
-            break;
-        }
+        if (N_out.size() == R) break;
+
 
         // Κλαδεύουμε τους υπόλοιπους υποψήφιους γείτονες
         for (auto it = candidateNeighbors.begin(); it != candidateNeighbors.end();) {
