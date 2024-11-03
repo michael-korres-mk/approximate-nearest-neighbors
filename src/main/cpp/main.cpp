@@ -14,6 +14,7 @@ void initializeDatasets(DataSet<float>& baseDataSet, DataSet<float>& queryDataSe
 
 int main(int argc,char* argv[]) {
 	// if(argc < 9)exit(EXIT_FAILURE
+	Utils<void>::printDivider();
 
 	DataSet<float> baseDataSet;
 	DataSet<float> queryDataSet;
@@ -21,6 +22,7 @@ int main(int argc,char* argv[]) {
 
 	initializeDatasets(baseDataSet,queryDataSet,groundtruthDataSet,argv,argc);
 
+	Utils<void>::printDivider();
 
 	int numOfQueries = queryDataSet.getNumOfVectors();
 
@@ -40,6 +42,14 @@ int main(int argc,char* argv[]) {
 			a = atof(argv[i+1]);
 		}
 	}
+
+
+	cout << "k = " << k << endl;
+	cout << "L = " << L << endl;
+	cout << "R = " << R << endl;
+	cout << "a = " << a << endl;
+
+	Utils<void>::printDivider();
 
 	Graph graph(baseDataSet.getVectors(),L,R,k,a);
 
@@ -68,6 +78,7 @@ int main(int argc,char* argv[]) {
 		// cout << "Q" << i << ": " << kRecall * 100 << "%" << endl;
 	}
 
+	Utils<void>::printDivider();
 	printf("k-recall@k: %.2lf%%\n",(totalKRecall / numOfQueries) * 100);
 
 }
@@ -92,7 +103,7 @@ void initializeDatasets(DataSet<float>& baseDataSet, DataSet<float>& queryDataSe
 	cout << "Query Dataset: " << queryVectorsDataFileName << endl;
 	cout << "Ground-truth Dataset: " << groundtruthVectorsDataFileName << endl;
 
-	cout << "-----------------------------------------------------------" << endl;
+	Utils<void>::printDivider();
 
 	auto start = chrono::high_resolution_clock::now();
 	baseDataSet = DataSet<float>(baseVectorsDataFileName);
@@ -103,7 +114,4 @@ void initializeDatasets(DataSet<float>& baseDataSet, DataSet<float>& queryDataSe
 
 	queryDataSet = DataSet<float>(queryVectorsDataFileName);
 	groundtruthDataSet = DataSet<int>(groundtruthVectorsDataFileName);
-
-	cout << "-----------------------------------------------------------" << endl;
-
 }

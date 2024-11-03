@@ -45,6 +45,12 @@ int Utils<K>::random(int a,int b) { // Function to simulate a coin flip
 
 }
 
+template<typename K>
+void Utils<K>::printDivider() {
+    cout << "-----------------------------------------------------------" << endl;
+}
+
+template class Utils<void>;
 template class Utils<float>;
 template class Utils<int>;
 template class Utils<char>;

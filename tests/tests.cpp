@@ -15,7 +15,7 @@ void test_greedySearch() {
     vector<int> data2 = {7, 8, 9};
     vector<int> data3 = {10, 11, 12};
 
-    Graph<int> graph(vector{data0,data1,data2,data3},150,5, 3, 1.2);
+    Graph<int> graph(vector<vector<int>>{data0,data1,data2,data3},150,5, 3, 1.2);
 
     graph.addEdge(0, 1, graph.euclideanDistance(data0, data1));
     graph.addEdge(0, 2, graph.euclideanDistance(data0, data2));

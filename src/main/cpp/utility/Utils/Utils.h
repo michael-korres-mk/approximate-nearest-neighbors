@@ -23,6 +23,7 @@ public:
     static vector<K>& shuffle(vector<K>& v);
     static int flipCoin();
     static int random(int a,int b);
+    static void printDivider();
 };
 
 
