@@ -3,6 +3,8 @@ project(approximate_nearest_neighbors)
 
 set(CMAKE_CXX_STANDARD 17)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -DNDEBUG")
+
 add_executable(approximate_nearest_neighbors src/main/cpp/main.cpp
         src/main/cpp/utility/DataSet/DataSet.cpp
         src/main/cpp/utility/DataSet/DataSet.h
