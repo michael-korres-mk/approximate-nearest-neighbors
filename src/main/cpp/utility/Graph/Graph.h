@@ -17,11 +17,12 @@ class Graph {
     int AUTO_INCREMENT;             // Χρησιμοποιείται για την ανάθεση μοναδικών ID σε κάθε κορυφή. Ξεκινά από το 0 και αυξάνεται αυτόματα κατά την εισαγωγή κάθε νέας κορυφής.
     map<int, vector<T>> vertexMap;
     map<int,vector<Edge>> g;
+    int L;
     int R;                          // Μέγιστος αριθμός εξερχόμενων ακμών
     int k;                          // Αριθμός γειτόνων που θα βρούμε
     double a;                       // Παράμετρος για το RobustPrune (κατώφλι απόστασης)
 public:
-    Graph(vector<vector<T>> vecs,int L,int R,double a);
+    Graph(vector<vector<T>> vecs,int L,int R,int k,double a);
     void vamana();
     void initializeRandomEdges();
     vector<Edge> randomNeighbors(int pId, int R);

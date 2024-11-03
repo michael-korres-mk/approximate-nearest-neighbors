@@ -1,9 +1,11 @@
 all:
 	$(MAKE) -f make-ann
+	$(MAKE) -f make-test
 
 # Target: clean
 clean:
 	$(MAKE) clean -f make-ann
+	$(MAKE) clean -f make-test
 #	rm -f $(shell find $(RESOURCES_DIR) -type f ! -name 'voters*0.bin')
 
 .PHONY: all clean

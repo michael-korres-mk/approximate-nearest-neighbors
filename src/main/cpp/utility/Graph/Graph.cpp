@@ -6,7 +6,7 @@
 
 
 template <typename T>
-Graph<T>::Graph(vector<vector<T>> vecs, const int R,const int k,double a):AUTO_INCREMENT(0),R(R),k(k),a(a){
+Graph<T>::Graph(vector<vector<T>> vecs, const int L,const int R,const int k,double a):AUTO_INCREMENT(0),R(R),k(k),a(a),L(L){
     for(int i = 0; i < vecs.size() ; i++ ) {
         vertexMap.insert({AUTO_INCREMENT,vecs[i]});
         AUTO_INCREMENT++;

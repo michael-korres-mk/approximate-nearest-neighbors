@@ -14,4 +14,19 @@ add_executable(approximate_nearest_neighbors src/main/cpp/main.cpp
         src/main/cpp/utility/Edge/Edge.h
         src/main/cpp/utility/SortedContainer/SortedContainer.cpp
         src/main/cpp/utility/SortedContainer/SortedContainer.h
+
+)
+
+add_executable(tests tests/tests.cpp
+        src/main/cpp/utility/DataSet/DataSet.cpp
+        src/main/cpp/utility/DataSet/DataSet.h
+        src/main/cpp/utility/Utils/Utils.cpp
+        src/main/cpp/utility/Utils/Utils.h
+        src/main/cpp/utility/Graph/Graph.cpp
+        src/main/cpp/utility/Graph/Graph.h
+        src/main/cpp/utility/Edge/Edge.cpp
+        src/main/cpp/utility/Edge/Edge.h
+        src/main/cpp/utility/SortedContainer/SortedContainer.cpp
+        src/main/cpp/utility/SortedContainer/SortedContainer.h
+        include/acutest.h
 )
