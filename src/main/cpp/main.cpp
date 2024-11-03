@@ -1,3 +1,4 @@
+#include <chrono>
 # include <iostream>
 # include <cstring>
 # include "utility/DataSet/DataSet.h"
@@ -22,42 +23,52 @@ int main(int argc,char* argv[]) {
 
 
 	int numOfQueries = queryDataSet.getNumOfVectors();
-	int k = 100; // groundtruthDataSet.getD();
-	int L = 250;
-	int R = 60;
-	double a = 1.2;
 
+	int k; // groundtruthDataSet.getD();
+	int L;
+	int R;
+	double a;
+
+	for(int i = 1; i < argc;i++){	// Get arguments
+		if (strcmp(argv[i],"-k") == 0) {
+			k = atoi(argv[i+1]);
+		} else if (strcmp(argv[i],"-L") == 0) {
+			L = atoi(argv[i+1]);
+		} else if (strcmp(argv[i],"-R") == 0) {
+			R = atoi(argv[i+1]);
+		} else if (strcmp(argv[i],"-a") == 0) {
+			a = atof(argv[i+1]);
+		}
+	}
 
 	Graph graph(baseDataSet.getVectors(),L,R,k,a);
 
-	clock_t start = clock();
+	auto start = chrono::high_resolution_clock::now();
 
 	graph.vamana();
 
-	clock_t end = clock();
-	double timeSpent = (double)(end - start) / CLOCKS_PER_SEC;
-	printf("index build: %f seconds\n", timeSpent);
+	auto end = chrono::high_resolution_clock::now();
+	auto duration = chrono::duration_cast<chrono::milliseconds>(end - start).count();
+	cout << "index build: " << duration << " ms" << endl;
 
 	vector<Edge> nearestNeighborsEdges;
 	vector<int> groundTruthNearestNeighbors;
 
-	int misses = 0;
-
 	int medoidId = graph.medoid();
 
 	vector<float> q;
+	double totalKRecall = 0.0;
 	for(int i = 0; i < numOfQueries;i++) {
 		q = queryDataSet.getVector(i);
 		const auto& [neighbors,v] = graph.greedySearch(medoidId,q,k,L);
 
 		groundTruthNearestNeighbors = groundtruthDataSet.getVector(i);
-		double vecsDiff = Graph<int>::equals(neighbors,groundTruthNearestNeighbors);
-
-
-		cout << "Q" << i << ": " << vecsDiff * 100 << "%" << endl;
-
+		double kRecall = Graph<int>::equals(neighbors,groundTruthNearestNeighbors);
+		totalKRecall += kRecall;
+		// cout << "Q" << i << ": " << kRecall * 100 << "%" << endl;
 	}
 
+	printf("k-recall@k: %.2lf%%\n",(totalKRecall / numOfQueries) * 100);
 
 }
 
@@ -77,8 +88,22 @@ void initializeDatasets(DataSet<float>& baseDataSet, DataSet<float>& queryDataSe
 		}
 	}
 
+	cout << "Base Dataset: " << baseVectorsDataFileName << endl;
+	cout << "Query Dataset: " << queryVectorsDataFileName << endl;
+	cout << "Ground-truth Dataset: " << groundtruthVectorsDataFileName << endl;
+
+	cout << "-----------------------------------------------------------" << endl;
+
+	auto start = chrono::high_resolution_clock::now();
 	baseDataSet = DataSet<float>(baseVectorsDataFileName);
+
+	auto end = chrono::high_resolution_clock::now();
+	auto duration = chrono::duration_cast<chrono::milliseconds>(end - start).count();
+	cout << "base dataset load: " << duration << " ms" << endl;
+
 	queryDataSet = DataSet<float>(queryVectorsDataFileName);
 	groundtruthDataSet = DataSet<int>(groundtruthVectorsDataFileName);
+
+	cout << "-----------------------------------------------------------" << endl;
 
 }

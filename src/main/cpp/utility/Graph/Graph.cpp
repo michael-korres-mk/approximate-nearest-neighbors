@@ -56,16 +56,16 @@ void Graph<T>::vamana(){
 
 template <typename T>
 void Graph<T>::initializeRandomEdges(){
-    clock_t start = clock();
+	auto start = chrono::high_resolution_clock::now();
     for(const auto& [key, value] : vertexMap) {
         vector<Edge> neighbors = randomNeighbors(key,R);
         g.insert({key,neighbors});
         // if(pair.first > 0 && (pair.first+1) % 1000 == 0) cout<< pair.first + 1 << " nodes' neighbors have been calculated"<< endl;
     }
 
-    clock_t end = clock();
-    double timeSpent = (double)(end - start) / CLOCKS_PER_SEC;
-    printf("graph initialization: %f seconds\n", timeSpent);
+    auto end = chrono::high_resolution_clock::now();
+    auto duration = chrono::duration_cast<chrono::milliseconds>(end - start).count();
+    cout << "graph initialization: " << duration << " ms" << endl;
 }
 
 template <typename T>
@@ -181,9 +181,6 @@ double Graph<T>::equals(const vector<T>& v1, vector<T>& v2) {
 
     }
 
-    cout << "misses: " << misses << endl;
-    cout << "dim: " << dim << endl;
-
     return (static_cast<double>(dim) - misses) / dim;
 }
 
@@ -210,8 +207,6 @@ vector<Edge> Graph<T>::calculateNearestNeighbors(const vector<T>& q,const int& k
     return kNearest;
 }
 
-
-
 template<typename T>
 int Graph<T>::argmindist(const vector<T>& p, const set<int>& P) {
     float minDist = numeric_limits<float>::max();
@@ -237,8 +232,6 @@ vector<int> Graph<T>::getVerticesIds() {
 template<typename T>
 pair<vector<int>,vector<int>> Graph<T>::greedySearch(int s, const vector<T>& q, const int k, int L) {
 
-    // clock_t start = clock();
-
     VamanaContainer l(L); l.insert({s,euclideanDistance(q,vertexMap[s])});      // Σύνολο αναζήτησης
     set<int> V;         // Σύνολο επισκεφθέντων κόμβων
     set<int> diff = setDiff(l, V);
@@ -261,10 +254,6 @@ pair<vector<int>,vector<int>> Graph<T>::greedySearch(int s, const vector<T>& q, 
     // Μετατροπή των αποτελεσμάτων για επιστροφή
     vector<int> visitedVec(V.begin(), V.end());
 
-    // clock_t end = clock();
-    // double timeSpent = (double)(end - start) / CLOCKS_PER_SEC;
-    // printf("greedy search: %f seconds\n", timeSpent);
-
     return {l.subset(k), visitedVec};
 }
 
@@ -273,7 +262,7 @@ set<int> Graph<T>::setDiff(VamanaContainer& A,set<int>& B){
     set<int> diff;
     vector<int> itemsOfA = A.subset(-1);
     for(auto a : itemsOfA){
-        if(find(B.begin(), B.end(), a) == B.end()){
+        if(B.find(a) == B.end()){
             diff.insert(a);
         }
     }
