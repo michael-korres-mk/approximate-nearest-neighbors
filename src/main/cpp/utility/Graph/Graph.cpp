@@ -6,7 +6,7 @@
 
 
 template <typename T>
-Graph<T>::Graph(vector<vector<T>> vecs, const int R,const int k,double a):AUTO_INCREMENT(0),R(R),k(k),a(a){
+Graph<T>::Graph(vector<vector<T>> vecs, const int L,const int R,const int k,double a):AUTO_INCREMENT(0),R(R),k(k),a(a),L(L){
     for(int i = 0; i < vecs.size() ; i++ ) {
         vertexMap.insert({AUTO_INCREMENT,vecs[i]});
         AUTO_INCREMENT++;
@@ -18,70 +18,66 @@ void Graph<T>::vamana(){
     cout << "vamana started" << endl;
 
     initializeRandomEdges();
-    cout << "random edges initialized" << endl;
+
     int s = medoid();
     auto sigma = Utils<T>::shuffle;
 
     cout << "medoid calculated" << endl;
 
-    vector<int> L;
     vector<int> V;
-    int loop = 1;
-    for(auto x: vertexMap){
-        cout << "loop: " << loop << "| point.id = " << x.first << endl;
+    for(const auto& [vertex,neighbors] : vertexMap){
+        (vertex % 1000 == 0) && printf("%d\n",vertex);
 
-        auto vertices = edgesToVertices(g[x.first]);
-        pair<vector<int>,vector<int>> gS = greedySearch(s,x.second,k,120);
-        cout << "greedy search completed" << endl;
-        L = gS.first;
-        V = gS.second;
+        const auto& [L,V] = greedySearch(s,neighbors,k,this->L);
 
-        vector<int> neighbors = getVerticesIds();
-        g[x.first] = robustPrune(x.first,V,a,R);
-        cout << "robust prune completed" << endl;
+        vector<int> neighborIds = getVerticesIds();
+        g[vertex] = robustPrune(vertex,V,a,R);
 
-        for(auto y: edgesToVertices(g[x.first])){
-            if((g[y].size() + 1) > R){
+        for(auto y: edgesToVertices(g[vertex])){
+            if(g[y].size() + 1 > R){
                 vector<int> V = edgesToVertices(g[y]);
-                V.push_back(x.first);
+                V.push_back(vertex);
                 g[y] = robustPrune(y,V,a,R);
             }
             else{
-                g[y].push_back(Edge(x.first,euclideanDistance(vertexMap[y],x.second)));
+                g[y].push_back(Edge(vertex,euclideanDistance(vertexMap[y],neighbors)));
             }
         }
-        cout << "reverse edge addition completed" << endl;
-
-        loop++;
     }
 
 }
 
 template <typename T>
 void Graph<T>::initializeRandomEdges(){
-    for(auto pair : vertexMap) {
-        vector<Edge> neighbors = randomNeighbors(pair.first,k);
-        g.insert({pair.first,neighbors});
-        if(pair.first > 0 && (pair.first+1) % 1000 == 0) cout<< pair.first + 1 << " nodes' neighbors have been calculated"<< endl;
+    clock_t start = clock();
+    for(const auto& [key, value] : vertexMap) {
+        vector<Edge> neighbors = randomNeighbors(key,R);
+        g.insert({key,neighbors});
+        // if(pair.first > 0 && (pair.first+1) % 1000 == 0) cout<< pair.first + 1 << " nodes' neighbors have been calculated"<< endl;
     }
+
+    clock_t end = clock();
+    double timeSpent = (double)(end - start) / CLOCKS_PER_SEC;
+    printf("graph initialization: %f seconds\n", timeSpent);
 }
 
 template <typename T>
 vector<Edge> Graph<T>::randomNeighbors(int pId,int R) {
     vector<Edge> neighbors;
-    vector<int> vertexIds;
-
-    for (const auto& pair : vertexMap) {
-        if (pair.first != pId) vertexIds.push_back(pair.first);
-    }
-
-    Utils<int>::shuffle(vertexIds);
-
 
     vector<T> p = vertexMap[pId];
-    for (int i = 0; i < min(R, static_cast<int>(vertexIds.size())); ++i) {
-        vector<T> vec = vertexMap[vertexIds[i]];
-        neighbors.push_back(Edge(vertexIds[i], euclideanDistance(p,vec)));
+    int randomId = Utils<int>::random(0,AUTO_INCREMENT - 1);
+
+    set<int> added;
+
+    for (int i = 0; i < R; ++i) {
+        while (randomId == pId || added.contains(randomId)) {
+            randomId = Utils<int>::random(0,AUTO_INCREMENT - 1);
+        }
+
+        added.insert(randomId);
+        vector<T> vec = vertexMap[randomId];
+        neighbors.push_back(Edge(randomId, euclideanDistance(p,vec)));
     }
 
     return neighbors;
@@ -157,13 +153,16 @@ float Graph<T>::euclideanDistance(const vector<T>& v1,const vector<T>& v2) {
 }
 
 template<typename T>
-bool Graph<T>::equals(vector<T>& v1, vector<T>& v2) {
+double Graph<T>::equals(const vector<T>& v1, vector<T>& v2) {
     if(v1.size() == 0 || v2.size() == 0) return false;
     const int dim = v1.size();
+
+    int misses = 0;
+
     for(int i = 0; i < dim; i++){
         if(v1[i] != v2[i]) {
             if(i == dim - 1 || v2[i+1] != v2[i+1]) { // lookahead for equally distant neighbors handling
-                return false;
+                misses++;
             }
             else {
                 i++; // do not check next
@@ -172,7 +171,10 @@ bool Graph<T>::equals(vector<T>& v1, vector<T>& v2) {
 
     }
 
-    return true;
+    cout << "misses: " << misses << endl;
+    cout << "dim: " << dim << endl;
+
+    return (static_cast<double>(dim) - misses) / dim;
 }
 
 template<typename T>
@@ -220,74 +222,47 @@ vector<int> Graph<T>::getVerticesIds() {
     for (const auto& pair : vertexMap) keys.push_back(pair.first);
     return keys;
 }
-// επιστρέφει:      1) Τους k πιο κοντινούς γείτονες.
-//                  2) Το σύνολο των κόμβων που έχουν επισκεφθεί.
-// δέχεται:   1) s -> Το αρχικό σημείο (start node).
-//            2) x_q -> Το σημείο ερώτημα (query point), δηλαδή το σημείο για το οποίο ψάχνουμε τους κοντινότερους γείτονες.
-//            3) k -> Το πλήθος των γειτόνων που θέλουμε να βρούμε (μέγεθος του αποτελέσματος).
-//            4) ef -> Το μέγεθος της λίστας αναζήτησης, το οποίο πρέπει να είναι τουλάχιστον ίσο με το k.
-template<typename T>
-pair<vector<int>,vector<int>> Graph<T>::greedySearch(int s, const vector<T>& x_q, int k, int ef) {
-    // Αρχικοποίηση του αρχικού συνόλου με τον κόμβο εκκίνησης και το σύνολο επισκέψεων
-    vector<Edge> edges{Edge(s,euclideanDistance(x_q,vertexMap[0]))};
-    set<int> L{s};      // Σύνολο αναζήτησης
-    set<int> V;         // Σύνολο επισκεφθέντων κόμβων
-    set<int> diff = setDiff(L, V);
 
-    // Επαναληπτική αναζήτηση μέχρι να εξαντληθούν οι κόμβοι που μπορούν να εξερευνηθούν
+
+template<typename T>
+pair<vector<int>,vector<int>> Graph<T>::greedySearch(int s, const vector<T>& q, const int k, int L) {
+
+    // clock_t start = clock();
+
+    VamanaContainer l(L); l.insert({s,euclideanDistance(q,vertexMap[s])});      // Σύνολο αναζήτησης
+    set<int> V;         // Σύνολο επισκεφθέντων κόμβων
+    set<int> diff = setDiff(l, V);
+
     while(!diff.empty()){
-        int pStar = argmindist(x_q,diff);   // Βρίσκουμε το p* (τον πιο κοντινό κόμβο που δεν έχει επισκεφτεί ακόμα)
+        int pStar = argmindist(q,diff);   // Βρίσκουμε το p* (τον πιο κοντινό κόμβο που δεν έχει επισκεφτεί ακόμα)
 
         vector<Edge> neighbors = g[pStar];  // Βρίσκουμε τους γείτονες του p*
 
         // Ενημερώνουμε το L με τους νέους γείτονες
         for (Edge n : neighbors) {
-            if(!L.contains(n.getDestination())){
-                L.insert(n.getDestination());
-                edges.push_back(n);
-            }
+            l.insert({n.getDestination(),n.getWeight()});
         }
 
         V.insert(pStar);    // Προσθέτουμε το p* στο σύνολο επισκέψεων
+        diff = setDiff(l,V);
 
-        // Έλεγχος για το μέγεθος της λίστας αναζήτησης
-        if (L.size() > ef) {
-            // Διατηρούμε τα πιο κοντινά ef σημεία από το x_q
-            auto comparator = [&](int a, int b) {
-                return euclideanDistance(vertexMap[a], x_q) < euclideanDistance(vertexMap[b], x_q);
-            };
-            // Ταξινομούμε τα στοιχεία του L ως προς την απόσταση και κρατάμε τα ef κοντινότερα
-            vector<int> L_vec(L.begin(), L.end());
-            sort(L_vec.begin(), L_vec.end(), comparator);
-            L = set<int>(L_vec.begin(), L_vec.begin() + ef);
-        }
-
-        // Ενημερώνουμε το diff για την επόμενη επανάληψη
-        diff = setDiff(L,V);
-
-    }
-    // Ταξινόμηση των ακμών ως προς την απόσταση
-    auto comparator = [&](const Edge& a, const Edge& b) {
-        return a.getWeight() < b.getWeight(); // Sort by distance in ascending order
-    };
-
-    sort(edges.begin(), edges.end(), comparator);
-
-    // Αποθήκευση των k πιο κοντινών γειτόνων
-    vector<Edge> kNearest;
-    for (int i = 0; i < k && i < edges.size(); i++) {
-        kNearest.emplace_back(edges[i]);
     }
 
     // Μετατροπή των αποτελεσμάτων για επιστροφή
     vector<int> visitedVec(V.begin(), V.end());
-    return {edgesToVertices(kNearest), visitedVec};
+
+    // clock_t end = clock();
+    // double timeSpent = (double)(end - start) / CLOCKS_PER_SEC;
+    // printf("greedy search: %f seconds\n", timeSpent);
+
+    return {l.subset(k), visitedVec};
 }
 
 template<typename T>
-set<int> Graph<T>::setDiff(set<int>& A,set<int>& B){
+set<int> Graph<T>::setDiff(VamanaContainer& A,set<int>& B){
     set<int> diff;
-    for(auto a : A){
+    vector<int> itemsOfA = A.subset(-1);
+    for(auto a : itemsOfA){
         if(find(B.begin(), B.end(), a) == B.end()){
             diff.insert(a);
         }
@@ -397,8 +372,8 @@ void Graph<T>::printVectorNeighbors(vector<Edge>& neighbors,ostream& out) {
     if(!neighbors.empty()) {
         for(Edge neighbor : neighbors){
 
+            out << "[" << neighbor.getDestination() << "] = ";
             for(int j = 0; j < vertexMap[neighbor.getDestination()].size(); j++) {
-                out << "[" << neighbor.getDestination() << "] = ";
                 out << vertexMap[neighbor.getDestination()][j] << " ";
             }
             out << "(" << neighbor.getWeight() << ")" << " ";

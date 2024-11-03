@@ -7,6 +7,7 @@
 #include "../DataSet/DataSet.h"
 #include "../Edge/Edge.h"
 #include "../DataSet/DataSet.h"
+#include "../VamanaContainer/VamanaContainer.h"
 #include <set>
 
 using namespace std;
@@ -14,13 +15,14 @@ using namespace std;
 template <typename T>
 class Graph {
     int AUTO_INCREMENT;             // Χρησιμοποιείται για την ανάθεση μοναδικών ID σε κάθε κορυφή. Ξεκινά από το 0 και αυξάνεται αυτόματα κατά την εισαγωγή κάθε νέας κορυφής.
-    map<int, vector<T> > vertexMap;
+    map<int, vector<T>> vertexMap;
     map<int,vector<Edge>> g;
+    int L;
     int R;                          // Μέγιστος αριθμός εξερχόμενων ακμών
     int k;                          // Αριθμός γειτόνων που θα βρούμε
     double a;                       // Παράμετρος για το RobustPrune (κατώφλι απόστασης)
 public:
-    Graph(vector<vector<T>> vecs,int L,int R,double a);
+    Graph(vector<vector<T>> vecs,int L,int R,int k,double a);
     void vamana();
     void initializeRandomEdges();
     vector<Edge> randomNeighbors(int pId, int R);
@@ -33,8 +35,8 @@ public:
     int argminDist(const vector<T>& p, const vector<int>& P);
     int argmindist(const vector<T>& p, const set<int>& P);
     vector<int> getVerticesIds();
-    pair<vector<int>,vector<int>> greedySearch(int s, const vector<T>& x_q,int k, int ef);
-    set<int> setDiff(set<int>& A, set<int>& B);
+    pair<vector<int>,vector<int>> greedySearch(int s, const vector<T>& q,int k, int L);
+    set<int> setDiff(VamanaContainer& A, set<int>& B);
     vector<int> edgesToVertices(vector<Edge> edges);
     vector<Edge> getNeighbors(int vertex);
     void printVector(int id, ostream& out = cout);
@@ -44,7 +46,7 @@ public:
     // static
     static float euclideanDistance(const vector<T>& v1,const vector<T>& v2);
     static void printVector(pair<int,vector<T>>,ostream& out = cout);
-    static bool equals(vector<T> &v1, vector<T> &v2);
+    static double equals(const vector<T> &v1, vector<T> &v2);
 };
 
 #include "Graph.cpp"

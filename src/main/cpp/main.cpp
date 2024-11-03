@@ -22,17 +22,21 @@ int main(int argc,char* argv[]) {
 
 
 	int numOfQueries = queryDataSet.getNumOfVectors();
-	int k = groundtruthDataSet.getD();
-	int R = 150;
-	double a = 1.8;
+	int k = 100; // groundtruthDataSet.getD();
+	int L = 250;
+	int R = 60;
+	double a = 1.2;
 
-	// Graph graph(vecs,L,R,a);
 
-	vector<vector<float>> subset;
-	for(int i = 0; i < 2000; i++)subset.push_back(baseDataSet.getVector(i));
+	Graph graph(baseDataSet.getVectors(),L,R,k,a);
 
-	Graph graph(baseDataSet.getVectors(),R,k,a);
+	clock_t start = clock();
+
 	graph.vamana();
+
+	clock_t end = clock();
+	double timeSpent = (double)(end - start) / CLOCKS_PER_SEC;
+	printf("index build: %f seconds\n", timeSpent);
 
 	vector<Edge> nearestNeighborsEdges;
 	vector<int> groundTruthNearestNeighbors;
@@ -44,24 +48,15 @@ int main(int argc,char* argv[]) {
 	vector<float> q;
 	for(int i = 0; i < numOfQueries;i++) {
 		q = queryDataSet.getVector(i);
-		pair<vector<int>,vector<int>> gS = graph.greedySearch(medoidId,q,k,120);
-
-		vector<int> neighbors = gS.first;
-		vector<int> v = gS.second;
+		const auto& [neighbors,v] = graph.greedySearch(medoidId,q,k,L);
 
 		groundTruthNearestNeighbors = groundtruthDataSet.getVector(i);
-		bool equalVecs = Graph<int>::equals(neighbors,groundTruthNearestNeighbors);
+		double vecsDiff = Graph<int>::equals(neighbors,groundTruthNearestNeighbors);
 
-		if(equalVecs) {
-			cout << "Q" << i << ": " << "SUCCESS" << endl;
-		}
-		else {
-			cout << "Q" << i << ": " << "FAILURE" << endl;
-			misses++;
-		}
+
+		cout << "Q" << i << ": " << vecsDiff * 100 << "%" << endl;
+
 	}
-
-	if(misses > 0) cout << "misses: " << misses << endl;
 
 
 }
