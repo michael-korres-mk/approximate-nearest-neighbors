@@ -52,6 +52,19 @@ make
 ```
 make tests
 ```
+
+### Project Contribution
+Michael Korres
+* Project Setup (Project File-Structure, Data Input & Core Implementations)
+* GreedySearch Implementation
+* Vamana Implementation
+
+Marios Kindynis
+* RobustPrune Implementation
+* Implementation Optimizations & Fixes
+* Testing
+* Commenting & README
+
 ### Description
 
 Για την υλοποίηση των unit tests, δημιουργήσαμε ένα Makefile που αυτοματοποιεί τη διαδικασία κατασκευής και εκτέλεσης των δοκιμών μας. Το Makefile εντοπίζει όλα τα αρχεία .cpp στον φάκελο tests και δημιουργεί τα αντίστοιχα εκτελέσιμα στον φάκελο build/tests. Έτσι, με μία μόνο εντολή, μπορούμε να κατασκευάσουμε και να εκτελέσουμε όλα τα tests, εξοικονομώντας χρόνο και αποφεύγοντας πιθανά λάθη. Με αυτόν τον τρόπο, μπορούμε να προσθέτουμε νέα tests απλά δημιουργώντας ένα νέο αρχείο .cpp στον φάκελο tests, χωρίς να χρειάζεται να τροποποιούμε το Makefile.
