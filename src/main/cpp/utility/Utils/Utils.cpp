@@ -2,27 +2,57 @@
 // Created by micha on 09/10/2024.
 //
 
-#include "Utils.h"
-#include <iostream>
-#include <cstring>
-#include <cstdlib>
-#include <cstdio>
-#include <random>
-#include <unistd.h>
+# include "Utils.h"
+
+#include <algorithm>
+#include <chrono>
+# include <iostream>
+# include <cstring>
+# include <cstdlib>
+# include <cstdio>
+# include <random>
+# include <unistd.h>
 
 using namespace std;
 
-int Utils::flipCoin() { // Function to simulate a coin flip
+template <typename K>
+vector<K>& Utils<K>::shuffle(vector<K>& v){
+    const unsigned seed = chrono::system_clock::now().time_since_epoch().count();
+    mt19937 rng(seed);
+    std::shuffle(v.begin(), v.end(), rng);
+    return v;
+}
+
+template <typename K>
+int Utils<K>::flipCoin() { // Function to simulate a coin flip
+   return random(0,1);
+
+}
+
+template <typename K>
+int Utils<K>::random(int a,int b) { // Function to simulate a coin flip
     // seed engine
-    std::random_device seed;
+    random_device seed;
 
     // Random number engine
-    std::mt19937 generator(seed());
+    mt19937 generator(seed());
 
-    // Set the range => {0, 1}
-    std::uniform_int_distribution<int> distribution(0, 1);
+    // Set the range => {a, b}
+    uniform_int_distribution<int> distribution(a, b);
 
-    // Generate a random integer (0 or 1)
+    // Generate a random integer
     return distribution(generator);
 
 }
+
+template<typename K>
+void Utils<K>::printDivider() {
+    cout << "-----------------------------------------------------------" << endl;
+}
+
+template class Utils<float>;
+template class Utils<int>;
+template class Utils<char>;
+template class Utils<vector<float>>;
+template class Utils<vector<int>>;
+template class Utils<vector<char>>;

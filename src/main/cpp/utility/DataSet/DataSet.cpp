@@ -2,11 +2,18 @@
 // Created by mkorres on 10/9/2024.
 //
 
-#include "DataSet.h"
-#include "../Utils/Utils.h"
+# include "DataSet.h"
+
+#include <chrono>
+
+# include "../Utils/Utils.h"
+
+template<typename T>
+DataSet<T>::DataSet() {
+}
 
 template <typename T>
-DataSet<T>::DataSet(char* dataFileName) {
+DataSet<T>::DataSet(const string& dataFileName) {
     this->vectors = this->vecsRead(dataFileName,{1,-1});
     assert(!vectors.empty());
     this->d = this->vectors[0].size();
@@ -32,10 +39,6 @@ vector<vector<T>> DataSet<T>::vecsRead(const string& filename, pair<int, int> bo
     file.seekg(0, ios::end);
     streampos fileSize = file.tellg();
     int bmax = fileSize / vectorSize;
-
-    // cout << "d: " << d << endl;
-    // cout << "vec_sizeof: " << vec_sizeof << endl;
-    // cout << "bmax: " << bmax << endl;
 
     int a = bounds.first;
     int b = (bounds.second == -1) ? bmax : bounds.second;
@@ -65,8 +68,6 @@ vector<vector<T>> DataSet<T>::vecsRead(const string& filename, pair<int, int> bo
             file.read(reinterpret_cast<char*>(&data),sizeof(T));
             vectors[i][j] = data;
         }
-
-        // file.read(reinterpret_cast<char*>(vectors[i].data()), d * sizeof(T));
 
     }
 
@@ -110,36 +111,7 @@ void DataSet<T>::print() {
     }
 }
 
-template<typename T>
-float DataSet<T>::euclideanDistance(vector<T> v1, vector<T> v2) {
-    int d = v1.size();
-    float dist = 0;
-    for(int i = 0; i < d; i++) {
-        dist += pow(v1[i] - v2[i], 2);
-    }
 
-    return sqrt(dist);
-}
-
-
-
-template<typename T>
-int DataSet<T>::getNearestNeighbor(vector<T> q) {
-    int nnId = 0;
-    float minDistance = numeric_limits<float>::max();
-    float currDist;
-
-
-    for(int i = 0; i < this->getNumOfVectors(); i++) {
-        currDist = euclideanDistance(q,this->vectors[i]);
-        if(currDist < minDistance) {
-            minDistance = currDist;
-            nnId = i;
-        }
-    }
-
-    return nnId;
-}
 
 // explicit template instantiations
 template class DataSet<float>;
