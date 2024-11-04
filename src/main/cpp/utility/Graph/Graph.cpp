@@ -308,6 +308,12 @@ template <typename T>
 vector<Edge> Graph<T>::robustPrune(int p, const vector<int> &V, double a, int R) {
     // Αντιγραφή του συνόλου V, αφού θα το τροποποιήσουμε και αφαίρεση του p από το σύνολο των υποψήφιων γειτόνων
     vector<int> candidateNeighbors = V;
+    vector<Edge> pOut = getNeighbors(p);
+    for (Edge e : pOut) {
+        if (find(candidateNeighbors.begin(), candidateNeighbors.end(), e.getDestination()) == candidateNeighbors.end()) {
+            candidateNeighbors.push_back(e.getDestination());
+        }
+    }
     candidateNeighbors.erase(remove(candidateNeighbors.begin(), candidateNeighbors.end(), p), candidateNeighbors.end());
 
     vector<Edge> N_out; // Νέοι εξωτερικοί γείτονες
