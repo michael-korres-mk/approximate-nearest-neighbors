@@ -1,12 +1,10 @@
-#ifndef GRAPH_CPP
-#define GRAPH_CPP
-
 #include "Graph.h"
 #include "../Utils/Utils.h"
 
 
 template <typename T>
-Graph<T>::Graph(vector<vector<T>> vecs, const int L,const int R,const int k,double a):AUTO_INCREMENT(0),R(R),k(k),a(a),L(L){
+Graph<T>::Graph(vector<vector<T>> vecs, const int L,const int R,const int k,double a):AUTO_INCREMENT(0),R(R),k(k),a(a),L(L),d((vecs.size() > 0)?static_cast<int>(vecs[0].size()):0){
+    // TODO: Revisit d initialization
     for(int i = 0; i < vecs.size() ; i++ ) {
         vertexMap.insert({AUTO_INCREMENT,vecs[i]});
         AUTO_INCREMENT++;
@@ -28,7 +26,7 @@ void Graph<T>::vamana(){
     int x;
     set<int> done;
     while(done.size() != vertexMap.size()){
-        (!done.empty() && done.size() % 1000 == 0) && printf("completed %llu %% ... \n",done.size()/100);
+        (!done.empty() && done.size() % 1000 == 0) && printf("completed %d %% ... \n",static_cast<int>(done.size()/100));
 
         while (done.find(x = Utils<int>::random(0,AUTO_INCREMENT - 1)) != done.end()) {}
         done.insert(x);
@@ -51,7 +49,7 @@ void Graph<T>::vamana(){
             }
         }
     }
-    printf("completed %llu %%\n",done.size()/100);
+    printf("completed %d %%\n",static_cast<int>(done.size()/100));
 }
 
 template <typename T>
@@ -146,7 +144,7 @@ template <typename T>
 void Graph<T>::removeEdge(const int src, const int dest){
     vector<Edge>& srcNeighbors = g[src];
     srcNeighbors.erase(
-        remove_if(srcNeighbors.begin(), srcNeighbors.end(),[&](const Edge& e) { return e.getDestination() == dest; }),
+        remove_if(srcNeighbors.begin(), srcNeighbors.end(),[&](const Edge& e) { return e.destination == dest; }),
         srcNeighbors.end()
     );
 }
@@ -243,7 +241,7 @@ pair<vector<int>,vector<int>> Graph<T>::greedySearch(int s, const vector<T>& q, 
 
         // Ενημερώνουμε το L με τους νέους γείτονες
         for (Edge n : neighbors) {
-            l.insert({n.getDestination(),n.getWeight()});
+            l.insert({n.destination,n.weight});
         }
 
         V.insert(pStar);    // Προσθέτουμε το p* στο σύνολο επισκέψεων
@@ -274,7 +272,7 @@ vector<int> Graph<T>::edgesToVertices(vector<Edge> edges) {
     vector<int> v;
     // Use a lambda to extract destinations and push to v
     transform(edges.begin(), edges.end(), back_inserter(v), [](const Edge& e) {
-        return e.getDestination(); // Return the destination to be inserted into v
+        return e.destination; // Return the destination to be inserted into v
     });
     return v;
 }
@@ -310,8 +308,8 @@ vector<Edge> Graph<T>::robustPrune(int p, const vector<int> &V, double a, int R)
     vector<int> candidateNeighbors = V;
     vector<Edge> pOut = getNeighbors(p);
     for (Edge e : pOut) {
-        if (find(candidateNeighbors.begin(), candidateNeighbors.end(), e.getDestination()) == candidateNeighbors.end()) {
-            candidateNeighbors.push_back(e.getDestination());
+        if (find(candidateNeighbors.begin(), candidateNeighbors.end(), e.destination) == candidateNeighbors.end()) {
+            candidateNeighbors.push_back(e.destination);
         }
     }
     candidateNeighbors.erase(remove(candidateNeighbors.begin(), candidateNeighbors.end(), p), candidateNeighbors.end());
@@ -376,11 +374,11 @@ void Graph<T>::printVectorNeighbors(vector<Edge>& neighbors,ostream& out) {
     if(!neighbors.empty()) {
         for(Edge neighbor : neighbors){
 
-            out << "[" << neighbor.getDestination() << "] = ";
-            for(int j = 0; j < vertexMap[neighbor.getDestination()].size(); j++) {
-                out << vertexMap[neighbor.getDestination()][j] << " ";
+            out << "[" << neighbor.destination << "] = ";
+            for(int j = 0; j < vertexMap[neighbor.destination].size(); j++) {
+                out << vertexMap[neighbor.destination][j] << " ";
             }
-            out << "(" << neighbor.getWeight() << ")" << " ";
+            out << "(" << neighbor.weight << ")" << " ";
             out << endl;
         }
     }
@@ -442,4 +440,115 @@ int Graph<T>::getTotalEdges() const {
     return count;
 }
 
-#endif // GRAPH_CPP
+// import-export graph
+template <typename T>
+void Graph<T>::exportGraph() {
+
+    const string filename = "graph.bin";
+    const string graphFilePath(RESOURCES_P + filename);
+
+    ofstream file(graphFilePath, ios::binary);
+    if (!file.is_open()) {
+        throw runtime_error("I/O error: Unable to open the file " + filename);
+    }
+
+    // persist graph metadata
+    file.write(reinterpret_cast<const char*>(&AUTO_INCREMENT), sizeof(int));
+    file.write(reinterpret_cast<const char*>(&L), sizeof(int));
+    file.write(reinterpret_cast<const char*>(&R), sizeof(int));
+    file.write(reinterpret_cast<const char*>(&k), sizeof(int));
+    file.write(reinterpret_cast<const char*>(&d), sizeof(int));
+    file.write(reinterpret_cast<const char*>(&a), sizeof(double));
+
+    // persist vector type size
+    size_t typeSize = sizeof(T);
+    file.write(reinterpret_cast<const char*>(&typeSize), sizeof(size_t));
+
+    size_t numOfNeighbors;
+
+    // persist vectors
+    for(const auto& [id, vector] : vertexMap) {
+        file.write(reinterpret_cast<const char*>(&id), sizeof(int));
+        for(auto& xi : vector) {
+            file.write(reinterpret_cast<const char*>(&xi), sizeof(typeSize));
+        }
+
+        // persist num of neighbors
+        numOfNeighbors = g[id].size();
+        file.write(reinterpret_cast<const char*>(&numOfNeighbors), sizeof(size_t));
+
+        // persist neighbors
+        auto& neighbors = g[id];
+        for(auto& n : neighbors) {
+            file.write(reinterpret_cast<const char*>(&n.destination), sizeof(int));
+            file.write(reinterpret_cast<const char*>(&n.weight), sizeof(int));
+        }
+    }
+
+    file.close();
+
+}
+
+template <typename T>
+void Graph<T>::importGraph() {
+
+    const string filename = "graph.bin";
+    const string graphFilePath(RESOURCES_P + filename);
+
+    ifstream file(graphFilePath, ios::binary);
+    if (!file.is_open()) {
+        throw runtime_error("I/O error: Unable to open the file " + filename);
+    }
+
+    // fetch graph metadata
+    file.read(reinterpret_cast<char*>(&AUTO_INCREMENT), sizeof(int));
+    file.read(reinterpret_cast<char*>(&L), sizeof(int));
+    file.read(reinterpret_cast<char*>(&R), sizeof(int));
+    file.read(reinterpret_cast<char*>(&k), sizeof(int));
+    file.read(reinterpret_cast<char*>(&d), sizeof(int));
+    file.read(reinterpret_cast<char*>(&a), sizeof(double));
+
+    // fetch vector type size
+    size_t typeSize;;
+    file.read(reinterpret_cast<char*>(&typeSize), sizeof(size_t));
+
+    size_t numOfNeighbors;
+
+    // fetch vectors
+    for(int i = 0; i < AUTO_INCREMENT; i++) {
+        int id;
+        vector<T> vec;
+
+        file.read(reinterpret_cast<char*>(&id), sizeof(int));
+        T xi;
+        for(int j = 0; j < d; j++) {
+            file.read(reinterpret_cast<char*>(&xi), sizeof(typeSize));
+            vec.push_back(xi);
+        }
+
+        vertexMap[id] = vec;
+
+        // fetch num of neighbors
+        file.read(reinterpret_cast<char*>(&numOfNeighbors), sizeof(size_t));
+
+        // fetch neighbors
+        vector<Edge> neighbors;
+        int destination;
+        double weight;
+        for(int k = 0; k < numOfNeighbors; k++) {
+            file.read(reinterpret_cast<char*>(&destination), sizeof(int));
+            file.read(reinterpret_cast<char*>(&weight), sizeof(int));
+            neighbors.emplace_back(destination, weight);
+        }
+
+        g[id] = neighbors;
+    }
+
+    file.close();
+
+}
+
+// explicit template instantiations
+template class Graph<float>;
+template class Graph<int>;
+template class Graph<char>;

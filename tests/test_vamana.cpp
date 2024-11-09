@@ -36,8 +36,8 @@ void test_vamana() {
     for (int nodeId : graph.getVerticesIds()) {
         const auto& neighbors = graph.getNeighbors(nodeId);
         for (const Edge& edge : neighbors) {
-            int neighborId = edge.getDestination();
-            double dist = edge.getWeight();
+            int neighborId = edge.destination;
+            double dist = edge.weight;
             double expectedDist = Graph<int>::euclideanDistance(
                 graph.getVertex(nodeId), graph.getVertex(neighborId)
             );
@@ -50,7 +50,7 @@ void test_vamana() {
 //        const auto& neighbors = graph.getNeighbors(nodeId);
 //        set<int> neighborIds;
 //        for (const Edge& edge : neighbors) {
-//            neighborIds.insert(edge.getDestination());
+//            neighborIds.insert(edge.destination);
 //        }
 //        TEST_CHECK(neighbors.size() == neighborIds.size());
 //    }

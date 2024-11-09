@@ -21,6 +21,7 @@ class Graph {
     int L;
     int R;                          // Μέγιστος αριθμός εξερχόμενων ακμών
     int k;                          // Αριθμός γειτόνων που θα βρούμε
+    int d;
     double a;                       // Παράμετρος για το RobustPrune (κατώφλι απόστασης)
 public:
     Graph(vector<vector<T>> vecs,int L,int R,int k,double a);
@@ -59,8 +60,10 @@ public:
         return vertexMap;
     }
 
+    // import-export graph
+    void importGraph();
+    void exportGraph();
 };
 
-#include "Graph.cpp"
 
 #endif // GRAPH_HPP

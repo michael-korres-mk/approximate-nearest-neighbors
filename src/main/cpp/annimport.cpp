@@ -51,15 +51,15 @@ int main(int argc,char* argv[]) {
 
 	Utils<char>::printDivider();
 
-	Graph graph(baseDataSet.getVectors(),L,R,k,a);
+	Graph<float> graph({},L,R,k,a);
 
 	auto start = chrono::high_resolution_clock::now();
 
-	graph.vamana();
+	graph.importGraph();
 
 	auto end = chrono::high_resolution_clock::now();
 	auto duration = chrono::duration_cast<chrono::milliseconds>(end - start).count();
-	cout << "index build: " << duration << " ms" << endl;
+	cout << "Graph import: " << duration << " ms" << endl;
 
 	vector<Edge> nearestNeighborsEdges;
 	vector<int> groundTruthNearestNeighbors;
@@ -80,6 +80,8 @@ int main(int argc,char* argv[]) {
 
 	Utils<char>::printDivider();
 	printf("k-recall@k: %.2lf%%\n",(totalKRecall / numOfQueries) * 100);
+
+	graph.exportGraph();
 
 }
 
