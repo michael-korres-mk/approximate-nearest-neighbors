@@ -15,7 +15,7 @@ void test_additionIsSuccess() {
 
     // Assert
     TEST_ASSERT(neighborsOf0.size() == 1);
-    TEST_ASSERT(neighborsOf0[0].getDestination() == 1);
+    TEST_ASSERT(neighborsOf0[0].destination == 1);
     TEST_ASSERT(neighborsOf1.size() == 0);
 
 }
@@ -32,7 +32,7 @@ void test_weightAddedProperly() {
 
     // Assert
     Edge addedEdge = neighborsOf0[0];
-    double edgeWeight = addedEdge.getWeight();    // Έλεγχος του βάρους της ακμής
+    double edgeWeight = addedEdge.weight;    // Έλεγχος του βάρους της ακμής
     double epsilon = 1e-6;
     TEST_ASSERT(fabs((edgeWeight) - (0.5)) > (epsilon));
 }

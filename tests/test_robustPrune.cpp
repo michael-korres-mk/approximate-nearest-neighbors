@@ -33,7 +33,7 @@ void test_robustPrune() {
     vector<Edge> result = graph.robustPrune(p,V,a,R);
 
     for (int i = 0; i < result.size(); i++) {
-        TEST_ASSERT(result[i].getDestination() == expectedNeighbors[i]);
+        TEST_ASSERT(result[i].destination == expectedNeighbors[i]);
     }
 
 }
@@ -83,9 +83,9 @@ void test_robustPrune2() {
     // 1, 4 -> 3.16228
     // 1, 5 -> 15.8114
     // 1, 6 -> 3.16228
-    TEST_ASSERT(rp[0].getDestination() == 6);
-    TEST_ASSERT(rp[1].getDestination() == 4);
-    TEST_ASSERT(rp[2].getDestination() == 3);
+    TEST_ASSERT(rp[0].destination == 6);
+    TEST_ASSERT(rp[1].destination == 4);
+    TEST_ASSERT(rp[2].destination == 3);
 
 
     int p2 = 6;
@@ -97,8 +97,8 @@ void test_robustPrune2() {
     // 6, 5 -> 18.9737          |  p' = 5  |  1,3*d(p_star, p') <= d(p2, p')  <=>  1.3*d(1, 5) <= d(6, 5)  <=>  1.3*15.8114 <= 18.9737   |  not  remove
     //
     //                  5       |  p_star  |
-    TEST_ASSERT(rp2[0].getDestination() == 1);
-    TEST_ASSERT(rp2[1].getDestination() == 5);
+    TEST_ASSERT(rp2[0].destination == 1);
+    TEST_ASSERT(rp2[1].destination == 5);
 
     int p3 = 6;
     vector<int> V3 = {1, 3, 5, 6};
@@ -114,9 +114,9 @@ void test_robustPrune2() {
     //                  5       |  p' = 5  |  2*d(p_star, p') <= d(p2, p')  <=>  2*d(3, 5) <= d(6, 5)  <=>  2*14.4222 <= 18.9737   |  not  remove
     //
     //                  5       |  p_star  |
-    TEST_ASSERT(rp3[0].getDestination() == 1);
-    TEST_ASSERT(rp3[1].getDestination() == 3);
-    TEST_ASSERT(rp3[2].getDestination() == 5);
+    TEST_ASSERT(rp3[0].destination == 1);
+    TEST_ASSERT(rp3[1].destination == 3);
+    TEST_ASSERT(rp3[2].destination == 5);
 
 }
 

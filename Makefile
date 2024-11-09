@@ -1,5 +1,10 @@
 all:
 	$(MAKE) -f make-ann
+
+annimport-build:
+	$(MAKE) -f make-annimport
+
+tests-build:
 	$(MAKE) -f make-test
 
 # Target: clean
@@ -26,8 +31,11 @@ L = 250
 R = 60
 a = 1.2
 
-main:
+ann:
 	$(BUILD_DIR)/ann -k $(k) -L $(L) -R $(R) -a $(a) -bv $(BASE_DATA_FILE) -gv $(GROUNDTRUTH_DATA_FILE) -qv $(QUERY_DATA_FILE)
+
+annimport:
+	$(BUILD_DIR)/annimport -k $(k) -L $(L) -R $(R) -a $(a) -bv $(BASE_DATA_FILE) -gv $(GROUNDTRUTH_DATA_FILE) -qv $(QUERY_DATA_FILE)
 
 
 TEST_SOURCES = $(wildcard tests/*)
