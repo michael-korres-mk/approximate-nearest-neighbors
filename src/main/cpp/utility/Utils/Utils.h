@@ -15,6 +15,9 @@
 #define RESOURCES_D "resources/"
 #define RESOURCES_P "src/main/resources/"
 
+#define FILTER_DATASET_DIMENSION 102
+
+
 using namespace std;
 
 template <typename  K>

@@ -16,5 +16,9 @@ add_executable(approximate_nearest_neighbors src/main/cpp/ann.cpp
         src/main/cpp/utility/Edge/Edge.h
         src/main/cpp/utility/VamanaContainer/VamanaContainer.cpp
         src/main/cpp/utility/VamanaContainer/VamanaContainer.h
+        src/main/cpp/utility/FilterDataset/FilterDataset.cpp
+        src/main/cpp/utility/FilterDataset/FilterDataset.h
+        src/main/cpp/utility/DataPoint/DataPoint.cpp
+        src/main/cpp/utility/DataPoint/DataPoint.h
 
 )

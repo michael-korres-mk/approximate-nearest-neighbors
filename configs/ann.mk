@@ -1,0 +1,9 @@
+DATASET = siftsmall
+ANN_BASE_DATA_FILE = $(DATASET)/$(DATASET)_base.fvecs
+ANN_GROUNDTRUTH_DATA_FILE = $(DATASET)/$(DATASET)_groundtruth.ivecs
+ANN_QUERY_DATA_FILE = $(DATASET)/$(DATASET)_query.fvecs
+
+ANN_k = 100
+ANN_L = 250
+ANN_R = 60
+ANN_a = 1.2
