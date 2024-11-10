@@ -15,12 +15,14 @@ DataPoint<K>::DataPoint(const int C, const int T, vector<K> vector): C(C), T(T),
 template<typename K>
 void DataPoint<K>::print() {
 
+    int temp = (FILTER_DATASET_DIMENSION - 2) - 1;
+
     cout << "C = " << C << endl;
     cout << "T = " << T << endl;
-    for(int j = 0; j < FILTER_DATASET_DIMENSION - 1; j++) {
+    for(int j = 0; j < temp; j++) {
         cout << vec[j] << " ";
     }
-    cout << setw(4) << fixed << setprecision(4) << vec[FILTER_DATASET_DIMENSION - 1] << endl;
+    cout << setw(4) << fixed << setprecision(4) << vec[temp] << endl;
 
 }
 

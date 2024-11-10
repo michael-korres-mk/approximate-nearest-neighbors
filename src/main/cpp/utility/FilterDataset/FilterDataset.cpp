@@ -34,7 +34,7 @@ vector<DataPoint<T>> FilterDataset<T>::vecsRead(const string &filename) {
     T data;
 
     for (int i = 0; i < numOfDataPoints; ++i) {
-        dataPoints[i] = DataPoint<T>(-1,-1,vector<T>(FILTER_DATASET_DIMENSION));
+        dataPoints[i] = DataPoint<T>(-1,-1,vector<T>(FILTER_DATASET_DIMENSION - 2));
 
         float C;
         file.read(reinterpret_cast<char*>(&C), sizeof(float));
@@ -45,7 +45,7 @@ vector<DataPoint<T>> FilterDataset<T>::vecsRead(const string &filename) {
         dataPoints[i].C = static_cast<int>(C);
         dataPoints[i].T = timestamp;
 
-        for(int j = 0; j < FILTER_DATASET_DIMENSION; j++) {
+        for(int j = 0; j < FILTER_DATASET_DIMENSION - 2; j++) {
             file.read(reinterpret_cast<char*>(&data),sizeof(T));
             dataPoints[i].vec[j] = data;
         }
@@ -61,7 +61,7 @@ vector<DataPoint<T>> FilterDataset<T>::vecsRead(const string &filename) {
 template <typename T>
 void FilterDataset<T>::print() {
 
-    cout << "d = " << FILTER_DATASET_DIMENSION << endl;
+    cout << "d = " << FILTER_DATASET_DIMENSION - 2 << endl;
     cout << "numOfDataPoints = " << numOfDataPoints << endl;
     cout << "sizeof(T) = " << sizeof(T) << endl;
 

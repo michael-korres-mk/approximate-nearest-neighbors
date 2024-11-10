@@ -16,6 +16,7 @@
 #define RESOURCES_P "src/main/resources/"
 
 #define FILTER_DATASET_DIMENSION 102
+#define FILTER_QUERY_SET_DIMENSION 104
 
 
 using namespace std;

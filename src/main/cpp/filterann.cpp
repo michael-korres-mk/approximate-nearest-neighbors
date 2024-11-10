@@ -11,16 +11,17 @@
 # include "utility/Graph/Graph.h"
 # include "utility/Utils/Utils.h"
 # include "utility/FilterDataset/FilterDataset.h"
+# include "utility/FilterQuerySet/FilterQuerySet.h"
 
 using namespace std;
 
-void initializeDatasets(FilterDataset<float>& dataset, FilterDataset<float>& querySet,char* argv[],int argc) ;
+void initializeDatasets(FilterDataset<float>& dataset, FilterQuerySet<float>& querySet,char* argv[],int argc) ;
 
 int main(int argc,char* argv[]) {
 	Utils<char>::printDivider();
 
 	FilterDataset<float> dataset;
-	FilterDataset<float> querySet;
+	FilterQuerySet<float> querySet;
 
 	initializeDatasets(dataset,querySet,argv,argc);
 
@@ -53,12 +54,12 @@ int main(int argc,char* argv[]) {
 
 	Utils<char>::printDivider();
 
-	dataset.print();
-
+//	dataset.print();
+	querySet.print();
 
 }
 
-void initializeDatasets(FilterDataset<float>& dataset, FilterDataset<float>& querySet,char* argv[],int argc) {
+void initializeDatasets(FilterDataset<float>& dataset, FilterQuerySet<float>& querySet,char* argv[],int argc) {
 	string baseVectorsDataFileName;
 	string queryVectorsDataFileName;
 
@@ -84,11 +85,11 @@ void initializeDatasets(FilterDataset<float>& dataset, FilterDataset<float>& que
 
 	Utils<char>::printDivider();
 
-	// auto queryDatasetStart = chrono::high_resolution_clock::now();
-	// querySet = FilterQuerySet<float>(queryVectorsDataFileName);
-	//
-	// auto queryDatasetEnd = chrono::high_resolution_clock::now();
-	// auto queryDatasetDuration = chrono::duration_cast<chrono::milliseconds>(queryDatasetEnd - queryDatasetStart).count();
-	// cout << "query dataset load: " << queryDatasetDuration << " ms" << endl;
+	 auto queryDatasetStart = chrono::high_resolution_clock::now();
+	 querySet = FilterQuerySet<float>(queryVectorsDataFileName);
+
+	 auto queryDatasetEnd = chrono::high_resolution_clock::now();
+	 auto queryDatasetDuration = chrono::duration_cast<chrono::milliseconds>(queryDatasetEnd - queryDatasetStart).count();
+	 cout << "query dataset load: " << queryDatasetDuration << " ms" << endl;
 
 }
