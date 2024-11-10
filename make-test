@@ -11,7 +11,7 @@ TEST_EXECUTABLES = $(patsubst tests/%.cpp, build/tests/%,$(TEST_SOURCES))
 # Rule to create each test executable
 build/tests/%: tests/%.cpp $(wildcard $(SRCS)/utility/**/*.cpp)
 	@mkdir -p build/tests # Ensure the build/tests directory exists
-	$(CXX) $(CXXFLAGS) $< $(filter-out $(SRCS)/utility/*/main.cpp, $(wildcard $(SRCS)/utility/**/*.cpp)) -o $@
+	$(CXX) $(CXXFLAGS) $< $(filter-out $(SRCS)/utility/*/ann.cpp, $(wildcard $(SRCS)/utility/**/*.cpp)) -o $@
 
 # Target: all (default target)
 all: $(TEST_EXECUTABLES)
