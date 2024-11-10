@@ -21,6 +21,9 @@ clean:
 # Directory where object files will be placed
 BUILD_DIR = build
 
+# Directory where resource files will be placed
+RESOURCES_DIR = src/main/resources
+
 ann:
 	$(BUILD_DIR)/ann -k $(k) -L $(L) -R $(R) -a $(a) -bv $(BASE_DATA_FILE) -gv $(GROUNDTRUTH_DATA_FILE) -qv $(QUERY_DATA_FILE)
 
