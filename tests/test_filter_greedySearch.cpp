@@ -36,7 +36,7 @@ void test_filter_greedySearch() {
         DataPoint<int>(0,-1,data9)
     };
 
-    FilterGraph<int> graph(data, 1, 5, 3,3);
+    FilterGraph<int> graph(data, 1, 5, 3, 3, 3);
 
     for (int i = 0; i < data.size(); ++i) {
         for (int j = i + 1; j < data.size(); ++j) {
