@@ -9,8 +9,7 @@
 # include "../Utils/Utils.h"
 
 template<typename T>
-DataSet<T>::DataSet() {
-}
+DataSet<T>::DataSet() {}
 
 template <typename T>
 DataSet<T>::DataSet(const string& dataFileName) {
