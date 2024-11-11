@@ -28,12 +28,13 @@ public:
     void removeEdge(int src, int dest);
 
     int medoid();
-    pair<vector<int>,vector<int>> filteredGreedySearch(int s, const vector<T>& q,int k, int L);
+    pair<vector<int>,vector<int>> filteredGreedySearch(const vector<int>& S, const vector<T>& q,int k, int L,int Fq);
     void filteredVamana();
     void stitchedVamana();
     vector<Edge> filteredRobustPrune(int p, const vector<int> &V, double a, int R);
 
     int argminDist(const vector<T>& p, const vector<int>& P);
+    int argmindist(const vector<T>& p, const set<int>& P);
     vector<int> getVerticesIds();
     set<int> setDiff(VamanaContainer& A, set<int>& B);
     vector<int> edgesToVertices(vector<Edge> edges);
