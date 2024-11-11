@@ -8,7 +8,7 @@
 # include <fcntl.h>
 # include <unistd.h>
 # include <iomanip>
-# include "utility/Graph/Graph.h"
+# include "utility/FilterGraph/FilterGraph.h"
 # include "utility/Utils/Utils.h"
 # include "utility/FilterDataset/FilterDataset.h"
 # include "utility/FilterQuerySet/FilterQuerySet.h"
@@ -54,9 +54,7 @@ int main(int argc,char* argv[]) {
 
 	Utils<char>::printDivider();
 
-//	dataset.print();
-	querySet.print();
-
+    FilterGraph<float> graph(dataset.dataPoints,L,R,k,a);
 }
 
 void initializeDatasets(FilterDataset<float>& dataset, FilterQuerySet<float>& querySet,char* argv[],int argc) {

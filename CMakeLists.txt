@@ -24,5 +24,7 @@ add_executable(approximate_nearest_neighbors src/main/cpp/ann.cpp
         src/main/cpp/utility/FilterQuerySet/FilterQuerySet.h
         src/main/cpp/utility/Query/Query.cpp
         src/main/cpp/utility/Query/Query.h
+        src/main/cpp/utility/FilterGraph/FilterGraph.cpp
+        src/main/cpp/utility/FilterGraph/FilterGraph.h
 
 )
