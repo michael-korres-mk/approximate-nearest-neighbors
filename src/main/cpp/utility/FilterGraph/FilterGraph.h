@@ -19,15 +19,16 @@ public:
     int k;                          // Αριθμός γειτόνων που θα βρούμε
     int d;
     double a;                       // Παράμετρος για το RobustPrune (κατώφλι απόστασης)
+    int tau;                        // Παράμετρος για τη δειγματοληψία
 
-    FilterGraph(vector<DataPoint<T>> dataPoints,int L,int R,int k,double a);
+    FilterGraph(vector<DataPoint<T>> dataPoints,int L,int R,int k,double a, int tau);
     void initializeRandomEdges();
     vector<Edge> randomNeighbors(int pId, int R);
     void addVertex(DataPoint<T> vertex);
     void addEdge(int src, int dest,float dist);
     void removeEdge(int src, int dest);
 
-    int medoid();
+    map<int, int> findMedoid();
     pair<vector<int>,vector<int>> filteredGreedySearch(const vector<int>& S, const vector<T>& q,int k, int L,int Fq);
     void filteredVamana();
     void stitchedVamana();

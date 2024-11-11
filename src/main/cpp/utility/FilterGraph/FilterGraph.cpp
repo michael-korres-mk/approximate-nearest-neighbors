@@ -9,7 +9,7 @@
 
 
 template <typename T>
-FilterGraph<T>::FilterGraph(vector<DataPoint<T>> dataPoints, const int L,const int R,const int k,double a):AUTO_INCREMENT(0),R(R),k(k),a(a),L(L),d((dataPoints.size() > 0)?static_cast<int>(dataPoints[0].vec.size()):0){
+FilterGraph<T>::FilterGraph(vector<DataPoint<T>> dataPoints, const int L,const int R,const int k,double a, int tau):AUTO_INCREMENT(0),R(R),k(k),a(a),L(L),tau(tau),d((dataPoints.size() > 0)?static_cast<int>(dataPoints[0].vec.size()):0){
     // TODO: Revisit d initialization
     for(int i = 0; i < dataPoints.size() ; i++ ) {
         vertexMap.insert({AUTO_INCREMENT,dataPoints[i]});
@@ -56,39 +56,62 @@ vector<Edge> FilterGraph<T>::randomNeighbors(int pId,int R) {
 ////////
 
 template <typename T>
-int FilterGraph<T>::medoid() {
-    int n = vertexMap.size();
-    int sample_size = n/10;
-    sample_size = min(sample_size, n);
-
-    int randomId = Utils<int>::random(0,AUTO_INCREMENT - 1);
-
-    set<int> randomIds;
-
-    for (int i = 0; i < sample_size; ++i) {
-        while (randomIds.find(randomId) != randomIds.end()) {
-            randomId = Utils<int>::random(0,AUTO_INCREMENT - 1);
-        }
-        randomIds.insert(randomId);
+map<int, int> FilterGraph<T>::findMedoid() {
+    // Δημιουργία των χάρτων M και medoidCount
+    map<int, int> M;             // Χάρτης που αντιστοιχίζει κάθε φίλτρο στο medoid του
+    map<int, int> medoidCount;   // Χάρτης που μετράει πόσες φορές κάθε σημείο είναι medoid
+    // Αρχικοποίηση όλων των σημείων στο medoidCount με μηδενικές τιμές
+    for (const auto& [id, dataPoint] : vertexMap) {
+        medoidCount[id] = 0; // Όλα τα IDs ξεκινούν με μετρητή 0
     }
 
-    int medoid_id = -1;
-    double min_total_distance = numeric_limits<double>::infinity();
+    // Συλλογή όλων των μοναδικών φίλτρων F
+    set<int> F;
+    for (const auto& [id, dataPoint] : vertexMap) {
+        F.insert(dataPoint.C);  // Προσθήκη των φίλτρων C στο σύνολο F
+    }
 
-    // Υπολογίζουμε το medoid στο δείγμα
-    for (int id_i : randomIds) {
-        double total_distance = 0.0;
-        for (int id_j : randomIds) {
-            if (id_i != id_j) {
-                total_distance += euclideanDistance(vertexMap[id_i].vec, vertexMap[id_j].vec);
+    // Επεξεργασία κάθε φίλτρου f στο σύνολο F
+    for (int f : F) {
+        // P_f: Συλλογή όλων των σημείων δεδομένων που σχετίζονται με το φίλτρο f
+        vector<int> P_f;
+        for (const auto& [id, dataPoint] : vertexMap) {
+            if (dataPoint.C == f) {
+                P_f.push_back(id);
             }
         }
-        if (total_distance < min_total_distance) {
-            min_total_distance = total_distance;
-            medoid_id = id_i;
+
+        // R_f: Τυχαία δειγματοληψία tau σημείων από το P_f
+        vector<int> R_f;
+        if (P_f.size() <= tau) {
+            // Αν τα σημεία είναι λιγότερα ή ίσα με tau, παίρνουμε όλα τα σημεία
+            R_f = P_f;
+        } else {
+            // Τυχαία αναδιάταξη του P_f χρησιμοποιώντας τη συνάρτηση shuffle της Utils
+            Utils<int>::shuffle(P_f);
+            // Επιλογή των πρώτων tau στοιχείων μετά την αναδιάταξη
+            R_f.assign(P_f.begin(), P_f.begin() + tau);
         }
+
+        // Εύρεση του medoid p* που έχει τον ελάχιστο medoidCount[p]
+        int p_star = -1;
+        int min_medoid_count = numeric_limits<int>::max();
+
+        for (int p_id : R_f) {
+            int current_count = medoidCount[p_id];
+            if (current_count < min_medoid_count) {
+                min_medoid_count = current_count;
+                p_star = p_id;
+            }
+        }
+
+        // Ενημέρωση των χαρτών M και medoidCount
+        M[f] = p_star;
+        medoidCount[p_star]++;
     }
-    return medoid_id;
+
+    // Επιστροφή των χάρτων M και medoidCount
+    return M;
 }
 
 template<typename T>
