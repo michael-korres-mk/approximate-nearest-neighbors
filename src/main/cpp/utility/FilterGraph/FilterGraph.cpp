@@ -4,6 +4,7 @@
 
 #include "../FilterGraph/FilterGraph.h"
 #include "../Utils/Utils.h"
+#include <functional>
 
 
 
@@ -91,31 +92,42 @@ int FilterGraph<T>::medoid() {
 }
 
 template<typename T>
-pair<vector<int>,vector<int>> FilterGraph<T>::filteredGreedySearch(int s, const vector<T>& q, const int k, int L) {
+pair<vector<int>,vector<int>> FilterGraph<T>::filteredGreedySearch(const vector<int>& S, const vector<T>& q, const int k, const int L,int Fq) {
 
-    // VamanaContainer l(L); l.insert({s,euclideanDistance(q,vertexMap[s])});      // Σύνολο αναζήτησης
-    // set<int> V;         // Σύνολο επισκεφθέντων κόμβων
-    // set<int> diff = setDiff(l, V);
-    //
-    // while(!diff.empty()){
-    //     int pStar = argmindist(q,diff);   // Βρίσκουμε το p* (τον πιο κοντινό κόμβο που δεν έχει επισκεφτεί ακόμα)
-    //
-    //     vector<Edge> neighbors = g[pStar];  // Βρίσκουμε τους γείτονες του p*
-    //
-    //     // Ενημερώνουμε το L με τους νέους γείτονες
-    //     for (Edge n : neighbors) {
-    //         l.insert({n.destination,n.weight});
-    //     }
-    //
-    //     V.insert(pStar);    // Προσθέτουμε το p* στο σύνολο επισκέψεων
-    //     diff = setDiff(l,V);
-    //
-    // }
-    //
-    // // Μετατροπή των αποτελεσμάτων για επιστροφή
-    // vector<int> visitedVec(V.begin(), V.end());
-    //
-    // return {l.subset(k), visitedVec};
+    VamanaContainer l(L);
+    set<int> V;         // Σύνολο επισκεφθέντων κόμβων
+
+    for (auto s : S) {
+        if(vertexMap[s].C == Fq)
+        l.insert({s,euclideanDistance(q,vertexMap[s].vec)});      // Σύνολο αναζήτησης
+    }
+    set<int> diff = setDiff(l, V);
+
+    while(!diff.empty()){
+        int pStar = argmindist(q,diff);   // Βρίσκουμε το p* (τον πιο κοντινό κόμβο που δεν έχει επισκεφτεί ακόμα)
+
+        vector<Edge> neighbors;  // Βρίσκουμε τους γείτονες του p*
+
+        for(auto& e : g[pStar]) {
+            if(vertexMap[e.destination].C == Fq) {
+                neighbors.push_back(e);
+            }
+        }
+
+        // Ενημερώνουμε το L με τους νέους γείτονες
+        for (Edge n : neighbors) {
+            l.insert({n.destination,n.weight});
+        }
+
+        V.insert(pStar);    // Προσθέτουμε το p* στο σύνολο επισκέψεων
+        diff = setDiff(l,V);
+
+    }
+
+    // Μετατροπή των αποτελεσμάτων για επιστροφή
+    vector<int> visitedVec(V.begin(), V.end());
+
+    return {l.subset(k), visitedVec};
     return {};
 }
 
@@ -262,6 +274,20 @@ vector<int> FilterGraph<T>::edgesToVertices(vector<Edge> edges) {
 template<typename T>
 vector<Edge> FilterGraph<T>::getNeighbors(int vertex) {
     return g[vertex];
+}
+
+template<typename T>
+int FilterGraph<T>::argmindist(const vector<T>& p, const set<int>& P) {
+    float minDist = numeric_limits<float>::max();
+    int pStar = -1;
+    for(auto p2 : P){
+        if(float dist = euclideanDistance(p,vertexMap[p2].vec); dist < minDist){
+            minDist = dist;
+            pStar = p2;
+        }
+    }
+
+    return pStar;
 }
 
 template<typename T>
