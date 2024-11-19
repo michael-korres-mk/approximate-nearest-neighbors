@@ -162,46 +162,49 @@ void FilterGraph<T>::stitchedVamana(){}
 
 template <typename T>
 vector<Edge> FilterGraph<T>::filteredRobustPrune(int p, const vector<int> &V, double a, int R) {
-    // // Αντιγραφή του συνόλου V, αφού θα το τροποποιήσουμε και αφαίρεση του p από το σύνολο των υποψήφιων γειτόνων
-    // vector<int> candidateNeighbors = V;
-    // vector<Edge> pOut = getNeighbors(p);
-    // for (Edge e : pOut) {
-    //     if (find(candidateNeighbors.begin(), candidateNeighbors.end(), e.destination) == candidateNeighbors.end()) {
-    //         candidateNeighbors.push_back(e.destination);
-    //     }
-    // }
-    // candidateNeighbors.erase(remove(candidateNeighbors.begin(), candidateNeighbors.end(), p), candidateNeighbors.end());
-    //
-    // vector<Edge> N_out; // Νέοι εξωτερικοί γείτονες
-    //
-    // // Ενώ υπάρχουν υποψήφιοι γείτονες
-    // while (!candidateNeighbors.empty()) {
-    //     // Βρίσκουμε τον γείτονα που έχει την ελάχιστη απόσταση από το p
-    //     int p_star = argminDist(vertexMap[p], candidateNeighbors); // Χρήση της συνάρτησής σου
-    //
-    //     // Προσθήκη του p_star στους νέους γείτονες
-    //     N_out.push_back(Edge(p_star, euclideanDistance(vertexMap[p], vertexMap[p_star])));
-    //
-    //     // Αφαίρεση του p_star από τους υποψήφιους
-    //     candidateNeighbors.erase(std::remove(candidateNeighbors.begin(), candidateNeighbors.end(), p_star), candidateNeighbors.end());
-    //
-    //
-    //     // Αν το πλήθος των νέων γειτόνων φτάσει το όριο R, σταματάμε
-    //     if (N_out.size() == R) break;
-    //
-    //
-    //     // Κλαδεύουμε τους υπόλοιπους υποψήφιους γείτονες
-    //     for (auto it = candidateNeighbors.begin(); it != candidateNeighbors.end();) {
-    //         if (a * euclideanDistance(vertexMap[p_star], vertexMap[*it]) <= euclideanDistance(vertexMap[p], vertexMap[*it])) {
-    //             it = candidateNeighbors.erase(it); // Αφαίρεση των γειτόνων που δεν πληρούν τα κριτήρια
-    //         } else {
-    //             ++it;
-    //         }
-    //     }
-    // }
-    //
-    // return N_out; // Επιστροφή των επιλεγμένων γειτόνων
-    return {};
+    // Αντιγραφή του συνόλου V, αφού θα το τροποποιήσουμε και αφαίρεση του p από το σύνολο των υποψήφιων γειτόνων
+    vector<int> candidateNeighbors = V;
+    vector<Edge> pOut = getNeighbors(p);
+    for (Edge e : pOut) {
+        if (find(candidateNeighbors.begin(), candidateNeighbors.end(), e.destination) == candidateNeighbors.end()) {
+            candidateNeighbors.push_back(e.destination);
+        }
+    }
+    candidateNeighbors.erase(remove(candidateNeighbors.begin(), candidateNeighbors.end(), p), candidateNeighbors.end());
+
+    vector<Edge> N_out; // Νέοι εξωτερικοί γείτονες
+
+    // Ενώ υπάρχουν υποψήφιοι γείτονες
+    while (!candidateNeighbors.empty()) {
+        // Βρίσκουμε τον γείτονα που έχει την ελάχιστη απόσταση από το p
+        int p_star = argminDist(vertexMap[p].vec, candidateNeighbors);
+
+        // Προσθήκη του p_star στους νέους γείτονες
+        N_out.push_back(Edge(p_star, euclideanDistance(vertexMap[p].vec, vertexMap[p_star].vec)));
+
+        // Αφαίρεση του p_star από τους υποψήφιους
+        candidateNeighbors.erase(std::remove(candidateNeighbors.begin(), candidateNeighbors.end(), p_star), candidateNeighbors.end());
+
+
+        // Αν το πλήθος των νέων γειτόνων φτάσει το όριο R, σταματάμε
+        if (N_out.size() == R) break;
+
+
+        // Κλαδεύουμε τους υπόλοιπους υποψήφιους γείτονες
+        for (auto it = candidateNeighbors.begin(); it != candidateNeighbors.end();) {
+            if (vertexMap[*it].C != vertexMap[p_star].C && vertexMap[p].C != vertexMap[p_star].C) {
+                ++it;
+                continue;
+            }
+            if (a * euclideanDistance(vertexMap[p_star].vec, vertexMap[*it].vec) <= euclideanDistance(vertexMap[p].vec, vertexMap[*it].vec)) {
+                it = candidateNeighbors.erase(it); // Αφαίρεση των γειτόνων που δεν πληρούν τα κριτήρια
+            } else {
+                ++it;
+            }
+        }
+    }
+
+    return N_out; // Επιστροφή των επιλεγμένων γειτόνων
 }
 
 
