@@ -65,21 +65,16 @@ map<int, int> FilterGraph<T>::findMedoid() {
         medoidCount[id] = 0; // Όλα τα IDs ξεκινούν με μετρητή 0
     }
 
-    // Συλλογή όλων των μοναδικών φίλτρων F
-    set<int> F;
+    // Δημιουργία ενός χάρτη που αντιστοιχίζει φίλτρα στα αντίστοιχα σημεία τους (P_f)
+    map<int, vector<int>> filterToPoints;
     for (const auto& [id, dataPoint] : vertexMap) {
-        F.insert(dataPoint.C);  // Προσθήκη των φίλτρων C στο σύνολο F
+        filterToPoints[dataPoint.C].push_back(id);
     }
 
-    // Επεξεργασία κάθε φίλτρου f στο σύνολο F
-    for (int f : F) {
-        // P_f: Συλλογή όλων των σημείων δεδομένων που σχετίζονται με το φίλτρο f
-        vector<int> P_f;
-        for (const auto& [id, dataPoint] : vertexMap) {
-            if (dataPoint.C == f) {
-                P_f.push_back(id);
-            }
-        }
+    // Επεξεργασία κάθε φίλτρου f στον χάρτη filterToPoints
+    for (const auto& [f, P_f_cost] : filterToPoints) {
+        // P_f: Συλλογή όλων των σημείων δεδομένων που σχετίζοντα με το φίλτρο f
+        vector<int> P_f = P_f_cost;
 
         // R_f: Τυχαία δειγματοληψία tau σημείων από το P_f
         vector<int> R_f;
