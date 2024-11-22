@@ -28,6 +28,7 @@ public:
     void addEdge(int src, int dest,float dist);
     void removeEdge(int src, int dest);
 
+    int medoid();
     map<int, int> findMedoid();
     pair<vector<int>,vector<int>> filteredGreedySearch(const vector<int>& S, const vector<T>& q,int k, int L,int Fq);
     void filteredVamana();

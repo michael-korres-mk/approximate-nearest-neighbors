@@ -55,6 +55,45 @@ vector<Edge> FilterGraph<T>::randomNeighbors(int pId,int R) {
 
 ////////
 
+// Μειώνεται η πολυπλοκότητα από O(n^2) σε O(m^2), όπου m είναι το μέγεθος του δείγματος (m << n).
+// Το δείγμα θα πρέπει να είναι περίπου το 10% του συνολικού αριθμού των κόμβων
+template <typename T>
+int FilterGraph<T>::medoid() {
+    int n = vertexMap.size();
+    int sample_size = n/10;
+    sample_size = min(sample_size, n);
+
+    int randomId = Utils<int>::random(0,AUTO_INCREMENT - 1);
+
+    set<int> randomIds;
+
+    for (int i = 0; i < sample_size; ++i) {
+        while (randomIds.find(randomId) != randomIds.end()) {
+            randomId = Utils<int>::random(0,AUTO_INCREMENT - 1);
+        }
+        randomIds.insert(randomId);
+    }
+
+
+    int medoid_id = -1;
+    double min_total_distance = numeric_limits<double>::infinity();
+
+    // Υπολογίζουμε το medoid στο δείγμα
+    for (int id_i : randomIds) {
+        double total_distance = 0.0;
+        for (int id_j : randomIds) {
+            if (id_i != id_j) {
+                total_distance += euclideanDistance(vertexMap[id_i].vec, vertexMap[id_j].vec);
+            }
+        }
+        if (total_distance < min_total_distance) {
+            min_total_distance = total_distance;
+            medoid_id = id_i;
+        }
+    }
+    return medoid_id;
+}
+
 template <typename T>
 map<int, int> FilterGraph<T>::findMedoid() {
     // Δημιουργία των χάρτων M και medoidCount
@@ -150,7 +189,84 @@ pair<vector<int>,vector<int>> FilterGraph<T>::filteredGreedySearch(const vector<
 }
 
 template <typename T>
-void FilterGraph<T>::filteredVamana() {}
+void FilterGraph<T>::filteredVamana() {
+    // Καθαρίζουμε τον γράφο G
+    g.clear();
+
+    // Βρίσκουμε το medoid του P
+    int medoidId = medoid(); // Χρησιμοποιούμε τη μέθοδο medoid() που έχετε υλοποιήσει
+
+    // Ορίζουμε τους κόμβους εκκίνησης για κάθε φίλτρο
+    map<int, int> st; // Χάρτης από φίλτρο σε κόμβο εκκίνησης
+    set<int> filters;
+
+    // Συλλέγουμε όλα τα φίλτρα από τα σημεία δεδομένων
+    for (const auto& [id, dp] : vertexMap) {
+        filters.insert(dp.C);
+    }
+
+    // Ορίζουμε τον κόμβο εκκίνησης για κάθε φίλτρο
+    for (int f : filters) {
+        for (const auto& [id, dp] : vertexMap) {
+            if (dp.C == f) {
+                st[f] = id;
+                break;
+            }
+        }
+    }
+
+    // Δημιουργούμε μια τυχαία διάταξη σ των κόμβων του P
+    vector<int> sigma = getVerticesIds();
+    Utils<int>::shuffle(sigma);
+
+    // Βρόχος Επεξεργασίας Κόμβων
+    for (int x_id : sigma) {
+        DataPoint<T>& x = vertexMap[x_id];
+
+        // Υπολογισμός Ετικετών Εκκίνησης
+        vector<int> S_F_sigma_i;
+        int label = x.C; // Το φίλτρο του σημείου x
+
+        if (st.find(label) != st.end()) {
+            S_F_sigma_i.push_back(st[label]);
+        }
+
+        // Εκτέλεση Filtered Greedy Search
+        int Fq = label;
+        pair<vector<int>, vector<int>> searchResult = filteredGreedySearch(S_F_sigma_i, x.vec, k, L, Fq);
+        vector<int> V_F_x_sigma_i = searchResult.first;
+
+        // Συγχώνευση Υποψηφίων
+        vector<int> V = V_F_x_sigma_i;
+
+        // Εφαρμογή FilteredRobustPrune
+        vector<Edge> prunedNeighbors = filteredRobustPrune(x_id, V, a, R);
+
+        // Ενημέρωση του γράφου G με τους γείτονες που προέκυψαν από το Prune
+        g[x_id] = prunedNeighbors;
+
+        // Ενημέρωση Out-Neighborhoods
+        for (const Edge& e : prunedNeighbors) {
+            int j = e.destination;
+
+            // Προσθέτουμε τον x_id στους εξερχόμενους γείτονες του j
+            addEdge(j, x_id, e.weight);
+
+            // Ελέγχουμε αν το out-degree του j ξεπερνά το R
+            if (g[j].size() > R) {
+                vector<int> V_j;
+                for (const Edge& edge_j : g[j]) {
+                    V_j.push_back(edge_j.destination);
+                }
+
+                vector<Edge> prunedNeighbors_j = filteredRobustPrune(j, V_j, a, R);
+
+                // Ενημέρωση των εξερχόμενων γειτόνων του j
+                g[j] = prunedNeighbors_j;
+            }
+        }
+    }
+}
 
 template <typename T>
 void FilterGraph<T>::stitchedVamana(){}
