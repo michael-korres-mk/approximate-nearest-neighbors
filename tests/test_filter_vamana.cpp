@@ -1,7 +1,3 @@
-//
-// Created by mkorres on 11/3/2024.
-//
-
 #include "../include/acutest.h"
 #include "../src/main/cpp/utility/FilterGraph/FilterGraph.h"
 #include "../src/main/cpp/utility/DataPoint/DataPoint.h"
@@ -10,7 +6,7 @@
 
 using namespace std;
 
-void test_filter_greedySearch() {
+void test_filter_vamana() {
     // Arrange
     vector<int> data0 = {0, 0};
     vector<int> data1 = {0, 1};
@@ -38,38 +34,25 @@ void test_filter_greedySearch() {
 
     FilterGraph<int> graph(data, 1, 5, 3, 3, 3);
 
-    for (int i = 0; i < data.size(); ++i) {
-        for (int j = i + 1; j < data.size(); ++j) {
-            graph.addEdge(i, j,Graph<int>::euclideanDistance(graph.getVertex(i).vec,graph.getVertex(j).vec)); // Adding edges between all vertices
+    // Act
+    graph.filteredVamana();
+
+    // Assert
+    // Ελέγχουμε ότι κάθε κόμβος έχει το πολύ R εξερχόμενους γείτονες
+    for (int id : graph.getVerticesIds()) {
+        vector<Edge> neighbors = graph.getNeighbors(id);
+        TEST_CHECK(neighbors.size() <= graph.R);
+
+        // Ελέγχουμε ότι οι γείτονες έχουν το ίδιο φίλτρο με τον κόμβο
+        DataPoint<int> dp = graph.getVertex(id);
+        for (const Edge& e : neighbors) {
+            DataPoint<int> neighbor_dp = graph.getVertex(e.destination);
+            TEST_CHECK(dp.C == neighbor_dp.C);
         }
     }
-    int startVertex = 0;
-    vector<int> query = {0, 1};
-    int k = 3;
-    int L = 5;
-
-    vector<int> expectedVisitedVec = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-    vector<int> expectedSubset = {0, 3, 6, 9};
-
-
-
-    // Act
-    pair<vector<int>,vector<int>> result = graph.filteredGreedySearch({}, query, k, L,2);
-    auto visited = result.first;
-    auto visitedVec = result.second;
-
-    for (size_t i = 0; i < visitedVec.size(); ++i) {
-        TEST_ASSERT(visitedVec[i] == expectedVisitedVec[i]);
-    }
-
-    // Check if the subset found is correct
-    for (size_t i = 0; i < visited.size(); ++i) {
-        TEST_ASSERT(visited[i] == expectedSubset[i]);
-    }
-
 }
 
 TEST_LIST = {
-    { "Filter Greedy Search", test_filter_greedySearch },
+    { "Filter Vamana", test_filter_vamana },
     { NULL, NULL }
 };

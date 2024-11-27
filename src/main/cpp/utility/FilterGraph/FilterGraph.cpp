@@ -9,7 +9,7 @@
 
 
 template <typename T>
-FilterGraph<T>::FilterGraph(vector<DataPoint<T>> dataPoints, const int L,const int R,const int k,double a):AUTO_INCREMENT(0),R(R),k(k),a(a),L(L),d((dataPoints.size() > 0)?static_cast<int>(dataPoints[0].vec.size()):0){
+FilterGraph<T>::FilterGraph(vector<DataPoint<T>> dataPoints, const int L,const int R,const int k,double a, int tau):AUTO_INCREMENT(0),R(R),k(k),a(a),L(L),tau(tau),d((dataPoints.size() > 0)?static_cast<int>(dataPoints[0].vec.size()):0){
     // TODO: Revisit d initialization
     for(int i = 0; i < dataPoints.size() ; i++ ) {
         vertexMap.insert({AUTO_INCREMENT,dataPoints[i]});
@@ -55,6 +55,8 @@ vector<Edge> FilterGraph<T>::randomNeighbors(int pId,int R) {
 
 ////////
 
+// Μειώνεται η πολυπλοκότητα από O(n^2) σε O(m^2), όπου m είναι το μέγεθος του δείγματος (m << n).
+// Το δείγμα θα πρέπει να είναι περίπου το 10% του συνολικού αριθμού των κόμβων
 template <typename T>
 int FilterGraph<T>::medoid() {
     int n = vertexMap.size();
@@ -71,6 +73,7 @@ int FilterGraph<T>::medoid() {
         }
         randomIds.insert(randomId);
     }
+
 
     int medoid_id = -1;
     double min_total_distance = numeric_limits<double>::infinity();
@@ -89,6 +92,60 @@ int FilterGraph<T>::medoid() {
         }
     }
     return medoid_id;
+}
+
+template <typename T>
+map<int, int> FilterGraph<T>::findMedoid() {
+    // Δημιουργία των χάρτων M και medoidCount
+    map<int, int> M;             // Χάρτης που αντιστοιχίζει κάθε φίλτρο στο medoid του
+    map<int, int> medoidCount;   // Χάρτης που μετράει πόσες φορές κάθε σημείο είναι medoid
+    // Αρχικοποίηση όλων των σημείων στο medoidCount με μηδενικές τιμές
+    for (const auto& [id, dataPoint] : vertexMap) {
+        medoidCount[id] = 0; // Όλα τα IDs ξεκινούν με μετρητή 0
+    }
+
+    // Δημιουργία ενός χάρτη που αντιστοιχίζει φίλτρα στα αντίστοιχα σημεία τους (P_f)
+    map<int, vector<int>> filterToPoints;
+    for (const auto& [id, dataPoint] : vertexMap) {
+        filterToPoints[dataPoint.C].push_back(id);
+    }
+
+    // Επεξεργασία κάθε φίλτρου f στον χάρτη filterToPoints
+    for (const auto& [f, P_f_cost] : filterToPoints) {
+        // P_f: Συλλογή όλων των σημείων δεδομένων που σχετίζοντα με το φίλτρο f
+        vector<int> P_f = P_f_cost;
+
+        // R_f: Τυχαία δειγματοληψία tau σημείων από το P_f
+        vector<int> R_f;
+        if (P_f.size() <= tau) {
+            // Αν τα σημεία είναι λιγότερα ή ίσα με tau, παίρνουμε όλα τα σημεία
+            R_f = P_f;
+        } else {
+            // Τυχαία αναδιάταξη του P_f χρησιμοποιώντας τη συνάρτηση shuffle της Utils
+            Utils<int>::shuffle(P_f);
+            // Επιλογή των πρώτων tau στοιχείων μετά την αναδιάταξη
+            R_f.assign(P_f.begin(), P_f.begin() + tau);
+        }
+
+        // Εύρεση του medoid p* που έχει τον ελάχιστο medoidCount[p]
+        int p_star = -1;
+        int min_medoid_count = numeric_limits<int>::max();
+
+        for (int p_id : R_f) {
+            int current_count = medoidCount[p_id];
+            if (current_count < min_medoid_count) {
+                min_medoid_count = current_count;
+                p_star = p_id;
+            }
+        }
+
+        // Ενημέρωση των χαρτών M και medoidCount
+        M[f] = p_star;
+        medoidCount[p_star]++;
+    }
+
+    // Επιστροφή των χάρτων M και medoidCount
+    return M;
 }
 
 template<typename T>
@@ -132,53 +189,133 @@ pair<vector<int>,vector<int>> FilterGraph<T>::filteredGreedySearch(const vector<
 }
 
 template <typename T>
-void FilterGraph<T>::filteredVamana() {}
+void FilterGraph<T>::filteredVamana() {
+    // Καθαρίζουμε τον γράφο G
+    g.clear();
+
+    // Βρίσκουμε το medoid του P
+    int medoidId = medoid(); // Χρησιμοποιούμε τη μέθοδο medoid() που έχετε υλοποιήσει
+
+    // Ορίζουμε τους κόμβους εκκίνησης για κάθε φίλτρο
+    map<int, int> st; // Χάρτης από φίλτρο σε κόμβο εκκίνησης
+    set<int> filters;
+
+    // Συλλέγουμε όλα τα φίλτρα από τα σημεία δεδομένων
+    for (const auto& [id, dp] : vertexMap) {
+        filters.insert(dp.C);
+    }
+
+    // Ορίζουμε τον κόμβο εκκίνησης για κάθε φίλτρο
+    for (int f : filters) {
+        for (const auto& [id, dp] : vertexMap) {
+            if (dp.C == f) {
+                st[f] = id;
+                break;
+            }
+        }
+    }
+
+    // Δημιουργούμε μια τυχαία διάταξη σ των κόμβων του P
+    vector<int> sigma = getVerticesIds();
+    Utils<int>::shuffle(sigma);
+
+    // Βρόχος Επεξεργασίας Κόμβων
+    for (int x_id : sigma) {
+        DataPoint<T>& x = vertexMap[x_id];
+
+        // Υπολογισμός Ετικετών Εκκίνησης
+        vector<int> S_F_sigma_i;
+        int label = x.C; // Το φίλτρο του σημείου x
+
+        if (st.find(label) != st.end()) {
+            S_F_sigma_i.push_back(st[label]);
+        }
+
+        // Εκτέλεση Filtered Greedy Search
+        int Fq = label;
+        pair<vector<int>, vector<int>> searchResult = filteredGreedySearch(S_F_sigma_i, x.vec, k, L, Fq);
+        vector<int> V_F_x_sigma_i = searchResult.first;
+
+        // Συγχώνευση Υποψηφίων
+        vector<int> V = V_F_x_sigma_i;
+
+        // Εφαρμογή FilteredRobustPrune
+        vector<Edge> prunedNeighbors = filteredRobustPrune(x_id, V, a, R);
+
+        // Ενημέρωση του γράφου G με τους γείτονες που προέκυψαν από το Prune
+        g[x_id] = prunedNeighbors;
+
+        // Ενημέρωση Out-Neighborhoods
+        for (const Edge& e : prunedNeighbors) {
+            int j = e.destination;
+
+            // Προσθέτουμε τον x_id στους εξερχόμενους γείτονες του j
+            addEdge(j, x_id, e.weight);
+
+            // Ελέγχουμε αν το out-degree του j ξεπερνά το R
+            if (g[j].size() > R) {
+                vector<int> V_j;
+                for (const Edge& edge_j : g[j]) {
+                    V_j.push_back(edge_j.destination);
+                }
+
+                vector<Edge> prunedNeighbors_j = filteredRobustPrune(j, V_j, a, R);
+
+                // Ενημέρωση των εξερχόμενων γειτόνων του j
+                g[j] = prunedNeighbors_j;
+            }
+        }
+    }
+}
 
 template <typename T>
 void FilterGraph<T>::stitchedVamana(){}
 
 template <typename T>
 vector<Edge> FilterGraph<T>::filteredRobustPrune(int p, const vector<int> &V, double a, int R) {
-    // // Αντιγραφή του συνόλου V, αφού θα το τροποποιήσουμε και αφαίρεση του p από το σύνολο των υποψήφιων γειτόνων
-    // vector<int> candidateNeighbors = V;
-    // vector<Edge> pOut = getNeighbors(p);
-    // for (Edge e : pOut) {
-    //     if (find(candidateNeighbors.begin(), candidateNeighbors.end(), e.destination) == candidateNeighbors.end()) {
-    //         candidateNeighbors.push_back(e.destination);
-    //     }
-    // }
-    // candidateNeighbors.erase(remove(candidateNeighbors.begin(), candidateNeighbors.end(), p), candidateNeighbors.end());
-    //
-    // vector<Edge> N_out; // Νέοι εξωτερικοί γείτονες
-    //
-    // // Ενώ υπάρχουν υποψήφιοι γείτονες
-    // while (!candidateNeighbors.empty()) {
-    //     // Βρίσκουμε τον γείτονα που έχει την ελάχιστη απόσταση από το p
-    //     int p_star = argminDist(vertexMap[p], candidateNeighbors); // Χρήση της συνάρτησής σου
-    //
-    //     // Προσθήκη του p_star στους νέους γείτονες
-    //     N_out.push_back(Edge(p_star, euclideanDistance(vertexMap[p], vertexMap[p_star])));
-    //
-    //     // Αφαίρεση του p_star από τους υποψήφιους
-    //     candidateNeighbors.erase(std::remove(candidateNeighbors.begin(), candidateNeighbors.end(), p_star), candidateNeighbors.end());
-    //
-    //
-    //     // Αν το πλήθος των νέων γειτόνων φτάσει το όριο R, σταματάμε
-    //     if (N_out.size() == R) break;
-    //
-    //
-    //     // Κλαδεύουμε τους υπόλοιπους υποψήφιους γείτονες
-    //     for (auto it = candidateNeighbors.begin(); it != candidateNeighbors.end();) {
-    //         if (a * euclideanDistance(vertexMap[p_star], vertexMap[*it]) <= euclideanDistance(vertexMap[p], vertexMap[*it])) {
-    //             it = candidateNeighbors.erase(it); // Αφαίρεση των γειτόνων που δεν πληρούν τα κριτήρια
-    //         } else {
-    //             ++it;
-    //         }
-    //     }
-    // }
-    //
-    // return N_out; // Επιστροφή των επιλεγμένων γειτόνων
-    return {};
+    // Αντιγραφή του συνόλου V, αφού θα το τροποποιήσουμε και αφαίρεση του p από το σύνολο των υποψήφιων γειτόνων
+    vector<int> candidateNeighbors = V;
+    vector<Edge> pOut = getNeighbors(p);
+    for (Edge e : pOut) {
+        if (find(candidateNeighbors.begin(), candidateNeighbors.end(), e.destination) == candidateNeighbors.end()) {
+            candidateNeighbors.push_back(e.destination);
+        }
+    }
+    candidateNeighbors.erase(remove(candidateNeighbors.begin(), candidateNeighbors.end(), p), candidateNeighbors.end());
+
+    vector<Edge> N_out; // Νέοι εξωτερικοί γείτονες
+
+    // Ενώ υπάρχουν υποψήφιοι γείτονες
+    while (!candidateNeighbors.empty()) {
+        // Βρίσκουμε τον γείτονα που έχει την ελάχιστη απόσταση από το p
+        int p_star = argminDist(vertexMap[p].vec, candidateNeighbors);
+
+        // Προσθήκη του p_star στους νέους γείτονες
+        N_out.push_back(Edge(p_star, euclideanDistance(vertexMap[p].vec, vertexMap[p_star].vec)));
+
+        // Αφαίρεση του p_star από τους υποψήφιους
+        candidateNeighbors.erase(std::remove(candidateNeighbors.begin(), candidateNeighbors.end(), p_star), candidateNeighbors.end());
+
+
+        // Αν το πλήθος των νέων γειτόνων φτάσει το όριο R, σταματάμε
+        if (N_out.size() == R) break;
+
+
+        // Κλαδεύουμε τους υπόλοιπους υποψήφιους γείτονες
+        for (auto it = candidateNeighbors.begin(); it != candidateNeighbors.end();) {
+            if (vertexMap[*it].C != vertexMap[p_star].C && vertexMap[p].C != vertexMap[p_star].C) {
+                ++it;
+                continue;
+            }
+            if (a * euclideanDistance(vertexMap[p_star].vec, vertexMap[*it].vec) <= euclideanDistance(vertexMap[p].vec, vertexMap[*it].vec)) {
+                it = candidateNeighbors.erase(it); // Αφαίρεση των γειτόνων που δεν πληρούν τα κριτήρια
+            } else {
+                ++it;
+            }
+        }
+    }
+
+    return N_out; // Επιστροφή των επιλεγμένων γειτόνων
 }
 
 

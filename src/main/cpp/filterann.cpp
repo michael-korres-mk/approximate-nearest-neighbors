@@ -54,7 +54,12 @@ int main(int argc,char* argv[]) {
 
 	Utils<char>::printDivider();
 
-    FilterGraph<float> graph(dataset.dataPoints,L,R,k,a);
+    FilterGraph<float> graph(dataset.dataPoints,L,R,k,a, 10);
+
+    cout << "Start findMedoid()" << endl;
+    map<int,int> m = graph.findMedoid();
+    cout << "Finish findMedoid()" << endl;
+
 }
 
 void initializeDatasets(FilterDataset<float>& dataset, FilterQuerySet<float>& querySet,char* argv[],int argc) {
