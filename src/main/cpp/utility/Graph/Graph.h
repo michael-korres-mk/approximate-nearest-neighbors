@@ -15,6 +15,7 @@ using namespace std;
 
 template <typename T>
 class Graph {
+public:
     int AUTO_INCREMENT;             // Χρησιμοποιείται για την ανάθεση μοναδικών ID σε κάθε κορυφή. Ξεκινά από το 0 και αυξάνεται αυτόματα κατά την εισαγωγή κάθε νέας κορυφής.
     map<int, vector<T>> vertexMap;
     map<int,vector<Edge>> g;
@@ -23,7 +24,6 @@ class Graph {
     int k;                          // Αριθμός γειτόνων που θα βρούμε
     int d;
     double a;                       // Παράμετρος για το RobustPrune (κατώφλι απόστασης)
-public:
     Graph(vector<vector<T>> vecs,int L,int R,int k,double a);
     void vamana();
     void initializeRandomEdges();

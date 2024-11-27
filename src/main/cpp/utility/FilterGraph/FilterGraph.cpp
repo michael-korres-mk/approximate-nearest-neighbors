@@ -269,7 +269,44 @@ void FilterGraph<T>::filteredVamana() {
 }
 
 template <typename T>
-void FilterGraph<T>::stitchedVamana(){}
+void FilterGraph<T>::stitchedVamana() {
+
+    set<int> filters;
+
+    for (const auto& [id, dp] : vertexMap) {
+        filters.insert(dp.C);
+    }
+
+    vector<Graph<T>> graphs(filters.size());
+
+    for (const int f: filters) {
+        graphs[f] = Graph<T>(100,250,60,1.2);
+
+        for (const auto& [id, dp] : vertexMap) {
+            if (dp.C == f) {
+                graphs[f].addVertex(dp);
+                for (const Edge& e : g[id]) {
+                     graphs[f].addEdge(id,e.destination,e.weight);
+                }
+            }
+        }
+        graphs[f].vamana();
+    }
+
+
+    for (const auto& graph : graphs) {
+        for (const auto& [id, edges] : graph.g) {
+            for (const auto& edge : edges) {
+                this->addEdge(id, edge.destination, edge.weight);
+            }
+        }
+    }
+
+    for (const auto& [id, dp] : vertexMap) {
+        filteredRobustPrune(id, edgesToVertices(g[id]),a,R);
+    }
+
+}
 
 template <typename T>
 vector<Edge> FilterGraph<T>::filteredRobustPrune(int p, const vector<int> &V, double a, int R) {

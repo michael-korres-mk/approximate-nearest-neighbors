@@ -58,12 +58,16 @@ Michael Korres
 * Project Setup (Project File-Structure, Data Input & Core Implementations)
 * GreedySearch Implementation
 * Vamana Implementation
+* StitchedVamana Implementation
 
 Marios Kindynis
 * RobustPrune Implementation
 * Implementation Optimizations & Fixes
 * Testing
 * Commenting & README
+* FindMedoid Implementation
+* FilteredVamana Implementation
+* FilteredRobustPrune Implementation
 
 ### Description
 
