@@ -56,18 +56,19 @@ tests: $(TEST_EXECUTABLES)
 		$$test; \
 	done
 
+VALGRIND_FLAGS = --trace-children=yes --leak-check=full --show-leak-kinds=all  --leak-resolution=med --track-origins=yes --vgdb=no
 
 valgrind-ann:
-	valgrind --trace-children=yes --leak-check=full --show-leak-kinds=all  --leak-resolution=med --track-origins=yes --vgdb=no 	$(BUILD_DIR)/ann -bv $(BASE_DATA_FILE) -gv $(GROUNDTRUTH_DATA_FILE) -qv $(QUERY_DATA_FILE)
+	valgrind $(VALGRIND_FLAGS) 	$(BUILD_DIR)/ann -bv $(BASE_DATA_FILE) -gv $(GROUNDTRUTH_DATA_FILE) -qv $(QUERY_DATA_FILE)
 
 valgrind-annimport:
-	valgrind --trace-children=yes --leak-check=full --show-leak-kinds=all  --leak-resolution=med --track-origins=yes --vgdb=no $(BUILD_DIR)/annimport -k $(ANN_k) -L $(ANN_L) -R $(ANN_R) -a $(ANN_a) -bv $(ANN_BASE_DATA_FILE) -gv $(ANN_GROUNDTRUTH_DATA_FILE) -qv $(ANN_QUERY_DATA_FILE)
+	valgrind $(VALGRIND_FLAGS) $(BUILD_DIR)/annimport -k $(ANN_k) -L $(ANN_L) -R $(ANN_R) -a $(ANN_a) -bv $(ANN_BASE_DATA_FILE) -gv $(ANN_GROUNDTRUTH_DATA_FILE) -qv $(ANN_QUERY_DATA_FILE)
 
 valgrind-filterann:
-	valgrind --trace-children=yes --leak-check=full --show-leak-kinds=all  --leak-resolution=med --track-origins=yes --vgdb=no $(BUILD_DIR)/filterann -k $(FILTERANN_k) -L $(FILTERANN_L) -R $(FILTERANN_R) -a $(FILTERANN_a) -bv $(FILTERANN_DATASET_FILE) -qv $(FILTERANN_QUERY_SET_FILE)
+	valgrind $(VALGRIND_FLAGS) $(BUILD_DIR)/filterann -k $(FILTERANN_k) -L $(FILTERANN_L) -R $(FILTERANN_R) -a $(FILTERANN_a) -bv $(FILTERANN_DATASET_FILE) -qv $(FILTERANN_QUERY_SET_FILE)
 
 valgrind-tests: $(TEST_EXECUTABLES)
 	@for test in $(TEST_EXECUTABLES); do \
 		echo "Running $$test"; \
-		valgrind --trace-children=yes --leak-check=full --show-leak-kinds=all  --leak-resolution=med --track-origins=yes --vgdb=no $$test; \
+		valgrind $(VALGRIND_FLAGS) $$test; \
 	done

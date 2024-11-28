@@ -60,6 +60,8 @@ int main(int argc,char* argv[]) {
     map<int,int> m = graph.findMedoid();
     cout << "Finish findMedoid()" << endl;
 
+    graph.stitchedVamana();
+
 }
 
 void initializeDatasets(FilterDataset<float>& dataset, FilterQuerySet<float>& querySet,char* argv[],int argc) {

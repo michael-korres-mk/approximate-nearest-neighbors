@@ -58,6 +58,7 @@ Michael Korres
 * Project Setup (Project File-Structure, Data Input & Core Implementations)
 * GreedySearch Implementation
 * Vamana Implementation
+* FilteredGreedySearch Implementation
 * StitchedVamana Implementation
 
 Marios Kindynis

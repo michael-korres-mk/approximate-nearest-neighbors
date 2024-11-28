@@ -277,14 +277,14 @@ void FilterGraph<T>::stitchedVamana() {
         filters.insert(dp.C);
     }
 
-    vector<Graph<T>> graphs(filters.size());
+    vector<Graph<T>> graphs;
 
     for (const int f: filters) {
-        graphs[f] = Graph<T>(100,250,60,1.2);
-
+        graphs[f] = Graph<T>({},100,250,60,1.2);
+        // todo: CHECKOUT VERTEX IDS
         for (const auto& [id, dp] : vertexMap) {
             if (dp.C == f) {
-                graphs[f].addVertex(dp);
+                graphs[f].addVertex(dp.vec);
                 for (const Edge& e : g[id]) {
                      graphs[f].addEdge(id,e.destination,e.weight);
                 }
@@ -292,7 +292,6 @@ void FilterGraph<T>::stitchedVamana() {
         }
         graphs[f].vamana();
     }
-
 
     for (const auto& graph : graphs) {
         for (const auto& [id, edges] : graph.g) {
@@ -307,6 +306,48 @@ void FilterGraph<T>::stitchedVamana() {
     }
 
 }
+
+template <typename T>
+void Graph<T>::vamana(){
+    cout << "vamana started" << endl;
+
+    initializeRandomEdges();
+
+    const int s = medoid();
+    auto sigma = Utils<T>::shuffle;
+
+    cout << "medoid calculated" << endl;
+
+    vector<int> V;
+    int x;
+    set<int> done;
+    while(done.size() != vertexMap.size()){
+        (!done.empty() && done.size() % 1000 == 0) && printf("completed %d %% ... \n",static_cast<int>(done.size()/100));
+
+        while (done.find(x = Utils<int>::random(0,AUTO_INCREMENT - 1)) != done.end()) {}
+        done.insert(x);
+
+        const auto& [l,V] = greedySearch(s,vertexMap[x],k,L);
+
+        vector<int> neighborIds = getVerticesIds();
+        g[x] = robustPrune(x,V,a,R);
+
+        vector<int> xNeighbors =  edgesToVertices(g[x]);
+
+        for(auto y: xNeighbors){
+            if(g[y].size() + 1 > R){
+                vector<int> V = edgesToVertices(g[y]);
+                V.push_back(x);
+                g[y] = robustPrune(y,V,a,R);
+            }
+            else{
+                g[y].push_back(Edge(x,euclideanDistance(vertexMap[y],vertexMap[x])));
+            }
+        }
+    }
+    printf("completed %d %%\n",static_cast<int>(done.size()/100));
+}
+
 
 template <typename T>
 vector<Edge> FilterGraph<T>::filteredRobustPrune(int p, const vector<int> &V, double a, int R) {
