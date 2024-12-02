@@ -1,5 +1,5 @@
-#include "../include/acutest.h"
-#include "../src/main/cpp/utility/Graph/Graph.h"
+#include "../../../include/acutest.h"
+#include "../../main/cpp/ann/Graph/Graph.h"
 #include <vector>
 #include <iostream>
 #include <random>

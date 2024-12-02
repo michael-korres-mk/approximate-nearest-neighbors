@@ -1,35 +1,22 @@
 # Include external parameter file
-#include configs/ann.mk
-#include configs/filterann.mk
+include configs/ann.mk.conf
+include configs/filterann.mk
 
 TARGETS = ann annimport filterann
 
-#all: $(addsuffix -build, $(addprefix ask, $(TARGETS)))
-#	@:
-#INCLUDE=config/$(@:b=)
+$(addsuffix b, $(TARGETS)):
+	$(MAKE) INCLUDE=configs/$(@:b=).mk.conf -f makefiles/template.mk
 
-$(addsuffix -build, $(TARGETS)):
-	$(MAKE) -f makefiles/make-$(@:-build=).mk
-
-#ann-build:
-#	$(MAKE) -f makefiles/make-ann.mk
-#
-#annimport-build:
-#	$(MAKE) -f makefiles/make-annimport.mk
-#
-#filterann-build:
-#	$(MAKE) -f makefiles/make-filterann.mk
-
-tests-build:
+testb:
 	$(MAKE) -f makefiles/make-test.mk
+
+
 
 # Target: clean
 clean:
-	$(MAKE) clean -f makefiles/make-ann.mk
-	$(MAKE) clean -f makefiles/make-filterann.mk
-	$(MAKE) clean -f makefiles/make-annimport.mk
-	$(MAKE) clean -f makefiles/make-test.mk
-#	rm -f $(shell find $(RESOURCES_DIR) -type f ! -name 'voters*0.bin')
+	@for target in $(TARGETS); do \
+		$(MAKE) clean INCLUDE=configs/$$target.mk.conf -f makefiles/template.mk; \
+	done
 
 .PHONY: all clean
 

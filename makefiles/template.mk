@@ -10,9 +10,11 @@ SRC_DIR = src/main/cpp
 BUILD_DIR = build
 
 # Find all source files recursively
-SRCS = $(shell find $(SRC_DIR)/$(TARGET) -name "*.c") $(DEPENDENCIES)
+SRCS = $(DEPENDENCIES) $(shell find $(SRC_DIR)/$(TARGET) -name "*.cpp")
 # Create a list of corresponding object files in the build directory
-OBJS = $(patsubst $(SRC_DIR)%.c,$(BUILD_DIR)/%.o,$(SRCS))
+# $(patsubst <pattern>, <replacement>, <text>)
+# src/main/cpp/foo.o → build/myapp/foo.o
+OBJS = $(patsubst $(SRC_DIR)/%,$(BUILD_DIR)/%,$(SRCS:.cpp=.o))
 
 # Executable name
 EXECUTABLE = $(BUILD_DIR)/$(TARGET)/main

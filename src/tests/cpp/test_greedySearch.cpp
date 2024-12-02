@@ -2,15 +2,14 @@
 // Created by mkorres on 11/3/2024.
 //
 
-#include "../include/acutest.h"
-#include "../src/main/cpp/utility/FilterGraph/FilterGraph.h"
-#include "../src/main/cpp/utility/DataPoint/DataPoint.h"
+#include "../../../include/acutest.h"
+#include "../../main/cpp/ann/Graph/Graph.h"
 #include <vector>
 #include <iostream>
 
 using namespace std;
 
-void test_filter_greedySearch() {
+void test_greedySearch() {
     // Arrange
     vector<int> data0 = {0, 0};
     vector<int> data1 = {0, 1};
@@ -23,24 +22,13 @@ void test_filter_greedySearch() {
     vector<int> data8 = {0, 8};
     vector<int> data9 = {0, 9};
 
-    vector<DataPoint<int>> data = {
-        DataPoint<int>(0,-1,data0),
-        DataPoint<int>(1,-1,data1),
-        DataPoint<int>(2,-1,data2),
-        DataPoint<int>(0,-1,data3),
-        DataPoint<int>(1,-1,data4),
-        DataPoint<int>(2,-1,data5),
-        DataPoint<int>(0,-1,data6),
-        DataPoint<int>(1,-1,data7),
-        DataPoint<int>(2,-1,data8),
-        DataPoint<int>(0,-1,data9)
-    };
+    vector<vector<int>> data = {data0,data1,data2,data3,data4,data5,data6,data7,data8,data9};
 
-    FilterGraph<int> graph(data, 1, 5, 3, 3, 3);
+    Graph<int> graph(data, 1, 5, 3,3);
 
     for (int i = 0; i < data.size(); ++i) {
         for (int j = i + 1; j < data.size(); ++j) {
-            graph.addEdge(i, j,Graph<int>::euclideanDistance(graph.getVertex(i).vec,graph.getVertex(j).vec)); // Adding edges between all vertices
+            graph.addEdge(i, j,Graph<int>::euclideanDistance(graph.getVertex(i),graph.getVertex(j))); // Adding edges between all vertices
         }
     }
     int startVertex = 0;
@@ -49,12 +37,10 @@ void test_filter_greedySearch() {
     int L = 5;
 
     vector<int> expectedVisitedVec = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-    vector<int> expectedSubset = {0, 3, 6, 9};
-
-
+    vector<int> expectedSubset = {0, 1, 4};
 
     // Act
-    pair<vector<int>,vector<int>> result = graph.filteredGreedySearch({}, query, k, L,2);
+    pair<vector<int>,vector<int>> result = graph.greedySearch(startVertex, query, k, L);
     auto visited = result.first;
     auto visitedVec = result.second;
 
@@ -70,6 +56,6 @@ void test_filter_greedySearch() {
 }
 
 TEST_LIST = {
-    { "Filter Greedy Search", test_filter_greedySearch },
+    { "Greedy Search", test_greedySearch },
     { NULL, NULL }
 };

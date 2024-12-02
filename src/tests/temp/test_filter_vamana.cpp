@@ -1,6 +1,6 @@
-#include "../include/acutest.h"
-#include "../src/main/cpp/utility/FilterGraph/FilterGraph.h"
-#include "../src/main/cpp/utility/DataPoint/DataPoint.h"
+#include "../../../include/acutest.h"
+#include "../../main/cpp/filterann/FilterGraph/FilterGraph.h"
+#include "../../main/cpp/filterann/DataPoint/DataPoint.h"
 #include <vector>
 #include <iostream>
 

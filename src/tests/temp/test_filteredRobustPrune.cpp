@@ -1,7 +1,7 @@
-#include "../include/acutest.h"
-#include "../src/main/cpp/utility/FilterGraph/FilterGraph.h"
-#include "../src/main/cpp/utility/DataPoint/DataPoint.h"
-#include "../src/main/cpp/utility/Utils/Utils.h" // Βεβαιώσου ότι το path είναι σωστό
+#include "../../../include/acutest.h"
+#include "../../main/cpp/filterann/FilterGraph/FilterGraph.h"
+#include "../../main/cpp/filterann/DataPoint/DataPoint.h"
+#include "../../main/cpp/utility/Utils/Utils.h" // Βεβαιώσου ότι το path είναι σωστό
 #include <vector>
 #include <iostream>
 #include <map>
