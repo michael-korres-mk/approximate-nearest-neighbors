@@ -6,17 +6,28 @@
 #define FILTERDATASET_H
 
 #include "../DataPoint/DataPoint.h"
-#include "../DataSet/DataSet.h"
+#include "../Query/Query.h"
+#include "../../utility/Utils/Utils.h"
+
+#include <map>
+
+#include <cassert>
+#include <cstdint>
+#include <fstream>
+#include <cstdint>
+
 
 template <typename T>
 class FilterDataset {
 public:
     int numOfDataPoints;
-    vector<DataPoint<T>> dataPoints;
+    map<int,vector<DataPoint<T>>> filteredDataset;
 
     explicit FilterDataset();
     explicit FilterDataset(const string& dataFileName);
-    vector<DataPoint<T>> vecsRead(const string& filename);
+
+    vector<DataPoint<int>> getNearestNeighbors(const Query<T> &q, const int &k);
+
     void print();
 };
 

@@ -1,6 +1,4 @@
 #include "Graph.h"
-#include "../Utils/Utils.h"
-
 
 template <typename T>
 Graph<T>::Graph(vector<vector<T>> vecs, const int L,const int R,const int k,double a):AUTO_INCREMENT(0),R(R),k(k),a(a),L(L),d((vecs.size() > 0)?static_cast<int>(vecs[0].size()):0){

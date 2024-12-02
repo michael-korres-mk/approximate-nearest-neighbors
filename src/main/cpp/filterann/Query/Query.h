@@ -5,6 +5,7 @@
 #ifndef QUERY_H
 #define QUERY_H
 
+#include "../../utility/Utils/Utils.h"
 
 #include <vector>
 #include <iomanip>

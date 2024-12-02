@@ -3,7 +3,6 @@
 //
 
 #include "Query.h"
-#include "../Utils/Utils.h"
 
 template<typename K>
 Query<K>::Query() {}

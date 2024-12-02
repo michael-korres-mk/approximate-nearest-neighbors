@@ -6,8 +6,12 @@
 #define FILTERQUERYSET_H
 
 #include "../Query/Query.h"
-#include "../DataSet/DataSet.h"
+#include "../../utility/Utils/Utils.h"
+#include "FilterQuerySet.h"
 
+#include <cstdint>
+#include <fstream>
+#include <cassert>
 
 template <typename T>
 class FilterQuerySet {

@@ -4,8 +4,6 @@
 
 #include "DataPoint.h"
 
-#include "../Utils/Utils.h"
-
 template<typename K>
 DataPoint<K>::DataPoint() {}
 

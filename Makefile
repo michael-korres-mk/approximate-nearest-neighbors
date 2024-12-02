@@ -1,22 +1,24 @@
 # Include external parameter file
-include configs/ann.mk
-include configs/filterann.mk
-include configs/annimport.mk
+#include configs/ann.mk
+#include configs/filterann.mk
 
-all:
-	$(MAKE) -f makefiles/make-ann.mk
-	$(MAKE) -f makefiles/make-annimport.mk
-	$(MAKE) -f makefiles/make-filterann.mk
-	$(MAKE) -f makefiles/make-test.mk
+TARGETS = ann annimport filterann
 
-ann-build:
-	$(MAKE) -f makefiles/make-ann.mk
+#all: $(addsuffix -build, $(addprefix ask, $(TARGETS)))
+#	@:
+#INCLUDE=config/$(@:b=)
 
-annimport-build:
-	$(MAKE) -f makefiles/make-annimport.mk
+$(addsuffix -build, $(TARGETS)):
+	$(MAKE) -f makefiles/make-$(@:-build=).mk
 
-filterann-build:
-	$(MAKE) -f makefiles/make-filterann.mk
+#ann-build:
+#	$(MAKE) -f makefiles/make-ann.mk
+#
+#annimport-build:
+#	$(MAKE) -f makefiles/make-annimport.mk
+#
+#filterann-build:
+#	$(MAKE) -f makefiles/make-filterann.mk
 
 tests-build:
 	$(MAKE) -f makefiles/make-test.mk

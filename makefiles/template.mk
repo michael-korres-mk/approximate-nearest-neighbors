@@ -1,3 +1,5 @@
+include $(INCLUDE)
+
 CXX = g++
 CXXFLAGS = -O2 -std=c++17 -g
 
@@ -8,13 +10,12 @@ SRC_DIR = src/main/cpp
 BUILD_DIR = build
 
 # Find all source files recursively
-SRCS = $(shell find $(SRC_DIR)/utility -name "*.cpp") $(shell find $(SRC_DIR)/filterann -name "*.cpp")
-
+SRCS = $(shell find $(SRC_DIR)/$(TARGET) -name "*.c") $(DEPENDENCIES)
 # Create a list of corresponding object files in the build directory
-OBJS = $(patsubst $(SRC_DIR)%.cpp,$(BUILD_DIR)/%.o,$(SRCS))
+OBJS = $(patsubst $(SRC_DIR)%.c,$(BUILD_DIR)/%.o,$(SRCS))
 
 # Executable name
-EXECUTABLE = $(BUILD_DIR)/filterann/main
+EXECUTABLE = $(BUILD_DIR)/$(TARGET)/main
 
 # Target: all (default target)
 all: $(EXECUTABLE)

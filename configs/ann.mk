@@ -1,9 +1,20 @@
-DATASET = siftsmall
-ANN_BASE_DATA_FILE = $(DATASET)/$(DATASET)_base.fvecs
-ANN_GROUNDTRUTH_DATA_FILE = $(DATASET)/$(DATASET)_groundtruth.ivecs
-ANN_QUERY_DATA_FILE = $(DATASET)/$(DATASET)_query.fvecs
+# build config
+TARGET = ann
+DEPENDENCIES = "$(SRC_DIR)/utility/*.cpp"
 
-ANN_k = 100
+# arguments
+ANN_K = 100
 ANN_L = 250
 ANN_R = 60
-ANN_a = 1.2
+ANN_A = 1.2
+DATASET = siftsmall
+
+# command line arguments
+ANN_CLINE_ARGS =
+	-k $(ANN_K)
+	-L $(ANN_L)
+	-R $(ANN_R)
+	-a $(ANN_A)
+	-bv $(DATASET)/$(DATASET)_base.fvecs
+	-gv $(DATASET)/$(DATASET)_groundtruth.ivecs
+	-qv $(DATASET)/$(DATASET)_query.fvecs

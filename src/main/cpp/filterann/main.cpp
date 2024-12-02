@@ -8,10 +8,10 @@
 # include <fcntl.h>
 # include <unistd.h>
 # include <iomanip>
-# include "utility/FilterGraph/FilterGraph.h"
-# include "utility/Utils/Utils.h"
-# include "utility/FilterDataset/FilterDataset.h"
-# include "utility/FilterQuerySet/FilterQuerySet.h"
+# include "FilterGraph/FilterGraph.h"
+#include "../utility/Utils/Utils.h"
+# include "FilterDataset/FilterDataset.h"
+# include "FilterQuerySet/FilterQuerySet.h"
 
 using namespace std;
 
@@ -26,8 +26,6 @@ int main(int argc,char* argv[]) {
 	initializeDatasets(dataset,querySet,argv,argc);
 
 	Utils<char>::printDivider();
-
-	// int numOfQueries = querySet.getNumOfQueries();
 
 	int k;
 	int L;
@@ -54,13 +52,15 @@ int main(int argc,char* argv[]) {
 
 	Utils<char>::printDivider();
 
-    FilterGraph<float> graph(dataset.dataPoints,L,R,k,a, 10);
+	cout << dataset.numOfDataPoints << endl;
 
-    cout << "Start findMedoid()" << endl;
-    map<int,int> m = graph.findMedoid();
-    cout << "Finish findMedoid()" << endl;
 
-    graph.stitchedVamana();
+    // FilterGraph<float> graph(dataset.dataPoints,L,R,k,a, 10);
+    //
+    // cout << "Start findMedoid()" << endl;
+    // map<int,int> m = graph.findMedoid();
+    // cout << "Finish findMedoid()" << endl;
+
 
 }
 
