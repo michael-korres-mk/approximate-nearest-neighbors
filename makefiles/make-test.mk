@@ -40,13 +40,6 @@ TEST_EXECUTABLES = $(patsubst $(TEST_DIR)/%,$(TEST_BUILD_DIR)/%,$(TEST_SRCS:.cpp
 
 all: $(TEST_EXECUTABLES)
 
-# Run tests
-tests: $(TEST_EXECUTABLES)
-	@for test in $(TEST_EXECUTABLES); do \
-		echo "Running $$test"; \
-		$$test; \
-	done
-
 # Clean up build directory
 clean:
 	rm -rf build/tests/*
