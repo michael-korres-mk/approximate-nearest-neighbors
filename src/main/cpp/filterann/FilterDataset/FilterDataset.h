@@ -21,7 +21,7 @@ template <typename T>
 class FilterDataset {
 public:
     int numOfDataPoints;
-    map<int,vector<DataPoint<T>>> filteredDataset;
+    map<int,vector<DataPoint<T>>> datapoints;
 
     explicit FilterDataset();
     explicit FilterDataset(const string& dataFileName);

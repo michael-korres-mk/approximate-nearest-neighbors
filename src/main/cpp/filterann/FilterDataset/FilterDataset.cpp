@@ -40,9 +40,9 @@ FilterDataset<T>::FilterDataset(const string &filename):numOfDataPoints(0) {
             dataPoint.vec[j] = data;
         }
 
-        if(filteredDataset.find(C) == filteredDataset.end()) filteredDataset.insert(make_pair(C,vector<DataPoint<T>>()));
+        if(datapoints.find(C) == datapoints.end()) datapoints.insert(make_pair(C,vector<DataPoint<T>>()));
 
-        filteredDataset[C].push_back(dataPoint);
+        datapoints[C].push_back(dataPoint);
     }
 
     file.close();
@@ -55,23 +55,24 @@ FilterDataset<T>::FilterDataset(const string &filename):numOfDataPoints(0) {
 
 template<typename T>
 vector<DataPoint<int>> FilterDataset<T>::getNearestNeighbors(const Query<T> &q, const int &k){
-    // vector<pair<int,float>> distances;
-    // for(int i = 0; i < numOfDataPoints; i++) {
-    //     distances.push_back({ i , euclideanDistance(q,this->vectors[i])});
-    // }
-    //
-    // auto comparator = [&](const pair<int, float>& a, const pair<int, float>& b) {
-    //     return a.second < b.second; // Sort by distance in ascending order
-    // };
-    //
-    // sort(distances.begin(), distances.end(), comparator);
-    //
-    // vector<int> neighbors;
-    // for (int i = 0; i < k && i < distances.size(); i++) {
-    //     neighbors.push_back(distances[i].first); // Push only the index (first element of pair)
-    // }
-    //
-    // return neighbors;
+     // vector<pair<int,float>> distances;
+     // for(int i = 0; i < datapoints[q.v][i].vec.size(); i++) {
+     //     distances.push_back({ i , euclideanDistance(q.vec,datapoints[q.v][i].vec)});
+     // }
+     //
+     // auto comparator = [&](const pair<int, float>& a, const pair<int, float>& b) {
+     //     return a.second < b.second; // Sort by distance in ascending order
+     // };
+     //
+     // sort(distances.begin(), distances.end(), comparator);
+     //
+     // vector<int> neighbors;
+     // for (int i = 0; i < k && i < distances.size(); i++) {
+     //     neighbors.push_back(distances[i].first); // Push only the index (first element of pair)
+     // }
+     //
+     // return neighbors;
+
     return vector<DataPoint<int>>();
 }
 

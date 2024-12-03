@@ -9,9 +9,10 @@
 # include <unistd.h>
 # include <iomanip>
 # include "FilterGraph/FilterGraph.h"
-#include "../utility/Utils/Utils.h"
 # include "FilterDataset/FilterDataset.h"
 # include "FilterQuerySet/FilterQuerySet.h"
+#include "../utility/Utils/Utils.h"
+#include "../utility/InputSetDivider/InputSetDivider.h"
 
 using namespace std;
 
@@ -52,9 +53,6 @@ int main(int argc,char* argv[]) {
 
 	Utils<char>::printDivider();
 
-	cout << dataset.numOfDataPoints << endl;
-
-
     // FilterGraph<float> graph(dataset.dataPoints,L,R,k,a, 10);
     //
     // cout << "Start findMedoid()" << endl;
@@ -87,14 +85,16 @@ void initializeDatasets(FilterDataset<float>& dataset, FilterQuerySet<float>& qu
 	auto datasetEnd = chrono::high_resolution_clock::now();
 	auto datasetDuration = chrono::duration_cast<chrono::milliseconds>(datasetEnd - datasetStart).count();
 	cout << "base dataset load: " << datasetDuration << " ms" << endl;
+	cout << "Num of datapoints: " << dataset.numOfDataPoints << endl;
 
 	Utils<char>::printDivider();
 
-	 auto queryDatasetStart = chrono::high_resolution_clock::now();
-	 querySet = FilterQuerySet<float>(queryVectorsDataFileName);
+	auto queryDatasetStart = chrono::high_resolution_clock::now();
+	querySet = FilterQuerySet<float>(queryVectorsDataFileName);
 
-	 auto queryDatasetEnd = chrono::high_resolution_clock::now();
-	 auto queryDatasetDuration = chrono::duration_cast<chrono::milliseconds>(queryDatasetEnd - queryDatasetStart).count();
-	 cout << "query dataset load: " << queryDatasetDuration << " ms" << endl;
+	auto queryDatasetEnd = chrono::high_resolution_clock::now();
+	auto queryDatasetDuration = chrono::duration_cast<chrono::milliseconds>(queryDatasetEnd - queryDatasetStart).count();
+	cout << "query dataset load: " << queryDatasetDuration << " ms" << endl;
+	cout << "Num of queries: " << querySet.numOfQueries << endl;
 
 }
