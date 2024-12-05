@@ -98,21 +98,13 @@ vector<vector<int>> runQueries(FilterDataset<T>& fdataset,FilterQuerySet<T>& qse
 
 int main(int argc,char* argv[]) {
 
-	// FilterDataset<float> dataset;
-	// FilterQuerySet<float> querySet;
-	//
-	// initializeDatasets(dataset,querySet,argv,argc);
-	//
-	// const auto vectors = runQueries<float>(dataset,querySet);
-	//
-	// DataSet<int>::vecsWrite(groundtruthFilename,vectors);
+	FilterDataset<float> dataset;
+	FilterQuerySet<float> querySet;
 
-	if(argc < 3) {
-		printf("%s \n",argv[0]);
-	}
+	initializeDatasets(dataset,querySet,argv,argc);
 
-	auto dataset = DataSet<int>("dummy-groundtruth.bin");
+	const auto vectors = runQueries<float>(dataset,querySet);
 
-	dataset.print();
+	DataSet<int>::vecsWrite(groundtruthFilename,vectors);
 
 }
