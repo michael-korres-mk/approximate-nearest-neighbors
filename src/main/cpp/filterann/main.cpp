@@ -11,8 +11,12 @@
 # include "FilterGraph/FilterGraph.h"
 # include "FilterDataset/FilterDataset.h"
 # include "FilterQuerySet/FilterQuerySet.h"
-#include "../utility/Utils/Utils.h"
-#include "../utility/DataSet/DataSet.h"
+# include "../utility/Utils/Utils.h"
+# include "../utility/DataSet/DataSet.h"
+
+#define DIVIDER Utils<char>::printDivider();
+
+
 
 using namespace std;
 
@@ -32,8 +36,7 @@ int main(int argc,char* argv[]) {
 
 	initializeDatasets(dataset,querySet,argv,argc);
 
-	Utils<char>::printDivider();
-
+	DIVIDER
 
 	for(int i = 1; i < argc;i++){	// Get arguments
 		if (strcmp(argv[i],"-k") == 0) {
@@ -47,13 +50,12 @@ int main(int argc,char* argv[]) {
 		}
 	}
 
-
 	cout << "k = " << k << endl;
 	cout << "L = " << L << endl;
 	cout << "R = " << R << endl;
 	cout << "a = " << a << endl;
 
-	Utils<char>::printDivider();
+	DIVIDER
 
     // FilterGraph<float> graph(dataset.dataPoints,L,R,k,a, 10);
     //
@@ -81,22 +83,18 @@ void initializeDatasets(FilterDataset<float>& dataset, FilterQuerySet<float>& qu
 
 	Utils<char>::printDivider();
 
-	auto datasetStart = chrono::high_resolution_clock::now();
-	dataset = FilterDataset<float>(baseVectorsDataFileName);
+	TIMER_BLOCK("Base dataset load",
+		dataset = FilterDataset<float>(baseVectorsDataFileName);
+	)
 
-	auto datasetEnd = chrono::high_resolution_clock::now();
-	auto datasetDuration = chrono::duration_cast<chrono::milliseconds>(datasetEnd - datasetStart).count();
-	cout << "base dataset load: " << datasetDuration << " ms" << endl;
 	cout << "Num of datapoints: " << dataset.numOfDataPoints << endl;
 
 	Utils<char>::printDivider();
 
-	auto queryDatasetStart = chrono::high_resolution_clock::now();
-	querySet = FilterQuerySet<float>(queryVectorsDataFileName);
+	TIMER_BLOCK("Query dataset load",
+		querySet = FilterQuerySet<float>(queryVectorsDataFileName);
+	)
 
-	auto queryDatasetEnd = chrono::high_resolution_clock::now();
-	auto queryDatasetDuration = chrono::duration_cast<chrono::milliseconds>(queryDatasetEnd - queryDatasetStart).count();
-	cout << "query dataset load: " << queryDatasetDuration << " ms" << endl;
 	cout << "Num of queries: " << querySet.numOfQueries << endl;
 
 }

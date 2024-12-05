@@ -273,11 +273,11 @@ void FilterGraph<T>::stitchedVamana() {
     vector<FilterGraph> graphs;
 
     for (const int f: filters) {
-        graphs[f] = FilterGraph<T>({},100,250,60,1.2);
+        graphs[f] = FilterGraph<T>({},100,250,60,1.2,3);
         // todo: CHECKOUT VERTEX IDS
         for (const auto& [id, dp] : vertexMap) {
             if (dp.C == f) {
-                graphs[f].addVertex(dp.vec);
+                graphs[f].addVertex(dp);
                 for (const Edge& e : g[id]) {
                      graphs[f].addEdge(id,e.destination,e.weight);
                 }
@@ -300,6 +300,35 @@ void FilterGraph<T>::stitchedVamana() {
 
 }
 
+template<typename T>
+pair<vector<int>,vector<int>> FilterGraph<T>::greedySearch(int s, const vector<T>& q, const int k, int L) {
+
+    VamanaContainer l(L); l.insert({s,euclideanDistance(q,vertexMap[s].vec)});      // Σύνολο αναζήτησης
+    set<int> V;         // Σύνολο επισκεφθέντων κόμβων
+    set<int> diff = setDiff(l, V);
+
+    while(!diff.empty()){
+        int pStar = argmindist(q,diff);   // Βρίσκουμε το p* (τον πιο κοντινό κόμβο που δεν έχει επισκεφτεί ακόμα)
+
+        vector<Edge> neighbors = g[pStar];  // Βρίσκουμε τους γείτονες του p*
+
+        // Ενημερώνουμε το L με τους νέους γείτονες
+        for (Edge n : neighbors) {
+            l.insert({n.destination,n.weight});
+        }
+
+        V.insert(pStar);    // Προσθέτουμε το p* στο σύνολο επισκέψεων
+        diff = setDiff(l,V);
+
+    }
+
+    // Μετατροπή των αποτελεσμάτων για επιστροφή
+    vector<int> visitedVec(V.begin(), V.end());
+
+    return {l.subset(k), visitedVec};
+}
+
+
 template <typename T>
 void FilterGraph<T>::vamana(){
     cout << "vamana started" << endl;
@@ -307,7 +336,6 @@ void FilterGraph<T>::vamana(){
     initializeRandomEdges();
 
     const int s = medoid();
-    auto sigma = Utils<T>::shuffle;
 
     cout << "medoid calculated" << endl;
 
@@ -320,7 +348,7 @@ void FilterGraph<T>::vamana(){
         while (done.find(x = Utils<int>::random(0,numOfDatapoints)) != done.end()) {}
         done.insert(x);
 
-        const auto& [l,V] = greedySearch(s,vertexMap[x],k,L);
+        const auto& [l,V] = greedySearch(s,vertexMap[x].vec,k,L);
 
         vector<int> neighborIds = getVerticesIds();
         g[x] = robustPrune(x,V,a,R);
@@ -334,7 +362,7 @@ void FilterGraph<T>::vamana(){
                 g[y] = robustPrune(y,vertices,a,R);
             }
             else{
-                g[y].push_back(Edge(x,euclideanDistance(vertexMap[y],vertexMap[x])));
+                g[y].push_back(Edge(x,euclideanDistance(vertexMap[y].vec,vertexMap[x].vec)));
             }
         }
     }
@@ -342,7 +370,7 @@ void FilterGraph<T>::vamana(){
 }
 
 template <typename T>
-vector<Edge> FilterGraph<T>::robustPrune(int p, const vector<int> &V, double a, int R) {
+vector<Edge> FilterGraph<T>::robustPrune(int p, const vector<int> &V, double a, const unsigned int R) {
     // Αντιγραφή του συνόλου V, αφού θα το τροποποιήσουμε και αφαίρεση του p από το σύνολο των υποψήφιων γειτόνων
     vector<int> candidateNeighbors = V;
     vector<Edge> pOut = getNeighbors(p);
@@ -358,10 +386,10 @@ vector<Edge> FilterGraph<T>::robustPrune(int p, const vector<int> &V, double a, 
     // Ενώ υπάρχουν υποψήφιοι γείτονες
     while (!candidateNeighbors.empty()) {
         // Βρίσκουμε τον γείτονα που έχει την ελάχιστη απόσταση από το p
-        int p_star = argminDist(vertexMap[p], candidateNeighbors); // Χρήση της συνάρτησής σου
+        int p_star = argminDist(vertexMap[p].vec, candidateNeighbors); // Χρήση της συνάρτησής σου
 
         // Προσθήκη του p_star στους νέους γείτονες
-        N_out.push_back(Edge(p_star, euclideanDistance(vertexMap[p], vertexMap[p_star])));
+        N_out.push_back(Edge(p_star, euclideanDistance(vertexMap[p].vec, vertexMap[p_star].vec)));
 
         // Αφαίρεση του p_star από τους υποψήφιους
         candidateNeighbors.erase(std::remove(candidateNeighbors.begin(), candidateNeighbors.end(), p_star), candidateNeighbors.end());
@@ -373,7 +401,7 @@ vector<Edge> FilterGraph<T>::robustPrune(int p, const vector<int> &V, double a, 
 
         // Κλαδεύουμε τους υπόλοιπους υποψήφιους γείτονες
         for (auto it = candidateNeighbors.begin(); it != candidateNeighbors.end();) {
-            if (a * euclideanDistance(vertexMap[p_star], vertexMap[*it]) <= euclideanDistance(vertexMap[p], vertexMap[*it])) {
+            if (a * euclideanDistance(vertexMap[p_star].vec, vertexMap[*it].vec) <= euclideanDistance(vertexMap[p].vec, vertexMap[*it].vec)) {
                 it = candidateNeighbors.erase(it); // Αφαίρεση των γειτόνων που δεν πληρούν τα κριτήρια
             } else {
                 ++it;
@@ -386,7 +414,7 @@ vector<Edge> FilterGraph<T>::robustPrune(int p, const vector<int> &V, double a, 
 
 
 template <typename T>
-vector<Edge> FilterGraph<T>::filteredRobustPrune(int p, const vector<int> &V, double a, int R) {
+vector<Edge> FilterGraph<T>::filteredRobustPrune(int p, const vector<int> &V, double a,unsigned int R) {
     // Αντιγραφή του συνόλου V, αφού θα το τροποποιήσουμε και αφαίρεση του p από το σύνολο των υποψήφιων γειτόνων
     vector<int> candidateNeighbors = V;
     vector<Edge> pOut = getNeighbors(p);
@@ -556,38 +584,13 @@ int FilterGraph<T>::argminDist(const vector<T>& p, const vector<int>& P) {
 }
 
 template <typename T>
-void FilterGraph<T>::printVector(int id,ostream& out) {
-    out << "Vertex[" << id << "] = ";
-
-    for(int j = 0; j < vertexMap[id].vec.size(); j++) {
-        out << vertexMap[id].vec[j] << " ";
-    }
-    out<< endl;
-}
-
-template <typename T>
-void FilterGraph<T>::printVector(pair<int,vector<T>> pair,ostream& out) {
-    const int id = pair.first;
-    out << "Vertex[" << id << "] = ";
-    for(int j = 0; j < pair.second.size(); j++) {
-        out << pair.second[j] << " ";
-    }
-    out<< endl;
-}
-
-template <typename T>
 void FilterGraph<T>::printVectorNeighbors(vector<Edge>& neighbors,ostream& out) {
 
     out << "Neighbors:" << endl;
     if(!neighbors.empty()) {
         for(Edge neighbor : neighbors){
-
             out << "[" << neighbor.destination << "] = ";
-            for(int j = 0; j < vertexMap[neighbor.destination].vec.size(); j++) {
-                out << vertexMap[neighbor.destination].vec[j] << " ";
-            }
-            out << "(" << neighbor.weight << ")" << " ";
-            out << endl;
+            Utils<T> :: printVec(vertexMap[neighbor.destination].vec);
         }
     }
     else {
@@ -596,7 +599,7 @@ void FilterGraph<T>::printVectorNeighbors(vector<Edge>& neighbors,ostream& out) 
 }
 
 template<typename T>
-DataPoint<T> FilterGraph<T>::getVertex(int id) {
+DataPoint<T> FilterGraph<T>::getVertex(unsigned int id) {
     if(id >= vertexMap.size()) return DataPoint<T>();
     return vertexMap[id];
 }

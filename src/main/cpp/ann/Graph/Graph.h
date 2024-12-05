@@ -34,7 +34,7 @@ public:
     void addEdge(int src, int dest,float dist);
     void removeEdge(int src, int dest);
     vector<Edge> calculateNearestNeighbors(const vector<T>& q,const int& k);
-    vector<Edge> robustPrune(int p, const std::vector<int> &V, double a, int R);
+    vector<Edge> robustPrune(int p, const std::vector<int> &V, double a, unsigned int R);
     int argminDist(const vector<T>& p, const vector<int>& P);
     int argmindist(const vector<T>& p, const set<int>& P);
     vector<int> getVerticesIds();
@@ -42,14 +42,12 @@ public:
     set<int> setDiff(VamanaContainer& A, set<int>& B);
     vector<int> edgesToVertices(vector<Edge> edges);
     vector<Edge> getNeighbors(int vertex);
-    void printVector(int id, ostream& out = cout);
     void printGraph(ostream& out = cout);
     void printVectorNeighbors(vector<Edge>& neighbors, ostream &out = cout);
     vector<T> getVertex(int id);
 
     // static
     static float euclideanDistance(const vector<T>& v1,const vector<T>& v2);
-    static void printVector(pair<int,vector<T>>,ostream& out = cout);
     static double equals(const vector<T> &v1, vector<T> &v2);
 
     // For testing

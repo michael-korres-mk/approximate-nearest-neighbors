@@ -16,7 +16,6 @@ void Graph<T>::vamana(){
     initializeRandomEdges();
 
     const int s = medoid();
-    auto sigma = Utils<T>::shuffle;
 
     cout << "medoid calculated" << endl;
 
@@ -301,7 +300,7 @@ int Graph<T>::argminDist(const vector<T>& p, const vector<int>& P) {
 //              3) a -> Ένα κατώφλι (threshold) για την απόσταση, με τιμή μεγαλύτερη ή ίση του 1. Χρησιμοποιείται για να κρίνει αν θα αφαιρεθεί κάποιος γείτονας.
 //              4) R -> Το μέγιστο όριο γειτόνων που μπορούμε να διατηρήσουμε (degree bound).
 template <typename T>
-vector<Edge> Graph<T>::robustPrune(int p, const vector<int> &V, double a, int R) {
+vector<Edge> Graph<T>::robustPrune(int p, const vector<int> &V, double a,unsigned int R) {
     // Αντιγραφή του συνόλου V, αφού θα το τροποποιήσουμε και αφαίρεση του p από το σύνολο των υποψήφιων γειτόνων
     vector<int> candidateNeighbors = V;
     vector<Edge> pOut = getNeighbors(p);
@@ -344,27 +343,6 @@ vector<Edge> Graph<T>::robustPrune(int p, const vector<int> &V, double a, int R)
 }
 
 
-
-template <typename T>
-void Graph<T>::printVector(int id,ostream& out) {
-    out << "Vertex[" << id << "] = ";
-
-    for(int j = 0; j < vertexMap[id].size(); j++) {
-        out << vertexMap[id][j] << " ";
-    }
-    out<< endl;
-}
-
-template <typename T>
-void Graph<T>::printVector(pair<int,vector<T>> pair,ostream& out) {
-    const int id = pair.first;
-    out << "Vertex[" << id << "] = ";
-    for(int j = 0; j < pair.second.size(); j++) {
-        out << pair.second[j] << " ";
-    }
-    out<< endl;
-}
-
 template <typename T>
 void Graph<T>::printVectorNeighbors(vector<Edge>& neighbors,ostream& out) {
 
@@ -373,9 +351,7 @@ void Graph<T>::printVectorNeighbors(vector<Edge>& neighbors,ostream& out) {
         for(Edge neighbor : neighbors){
 
             out << "[" << neighbor.destination << "] = ";
-            for(int j = 0; j < vertexMap[neighbor.destination].size(); j++) {
-                out << vertexMap[neighbor.destination][j] << " ";
-            }
+            Utils<T>::printVector(vertexMap[neighbor.destination]);
             out << "(" << neighbor.weight << ")" << " ";
             out << endl;
         }
@@ -396,7 +372,7 @@ template <typename T>
 void Graph<T>::printGraph(ostream& out){
     out << "Graph with " << vertexMap.size() << " vertices:" << endl;
     for(const auto& pair : vertexMap){
-        printVector(pair);
+    Utils<T>::printVector(pair.second);
         const int id = pair.first;
         printVectorNeighbors(g[id]);
     }
