@@ -22,11 +22,28 @@
 
 
 #define TIMER_BLOCK(MSG, CODE) { \
-    auto start = std::chrono::high_resolution_clock::now(); \
+    auto start = chrono::high_resolution_clock::now(); \
     CODE \
-    auto finish = std::chrono::high_resolution_clock::now(); \
-    auto datasetDuration = std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count(); \
-    std::cout << MSG << ": " << datasetDuration << " ms" << std::endl; \
+    auto finish = chrono::high_resolution_clock::now(); \
+    auto datasetDuration = chrono::duration_cast<chrono::milliseconds>(finish - start).count(); \
+    cout << MSG << ": " << datasetDuration << " ms" << endl; \
+}
+
+#define PRINT_VAR(var) cout << #var << " = " << var << endl;
+
+#define GET_INT_ARG(arg_name, variable)   \
+    if (strcmp(argv[i], arg_name) == 0) { \
+        variable = atoi(argv[i + 1]);    \
+    }
+
+#define GET_DOUBLE_ARG(arg_name, variable)  \
+    if (strcmp(argv[i], arg_name) == 0) {  \
+        variable = atof(argv[i + 1]);     \
+    }
+
+#define GET_STRING_ARG(arg_name, variable)  \
+if (strcmp(argv[i], arg_name) == 0) {  \
+    variable = argv[i + 1];     \
 }
 
 using namespace std;

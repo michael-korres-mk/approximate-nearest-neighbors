@@ -20,8 +20,12 @@
 
 using namespace std;
 
-void initializeDatasets(FilterDataset<float>& dataset, FilterQuerySet<float>& querySet,char* argv[],int argc) ;
+void initializeDatasets(FilterDataset<float>& dataset, FilterQuerySet<float>& querySet,DataSet<int> groundtruthSet) ;
 
+
+string dataFilename;
+string queriesFileName;
+string groundtruthFileName;
 
 int k;
 int L;
@@ -29,31 +33,34 @@ int R;
 double a;
 
 int main(int argc,char* argv[]) {
-	Utils<char>::printDivider();
-
-	FilterDataset<float> dataset;
-	FilterQuerySet<float> querySet;
-
-	initializeDatasets(dataset,querySet,argv,argc);
 
 	DIVIDER
 
-	for(int i = 1; i < argc;i++){	// Get arguments
-		if (strcmp(argv[i],"-k") == 0) {
-			k = atoi(argv[i+1]);
-		} else if (strcmp(argv[i],"-L") == 0) {
-			L = atoi(argv[i+1]);
-		} else if (strcmp(argv[i],"-R") == 0) {
-			R = atoi(argv[i+1]);
-		} else if (strcmp(argv[i],"-a") == 0) {
-			a = atof(argv[i+1]);
-		}
+	for (int i = 1; i < argc; i++) {    // Get arguments
+		GET_INT_ARG("-k", k)
+		GET_INT_ARG("-L", L)
+		GET_INT_ARG("-R", R)
+		GET_DOUBLE_ARG("-a", a)
+		GET_STRING_ARG("-bv", dataFilename)
+		GET_STRING_ARG("-qv", queriesFileName)
+		GET_STRING_ARG("-gv", groundtruthFileName)
+
 	}
 
-	cout << "k = " << k << endl;
-	cout << "L = " << L << endl;
-	cout << "R = " << R << endl;
-	cout << "a = " << a << endl;
+
+	PRINT_VAR(k)
+	PRINT_VAR(L)
+	PRINT_VAR(R)
+	PRINT_VAR(a)
+
+	DIVIDER
+
+	FilterDataset<float> dataset;
+	FilterQuerySet<float> querySet;
+	DataSet<int> groundtruthSet;
+
+	initializeDatasets(dataset,querySet,groundtruthSet);
+
 
 	DIVIDER
 
@@ -66,36 +73,33 @@ int main(int argc,char* argv[]) {
 
 }
 
-void initializeDatasets(FilterDataset<float>& dataset, FilterQuerySet<float>& querySet,char* argv[],int argc) {
-	string baseVectorsDataFileName;
-	string queryVectorsDataFileName;
+void initializeDatasets(FilterDataset<float>& dataset, FilterQuerySet<float>& querySet,DataSet<int> groundtruthSet) {
 
-	for(int i = 1; i < argc;i++){	// Get arguments
-		if (strcmp(argv[i],"-bv") == 0) {
-			baseVectorsDataFileName = argv[i+1];
-		} else if (strcmp(argv[i],"-qv") == 0) {
-			queryVectorsDataFileName = argv[i+1];
-		}
-	}
+	cout << "Base Dataset: " << dataFilename << endl;
+	cout << "Query Dataset: " << queriesFileName << endl;
+	cout << "Ground-truth Dataset: " << groundtruthFileName << endl;
 
-	cout << "Base Dataset: " << baseVectorsDataFileName << endl;
-	cout << "Query Dataset: " << queryVectorsDataFileName << endl;
-
-	Utils<char>::printDivider();
+	DIVIDER
 
 	TIMER_BLOCK("Base dataset load",
-		dataset = FilterDataset<float>(baseVectorsDataFileName);
+		dataset = FilterDataset<float>(dataFilename);
 	)
 
 	cout << "Num of datapoints: " << dataset.numOfDataPoints << endl;
 
-	Utils<char>::printDivider();
+	DIVIDER
 
 	TIMER_BLOCK("Query dataset load",
-		querySet = FilterQuerySet<float>(queryVectorsDataFileName);
+		querySet = FilterQuerySet<float>(queriesFileName);
 	)
 
 	cout << "Num of queries: " << querySet.numOfQueries << endl;
+
+	DIVIDER
+
+	TIMER_BLOCK("Ground-truth dataset load",
+		groundtruthSet = DataSet<int>(groundtruthFileName);
+	)
 
 }
 
