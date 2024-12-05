@@ -33,6 +33,9 @@ public:
     vector<vector<T>> getVectors();
     vector<T> getVector(int id);
     vector<vector<T>> vecsRead(const string& filename, pair<int, int> bounds);
+
+    void vecsWrite(const string &filename, const vector<vector<T>> &vectors);
+
     void print();
 };
 

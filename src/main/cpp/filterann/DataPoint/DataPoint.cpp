@@ -8,7 +8,7 @@ template<typename K>
 DataPoint<K>::DataPoint() {}
 
 template<typename K>
-DataPoint<K>::DataPoint(const int C, const int T, vector<K> vector): C(C), T(T), vec(vector) {}
+DataPoint<K>::DataPoint(const int id,const int C, const int T, vector<K> vector):id(id), C(C), T(T), vec(vector) {}
 
 template<typename K>
 void DataPoint<K>::print() {

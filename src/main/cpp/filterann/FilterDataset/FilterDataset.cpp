@@ -19,26 +19,10 @@ FilterDataset<T>::FilterDataset(const string &filename):numOfDataPoints(0) {
     uint32_t numOfDataPoints;
     file.read(reinterpret_cast<char*>(&numOfDataPoints), sizeof(int));
 
-    // Read the vectors
-    T data;
-    DataPoint<T> dataPoint;
-
     for (int i = 0; i < numOfDataPoints; ++i) {
-        dataPoint = DataPoint<T>(-1,-1,vector<T>(FILTER_DATASET_DIMENSION - 2));
 
-        float C;
-        file.read(reinterpret_cast<char*>(&C), sizeof(float));
-
-        float timestamp;
-        file.read(reinterpret_cast<char*>(&timestamp), sizeof(float));
-
-        dataPoint.C = static_cast<int>(C);
-        dataPoint.T = timestamp;
-
-        for(int j = 0; j < FILTER_DATASET_DIMENSION - 2; j++) {
-            file.read(reinterpret_cast<char*>(&data),sizeof(T));
-            dataPoint.vec[j] = data;
-        }
+        DataPoint<T> dataPoint = readDataPoint(file,i);
+        int C = dataPoint.C;
 
         if(datapoints.find(C) == datapoints.end()) datapoints.insert(make_pair(C,vector<DataPoint<T>>()));
 
@@ -51,6 +35,26 @@ FilterDataset<T>::FilterDataset(const string &filename):numOfDataPoints(0) {
 
     assert(this->numOfDataPoints > 0);
 
+}
+
+template<typename T>
+DataPoint<T> FilterDataset<T>::readDataPoint(ifstream& file,int id) {
+    // Read the vectors
+    T data;
+    vector<T> vec(FILTER_DATASET_DIMENSION - 2);
+
+    float C;
+    file.read(reinterpret_cast<char*>(&C), sizeof(float));
+
+    float timestamp;
+    file.read(reinterpret_cast<char*>(&timestamp), sizeof(float));
+
+    for(int j = 0; j < FILTER_DATASET_DIMENSION - 2; j++) {
+        file.read(reinterpret_cast<char*>(&data),sizeof(T));
+        vec[j] = data;
+    }
+
+    return DataPoint<T>(id,static_cast<int>(C),timestamp,vec);;
 }
 
 template<typename T>

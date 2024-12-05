@@ -12,11 +12,17 @@
 # include "FilterDataset/FilterDataset.h"
 # include "FilterQuerySet/FilterQuerySet.h"
 #include "../utility/Utils/Utils.h"
-#include "../utility/InputSetDivider/InputSetDivider.h"
+#include "../utility/DataSet/DataSet.h"
 
 using namespace std;
 
 void initializeDatasets(FilterDataset<float>& dataset, FilterQuerySet<float>& querySet,char* argv[],int argc) ;
+
+
+int k;
+int L;
+int R;
+double a;
 
 int main(int argc,char* argv[]) {
 	Utils<char>::printDivider();
@@ -28,10 +34,6 @@ int main(int argc,char* argv[]) {
 
 	Utils<char>::printDivider();
 
-	int k;
-	int L;
-	int R;
-	double a;
 
 	for(int i = 1; i < argc;i++){	// Get arguments
 		if (strcmp(argv[i],"-k") == 0) {
@@ -97,4 +99,28 @@ void initializeDatasets(FilterDataset<float>& dataset, FilterQuerySet<float>& qu
 	cout << "query dataset load: " << queryDatasetDuration << " ms" << endl;
 	cout << "Num of queries: " << querySet.numOfQueries << endl;
 
+}
+
+template <typename T>
+void runQueries(FilterGraph<T> fgraph,FilterQuerySet<T> qset,DataSet<int>& groundtruthDataSet) {
+	int nq = qset.numOfQueries;
+
+	double totalKRecall = 0.0;
+	for(int i = 0; i < nq; i++) {
+		int query_type = qset.queries[i].queryType;
+		int v = qset.queries[i].v;
+
+		if(query_type == 0){  // only ANN
+
+			const auto& [neighbors,v] = fgraph.filteredGreedySearch({},qset.queries[i].vec,k,L,-1);
+			vector<int> groundTruthNearestNeighbors = groundtruthDataSet.getVector(i);
+			double kRecall = FilterGraph<int>::equals(neighbors,groundTruthNearestNeighbors);
+			totalKRecall += kRecall;
+		}
+		else if(query_type == 1){ // equal + ANN
+
+			fgraph.filteredGreedySearch({},qset.queries[i].vec,k,L,v);
+
+		}
+	}
 }

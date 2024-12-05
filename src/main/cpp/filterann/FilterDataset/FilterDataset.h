@@ -26,6 +26,8 @@ public:
     explicit FilterDataset();
     explicit FilterDataset(const string& dataFileName);
 
+    DataPoint<T> readDataPoint(ifstream &file, int id);
+
     vector<DataPoint<int>> getNearestNeighbors(const Query<T> &q, const int &k);
 
     void print();

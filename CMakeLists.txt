@@ -3,12 +3,12 @@ project(approximate_nearest_neighbors)
 
 set(CMAKE_CXX_STANDARD 17)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -DNDEBUG")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -DNDEBUG")
 
 add_executable(approximate_nearest_neighbors
         src/main/cpp/ann/main.cpp
-        src/main/cpp/ann/DataSet/DataSet.cpp
-        src/main/cpp/ann/DataSet/DataSet.h
+        src/main/cpp/utility/DataSet/DataSet.cpp
+        src/main/cpp/utility/DataSet/DataSet.h
         src/main/cpp/utility/Utils/Utils.cpp
         src/main/cpp/utility/Utils/Utils.h
         src/main/cpp/ann/Graph/Graph.cpp
@@ -28,13 +28,11 @@ add_executable(approximate_nearest_neighbors
         src/main/cpp/filterann/FilterGraph/FilterGraph.cpp
         src/main/cpp/filterann/FilterGraph/FilterGraph.h
         src/main/cpp/filterann/FilterDataset/FilterDataset.h
-        src/main/cpp/utility/InputSetDivider/FilterDatasetDivider.cpp
-        src/main/cpp/utility/InputSetDivider/FilterDatasetDivider.h
 )
 
 add_executable(filter_approximate_nearest_neighbors src/main/cpp/filterann/main.cpp
-        src/main/cpp/ann/DataSet/DataSet.cpp
-        src/main/cpp/ann/DataSet/DataSet.h
+        src/main/cpp/utility/DataSet/DataSet.cpp
+        src/main/cpp/utility/DataSet/DataSet.h
         src/main/cpp/utility/Utils/Utils.cpp
         src/main/cpp/utility/Utils/Utils.h
         src/main/cpp/ann/Graph/Graph.cpp
@@ -54,3 +52,7 @@ add_executable(filter_approximate_nearest_neighbors src/main/cpp/filterann/main.
         src/main/cpp/filterann/FilterGraph/FilterGraph.cpp
         src/main/cpp/filterann/FilterGraph/FilterGraph.h
 )
+
+add_executable(dummy otherfiles/baseline.cpp)
+
+
