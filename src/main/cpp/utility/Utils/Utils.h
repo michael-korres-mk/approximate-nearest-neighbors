@@ -27,7 +27,9 @@ public:
     static vector<K>& shuffle(vector<K>& v);
     static int flipCoin();
     static int random(int a,int b);
+    static double euclideanDistance(const vector<K>& v1,const vector<K>& v2);
     static void printDivider();
+    static void printVec(vector<K> v);
 };
 
 #endif //ANN_UTILS_H

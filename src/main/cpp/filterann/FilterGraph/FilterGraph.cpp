@@ -5,8 +5,7 @@
 #include "../FilterGraph/FilterGraph.h"
 
 template <typename T>
-FilterGraph<T>::FilterGraph(vector<DataPoint<T>> dataPoints, const int L,const int R,const int k,double a, int tau):numOfDatapoints(0),L(L),R(R),k(k),d((dataPoints.size() > 0)?static_cast<int>(dataPoints[0].vec.size()):0),a(a),tau(tau){
-    // TODO: Revisit d initialization
+FilterGraph<T>::FilterGraph(vector<DataPoint<T>> dataPoints, const int L,const int R,const int k,double a, int tau):numOfDatapoints(0),L(L),R(R),k(k),a(a),tau(tau){
     numOfDatapoints = dataPoints.size();
     for(int i = 0; i < numOfDatapoints ; i++ ) {
         vertexMap.insert({dataPoints[i].id,dataPoints[i]});
@@ -462,9 +461,9 @@ void FilterGraph<T>::removeEdge(const int src, const int dest){
 
 template<typename T>
 float FilterGraph<T>::euclideanDistance(const vector<T>& v1,const vector<T>& v2) {
-    int d = v1.size();
+    int dim = v1.size();
     float dist = 0;
-    for(int j = 0; j < d; j++) {
+    for(int j = 0; j < dim; j++) {
         dist += (v2[j] - v1[j]) * (v2[j] - v1[j]);
     }
 

@@ -1,6 +1,6 @@
 # Compiler
 CXX = g++
-CXXFLAGS = -O3 -std=c++17 -g
+CXXFLAGS = -O3 -Wall -Wextra -Werror -pedantic -std=c++17 -g
 
 SRC_DIR = src/main/cpp
 TEST_DIR = src/tests/cpp

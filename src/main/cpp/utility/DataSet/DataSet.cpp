@@ -72,14 +72,10 @@ vector<vector<T>> DataSet<T>::vecsRead(const string& filename, pair<int, int> bo
 
 template <typename T>
 void DataSet<T>::vecsWrite(const string& filename, const vector<vector<T>>& vectors) {
+    const string dataFilePath(RESOURCES_P + filename);
 
-    string dataFilePath(RESOURCES_P + filename);
-
-    // Open file for binary output
     ofstream file(dataFilePath, ios::binary);
-    if (!file.is_open()) {
-        throw runtime_error("I/O error: Unable to open the file " + filename + " for writing.");
-    }
+    if (!file.is_open()) throw runtime_error("I/O error: Unable to open the file " + filename + " for writing.");
 
     // Iterate over each vector and write its dimension and data to the file
     for (const auto& vec : vectors) {
@@ -122,12 +118,8 @@ void DataSet<T>::print() {
     cout << "numOfVectors=" << numOfVectors << endl;
     cout << "sizeof(T)=" << sizeof(T) << endl;
 
-    for(int i = 0; i < this->getNumOfVectors(); i++) {
-        fprintf(stdout, "\e[36mvector[ %d ] is:   \e[0m\n",i);
-        for(int j = 0; j < this->getD() - 1; j++) {
-            cout << vectors[i][j] << " ";
-        }
-        cout << setw(4) << fixed << setprecision(4) << vectors[i][this->getD() - 1] << endl;
+    for(int i = 0; i < numOfVectors; i++) {
+        Utils<T>::printVec(vectors[i]);
     }
 }
 

@@ -19,14 +19,15 @@ FilterDataset<T>::FilterDataset(const string &filename):numOfDataPoints(0) {
     uint32_t numOfDataPoints;
     file.read(reinterpret_cast<char*>(&numOfDataPoints), sizeof(int));
 
-    for (int i = 0; i < numOfDataPoints; ++i) {
+    for (uint32_t i = 0; i < numOfDataPoints; ++i) {
 
         DataPoint<T> dataPoint = readDataPoint(file,i);
         int C = dataPoint.C;
 
-        if(datapoints.find(C) == datapoints.end()) datapoints.insert(make_pair(C,vector<DataPoint<T>>()));
+        if(datapointGroups.find(C) == datapointGroups.end()) datapointGroups.insert(make_pair(C,vector<int>()));
 
-        datapoints[C].push_back(dataPoint);
+        datapointGroups[C].push_back(dataPoint.id);
+        datapoints.push_back(dataPoint);
     }
 
     file.close();
@@ -57,29 +58,6 @@ DataPoint<T> FilterDataset<T>::readDataPoint(ifstream& file,int id) {
     return DataPoint<T>(id,static_cast<int>(C),timestamp,vec);;
 }
 
-template<typename T>
-vector<DataPoint<int>> FilterDataset<T>::getNearestNeighbors(const Query<T> &q, const int &k){
-     // vector<pair<int,float>> distances;
-     // for(int i = 0; i < datapoints[q.v][i].vec.size(); i++) {
-     //     distances.push_back({ i , euclideanDistance(q.vec,datapoints[q.v][i].vec)});
-     // }
-     //
-     // auto comparator = [&](const pair<int, float>& a, const pair<int, float>& b) {
-     //     return a.second < b.second; // Sort by distance in ascending order
-     // };
-     //
-     // sort(distances.begin(), distances.end(), comparator);
-     //
-     // vector<int> neighbors;
-     // for (int i = 0; i < k && i < distances.size(); i++) {
-     //     neighbors.push_back(distances[i].first); // Push only the index (first element of pair)
-     // }
-     //
-     // return neighbors;
-
-    return vector<DataPoint<int>>();
-}
-
 
 template <typename T>
 void FilterDataset<T>::print() {
@@ -89,7 +67,7 @@ void FilterDataset<T>::print() {
     cout << "sizeof(T) = " << sizeof(T) << endl;
 
     for(int i = 0; i < numOfDataPoints; i++) {
-        fprintf(stdout, "\e[36mvector[ %d ] is:   \e[0m\n",i);
+        printf("vector[ %d ] is: \n",i);
     }
 }
 

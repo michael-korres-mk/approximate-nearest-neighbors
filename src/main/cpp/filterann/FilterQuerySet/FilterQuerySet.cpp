@@ -32,7 +32,7 @@ vector<Query<T>> FilterQuerySet<T>::vecsRead(const string &filename) {
     vector<Query<T>> queries = vector<Query<T>>(numOfQueries);
     T data;
 
-    for (int i = 0; i < numOfQueries; ++i) {
+    for (uint32_t i = 0; i < numOfQueries; ++i) {
         queries[i] = Query<T>(-1,-1,-1,-1,vector<T>(FILTER_QUERY_SET_DIMENSION - 4));
 
         float queryType;
@@ -75,7 +75,7 @@ void FilterQuerySet<T>::print() {
     cout << "sizeof(T) = " << sizeof(T) << endl;
 
     for(int i = 0; i < numOfQueries; i++) {
-        fprintf(stdout, "\e[36mvector[ %d ] is:   \e[0m\n",i);
+        printf("vector[ %d ] is: \n",i);
         queries[i].print();
     }
 }

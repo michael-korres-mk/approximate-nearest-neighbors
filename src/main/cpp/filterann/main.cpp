@@ -111,16 +111,16 @@ void runQueries(FilterGraph<T> fgraph,FilterQuerySet<T> qset,DataSet<int>& groun
 		int v = qset.queries[i].v;
 
 		if(query_type == 0){  // only ANN
-
-			const auto& [neighbors,v] = fgraph.filteredGreedySearch({},qset.queries[i].vec,k,L,-1);
+			const auto& [neighbors,V] = fgraph.filteredGreedySearch({},qset.queries[i].vec,k,L,-1);
 			vector<int> groundTruthNearestNeighbors = groundtruthDataSet.getVector(i);
 			double kRecall = FilterGraph<int>::equals(neighbors,groundTruthNearestNeighbors);
 			totalKRecall += kRecall;
 		}
 		else if(query_type == 1){ // equal + ANN
-
-			fgraph.filteredGreedySearch({},qset.queries[i].vec,k,L,v);
-
+			const auto& [neighbors,V] = fgraph.filteredGreedySearch({},qset.queries[i].vec,k,L,v);
+			vector<int> groundTruthNearestNeighbors = groundtruthDataSet.getVector(i);
+			double kRecall = FilterGraph<int>::equals(neighbors,groundTruthNearestNeighbors);
+			totalKRecall += kRecall;
 		}
 	}
 }
