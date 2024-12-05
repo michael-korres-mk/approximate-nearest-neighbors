@@ -19,30 +19,15 @@ FilterDataset<T>::FilterDataset(const string &filename):numOfDataPoints(0) {
     uint32_t numOfDataPoints;
     file.read(reinterpret_cast<char*>(&numOfDataPoints), sizeof(int));
 
-    // Read the vectors
-    T data;
-    DataPoint<T> dataPoint;
+    for (uint32_t i = 0; i < numOfDataPoints; ++i) {
 
-    for (int i = 0; i < numOfDataPoints; ++i) {
-        dataPoint = DataPoint<T>(-1,-1,vector<T>(FILTER_DATASET_DIMENSION - 2));
+        DataPoint<T> dataPoint = readDataPoint(file,i);
+        int C = dataPoint.C;
 
-        float C;
-        file.read(reinterpret_cast<char*>(&C), sizeof(float));
+        if(datapointGroups.find(C) == datapointGroups.end()) datapointGroups.insert(make_pair(C,vector<int>()));
 
-        float timestamp;
-        file.read(reinterpret_cast<char*>(&timestamp), sizeof(float));
-
-        dataPoint.C = static_cast<int>(C);
-        dataPoint.T = timestamp;
-
-        for(int j = 0; j < FILTER_DATASET_DIMENSION - 2; j++) {
-            file.read(reinterpret_cast<char*>(&data),sizeof(T));
-            dataPoint.vec[j] = data;
-        }
-
-        if(filteredDataset.find(C) == filteredDataset.end()) filteredDataset.insert(make_pair(C,vector<DataPoint<T>>()));
-
-        filteredDataset[C].push_back(dataPoint);
+        datapointGroups[C].push_back(dataPoint.id);
+        datapoints.push_back(dataPoint);
     }
 
     file.close();
@@ -54,25 +39,23 @@ FilterDataset<T>::FilterDataset(const string &filename):numOfDataPoints(0) {
 }
 
 template<typename T>
-vector<DataPoint<int>> FilterDataset<T>::getNearestNeighbors(const Query<T> &q, const int &k){
-    // vector<pair<int,float>> distances;
-    // for(int i = 0; i < numOfDataPoints; i++) {
-    //     distances.push_back({ i , euclideanDistance(q,this->vectors[i])});
-    // }
-    //
-    // auto comparator = [&](const pair<int, float>& a, const pair<int, float>& b) {
-    //     return a.second < b.second; // Sort by distance in ascending order
-    // };
-    //
-    // sort(distances.begin(), distances.end(), comparator);
-    //
-    // vector<int> neighbors;
-    // for (int i = 0; i < k && i < distances.size(); i++) {
-    //     neighbors.push_back(distances[i].first); // Push only the index (first element of pair)
-    // }
-    //
-    // return neighbors;
-    return vector<DataPoint<int>>();
+DataPoint<T> FilterDataset<T>::readDataPoint(ifstream& file,int id) {
+    // Read the vectors
+    T data;
+    vector<T> vec(FILTER_DATASET_DIMENSION - 2);
+
+    float C;
+    file.read(reinterpret_cast<char*>(&C), sizeof(float));
+
+    float timestamp;
+    file.read(reinterpret_cast<char*>(&timestamp), sizeof(float));
+
+    for(int j = 0; j < FILTER_DATASET_DIMENSION - 2; j++) {
+        file.read(reinterpret_cast<char*>(&data),sizeof(T));
+        vec[j] = data;
+    }
+
+    return DataPoint<T>(id,static_cast<int>(C),timestamp,vec);;
 }
 
 
@@ -84,7 +67,7 @@ void FilterDataset<T>::print() {
     cout << "sizeof(T) = " << sizeof(T) << endl;
 
     for(int i = 0; i < numOfDataPoints; i++) {
-        fprintf(stdout, "\e[36mvector[ %d ] is:   \e[0m\n",i);
+        printf("vector[ %d ] is: \n",i);
     }
 }
 

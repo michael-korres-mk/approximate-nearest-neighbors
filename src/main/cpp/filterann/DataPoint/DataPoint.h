@@ -14,11 +14,12 @@ using namespace std;
 template <typename K>
 class DataPoint {
 public:
+    int id;
     int C;
     int T;
     vector<K> vec;
     explicit DataPoint() ;
-    explicit DataPoint(int C, int T,vector<K> vector) ;
+    explicit DataPoint(int id,int C, int T,vector<K> vector) ;
     void print();
 };
 

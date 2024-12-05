@@ -2,10 +2,11 @@
 include configs/ann.mk.conf
 include configs/annimport.mk.conf
 include configs/filterann.mk.conf
+include configs/groundtruthcalc.mk.conf
 
 BUILD_DIR = build
 
-TARGETS = ann annimport filterann
+TARGETS = ann annimport filterann groundtruthcalc
 TESTS = $(patsubst src/tests/cpp/%.cpp,build/tests/%,$(shell find src/tests/cpp -name "*.cpp"))
 
 $(addsuffix b, $(TARGETS)):

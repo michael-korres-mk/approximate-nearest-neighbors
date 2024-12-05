@@ -21,12 +21,13 @@ template <typename T>
 class FilterDataset {
 public:
     int numOfDataPoints;
-    map<int,vector<DataPoint<T>>> filteredDataset;
+    map<int,vector<int>> datapointGroups;
+    vector<DataPoint<T>> datapoints;
 
     explicit FilterDataset();
     explicit FilterDataset(const string& dataFileName);
 
-    vector<DataPoint<int>> getNearestNeighbors(const Query<T> &q, const int &k);
+    DataPoint<T> readDataPoint(ifstream &file, int id);
 
     void print();
 };

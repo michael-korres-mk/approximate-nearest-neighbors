@@ -50,9 +50,28 @@ void Utils<K>::printDivider() {
     cout << "-----------------------------------------------------------" << endl;
 }
 
+template<typename K>
+void Utils<K>::printVec(vector<K> v) {
+    const int size = v.size();
+
+    string fmt = new char[size];
+
+    if (is_same_v<K, int>) {
+        fmt = "%d "; // Print as integer
+    }
+    else if (is_same<K, float>::value || is_same<K, double>::value) {
+        fmt = "%f "; // Print as float/double with 2 decimal places
+    }
+    else if (is_same<K, char>::value) {
+        fmt = "%c "; // Print as character
+    }
+
+    for(int i = 0; i < size; i++) {
+       printf(fmt.c_str(),v[i]);
+    }
+    cout << endl;
+}
+
 template class Utils<float>;
 template class Utils<int>;
 template class Utils<char>;
-template class Utils<vector<float>>;
-template class Utils<vector<int>>;
-template class Utils<vector<char>>;

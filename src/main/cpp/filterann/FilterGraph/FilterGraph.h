@@ -19,13 +19,13 @@
 template <typename T>
 class FilterGraph{
 public:
-    int AUTO_INCREMENT;             // Χρησιμοποιείται για την ανάθεση μοναδικών ID σε κάθε κορυφή. Ξεκινά από το 0 και αυξάνεται αυτόματα κατά την εισαγωγή κάθε νέας κορυφής.
-    pmr::map<int, DataPoint<T>> vertexMap;
+    int numOfDatapoints;
+    map<int, DataPoint<T>> vertexMap;
     map<int,vector<Edge>> g;
     int L;
     int R;                          // Μέγιστος αριθμός εξερχόμενων ακμών
     int k;                          // Αριθμός γειτόνων που θα βρούμε
-    int d;
+    // int d;
     double a;                       // Παράμετρος για το RobustPrune (κατώφλι απόστασης)
     int tau;                        // Παράμετρος για τη δειγματοληψία
 
@@ -41,6 +41,11 @@ public:
     pair<vector<int>,vector<int>> filteredGreedySearch(const vector<int>& S, const vector<T>& q,int k, int L,int Fq);
     void filteredVamana();
     void stitchedVamana();
+
+    void vamana();
+
+    vector<Edge> robustPrune(int p, const vector<int> &V, double a, int R);
+
     vector<Edge> filteredRobustPrune(int p, const vector<int> &V, double a, int R);
 
     int argminDist(const vector<T>& p, const vector<int>& P);
