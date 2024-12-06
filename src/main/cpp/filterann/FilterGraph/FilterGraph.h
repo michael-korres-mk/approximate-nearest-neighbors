@@ -28,6 +28,7 @@ public:
     // int d;
     double a;                       // Παράμετρος για το RobustPrune (κατώφλι απόστασης)
     unsigned int tau;                        // Παράμετρος για τη δειγματοληψία
+    set<int> filters;
 
     FilterGraph();
     FilterGraph(vector<DataPoint<T>> dataPoints,int L,int R,int k,double a, int tau);
@@ -41,6 +42,9 @@ public:
     map<int, int> findMedoid();
     pair<vector<int>,vector<int>> filteredGreedySearch(const vector<int>& S, const vector<T>& q,int k, int L,int Fq);
     void filteredVamana();
+
+    map<int, int> getStartNodes();
+
     void stitchedVamana();
 
     pair<vector<int>, vector<int>> greedySearch(int s, const vector<T> &q, int k, int L);
@@ -57,13 +61,12 @@ public:
     set<int> setDiff(VamanaContainer& A, set<int>& B);
     vector<int> edgesToVertices(vector<Edge> edges);
     vector<Edge> getNeighbors(int vertex);
-    void print(ostream& out = cout);
     void printVectorNeighbors(vector<Edge>& neighbors, ostream &out = cout);
     DataPoint<T> getVertex(unsigned int id);
 
     // static
     static float euclideanDistance(const vector<T>& v1,const vector<T>& v2);
-    static int equals(const vector<T> &v1, vector<T> &v2);
+    static double equals(const vector<T> &v1, vector<T> &v2);
 
     // import-export graph
     void importFilterGraph(const string& filename);

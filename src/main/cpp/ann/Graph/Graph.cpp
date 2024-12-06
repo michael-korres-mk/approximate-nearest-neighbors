@@ -19,7 +19,6 @@ void Graph<T>::vamana(){
 
     cout << "medoid calculated" << endl;
 
-    vector<int> V;
     int x;
     set<int> done;
     while(done.size() != vertexMap.size()){
@@ -28,10 +27,9 @@ void Graph<T>::vamana(){
         while (done.find(x = Utils<int>::random(0,AUTO_INCREMENT - 1)) != done.end()) {}
         done.insert(x);
 
-        const auto& [l,V] = greedySearch(s,vertexMap[x],k,L);
+        const auto& [l,Vx] = greedySearch(s,vertexMap[x],k,L);
 
-        vector<int> neighborIds = getVerticesIds();
-        g[x] = robustPrune(x,V,a,R);
+        g[x] = robustPrune(x,Vx,a,R);
 
         vector<int> xNeighbors =  edgesToVertices(g[x]);
 

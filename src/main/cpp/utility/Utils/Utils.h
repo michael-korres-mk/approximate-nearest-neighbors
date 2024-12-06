@@ -8,6 +8,14 @@
 #include <chrono>
 # include <iostream>
 #include <vector>
+#include <algorithm>
+# include <iostream>
+# include <cstring>
+# include <cstdlib>
+# include <cstdio>
+#include <map>
+# include <random>
+# include <unistd.h>
 #include <sys/time.h>
 
 #define BUFFER_SIZE 1024
@@ -54,7 +62,6 @@ public:
     static vector<K>& shuffle(vector<K>& v);
     static int flipCoin();
     static int random(int a,int b);
-    static double euclideanDistance(const vector<K>& v1,const vector<K>& v2);
     static void printDivider();
     static void printVec(vector<K> v);
 };

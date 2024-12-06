@@ -151,13 +151,10 @@ map<int, int> FilterGraph<T>::findMedoid() {
 template<typename T>
 pair<vector<int>,vector<int>> FilterGraph<T>::filteredGreedySearch(const vector<int>& S, const vector<T>& q, const int k, const int L,int Fq) {
 
-    // todo: define what to pass to S
-
     VamanaContainer l(L);
     set<int> V;
 
     for (auto s : S) {
-        if((Fq == -1) || vertexMap[s].C == Fq) // if unfiltered query or s categorical attribute matches,add to l
         l.insert({s,euclideanDistance(q,vertexMap[s].vec)});
     }
 
@@ -192,80 +189,52 @@ pair<vector<int>,vector<int>> FilterGraph<T>::filteredGreedySearch(const vector<
 
 template <typename T>
 void FilterGraph<T>::filteredVamana() {
-    // Καθαρίζουμε τον γράφο G
-    g.clear();
 
+    // get all filters
+    for (const auto& [id, dp] : vertexMap) filters.insert(dp.C);
 
-    // Ορίζουμε τους κόμβους εκκίνησης για κάθε φίλτρο
-    map<int, int> st; // Χάρτης από φίλτρο σε κόμβο εκκίνησης
-    set<int> filters;
+    map<int, int> st = getStartNodes();
 
-    // Συλλέγουμε όλα τα φίλτρα από τα σημεία δεδομένων
-    for (const auto& [id, dp] : vertexMap) {
-        filters.insert(dp.C);
+    int x;
+    set<int> done;
+    while(done.size() != vertexMap.size()){
+        (!done.empty() && done.size() % 1000 == 0) && printf("completed %d %% ... \n",static_cast<int>(done.size()/100));
+
+        while (done.find(x = Utils<int>::random(0,numOfDatapoints - 1)) != done.end()) {}
+        done.insert(x);
+
+        DataPoint<T>& dp = vertexMap[x];
+
+        const auto& [_,Vx] = filteredGreedySearch({st[dp.C]}, dp.vec, k, L, dp.C); // x.C = x's filter
+
+        g[x] = filteredRobustPrune(x, Vx, a, R);
+
+        for (const Edge& e : g[x]) { // add reverse edges
+            int dest = e.destination;
+            int weight = e.weight;
+
+            addEdge(dest, x, weight);
+
+            // if dest out-degree violates R constraint => prune
+            if (g[dest].size() > R)
+                g[dest] = filteredRobustPrune(dest, edgesToVertices(g[dest]), a, R);
+
+        }
     }
+}
 
-    // Ορίζουμε τον κόμβο εκκίνησης για κάθε φίλτρο
+template <typename T>
+map<int,int> FilterGraph<T>::getStartNodes(){
+    map<int,int> S;
     for (int f : filters) {
-        for (const auto& [id, dp] : vertexMap) {
+        for (const auto& [id, dp] : vertexMap) { // assign as starting node the 1st of the corresponding filter class
             if (dp.C == f) {
-                st[f] = id;
+                S[f] = id;
                 break;
             }
         }
     }
-
-    // Δημιουργούμε μια τυχαία διάταξη σ των κόμβων του P
-    vector<int> sigma = getVerticesIds();
-    Utils<int>::shuffle(sigma);
-
-    // Βρόχος Επεξεργασίας Κόμβων
-    for (int x_id : sigma) {
-        DataPoint<T>& x = vertexMap[x_id];
-
-        // Υπολογισμός Ετικετών Εκκίνησης
-        vector<int> S_F_sigma_i;
-        int label = x.C; // Το φίλτρο του σημείου x
-
-        if (st.find(label) != st.end()) {
-            S_F_sigma_i.push_back(st[label]);
-        }
-
-        // Εκτέλεση Filtered Greedy Search
-        int Fq = label;
-        pair<vector<int>, vector<int>> searchResult = filteredGreedySearch(S_F_sigma_i, x.vec, k, L, Fq);
-        vector<int> V_F_x_sigma_i = searchResult.first;
-
-        // Συγχώνευση Υποψηφίων
-        const vector<int>& V = V_F_x_sigma_i;
-
-        // Εφαρμογή FilteredRobustPrune
-        vector<Edge> prunedNeighbors = filteredRobustPrune(x_id, V, a, R);
-
-        // Ενημέρωση του γράφου G με τους γείτονες που προέκυψαν από το Prune
-        g[x_id] = prunedNeighbors;
-
-        // Ενημέρωση Out-Neighborhoods
-        for (const Edge& e : prunedNeighbors) {
-            int j = e.destination;
-
-            // Προσθέτουμε τον x_id στους εξερχόμενους γείτονες του j
-            addEdge(j, x_id, e.weight);
-
-            // Ελέγχουμε αν το out-degree του j ξεπερνά το R
-            if (g[j].size() > R) {
-                vector<int> V_j;
-                for (const Edge& edge_j : g[j]) {
-                    V_j.push_back(edge_j.destination);
-                }
-
-                vector<Edge> prunedNeighbors_j = filteredRobustPrune(j, V_j, a, R);
-
-                // Ενημέρωση των εξερχόμενων γειτόνων του j
-                g[j] = prunedNeighbors_j;
-            }
-        }
-    }
+    return S;
 }
 
 template <typename T>
@@ -280,7 +249,7 @@ void FilterGraph<T>::stitchedVamana() {
     vector<FilterGraph> graphs;
 
     for (const int f: filters) {
-        graphs[f] = FilterGraph<T>({},100,250,60,1.2,3);
+        graphs[f] = FilterGraph<T>({},100,R/4,60,1.2,3);
         // todo: CHECKOUT VERTEX IDS
         for (const auto& [id, dp] : vertexMap) {
             if (dp.C == f) {
@@ -506,7 +475,7 @@ float FilterGraph<T>::euclideanDistance(const vector<T>& v1,const vector<T>& v2)
 }
 
 template<typename T>
-int FilterGraph<T>::equals(const vector<T>& v1, vector<T>& v2) {
+double FilterGraph<T>::equals(const vector<T>& v1, vector<T>& v2) {
 
     const int dim = min(v1.size(),v2.size());
 
@@ -524,7 +493,7 @@ int FilterGraph<T>::equals(const vector<T>& v1, vector<T>& v2) {
 
     }
 
-    return dim - misses;
+    return (dim - misses)/dim;
 }
 
 template <typename T>
@@ -694,7 +663,7 @@ void FilterGraph<T>::importFilterGraph(const string& filename) {
     // fetch vectors
     for(int i = 0; i < numOfDatapoints; i++) {
         int id;
-        DataPoint<T> datapoint;
+        DataPoint<T> datapoint = DataPoint<T>();
 
         file.read(reinterpret_cast<char*>(&datapoint.id), sizeof(int));
         file.read(reinterpret_cast<char*>(&datapoint.C), sizeof(int));

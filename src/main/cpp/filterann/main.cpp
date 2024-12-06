@@ -54,8 +54,6 @@ void initializeDatasets(FilterDataset<float>& dataset, FilterQuerySet<float>& qu
 
 	TIMER_BLOCK("Ground-truth dataset load",
 		groundtruthSet = DataSet<int>(groundtruthFileName);
-		// auto dset = DataSet<int>("dummy-groundtruth.bin");
-
 	)
 
 }
@@ -67,23 +65,24 @@ void runQueries(FilterGraph<T> fgraph,FilterQuerySet<T> qset,DataSet<int>& groun
 	const int nq = qset.numOfQueries;
 
 	double totalKRecall = 0.0;
+
+	map<int,int> filtersStartingPoints = fgraph.findMedoid();
+	vector<int> allStartingPoints;
+	for (const auto&[_, point] : filtersStartingPoints) allStartingPoints.push_back(point);
+
 	for(int i = 0; i < nq; i++) {
 		int query_type = qset.queries[i].queryType;
 		int v = qset.queries[i].v;
 
+
 		if(query_type == 0){  // only ANN
-			const auto& [neighbors,V] = fgraph.filteredGreedySearch({},qset.queries[i].vec,k,L,-1);
-
-			if(neighbors.size() > 0) {
-				auto s  = neighbors.size();
-				PRINT_VAR(s);
-			}
-
+			const auto& [neighbors,V] = fgraph.filteredGreedySearch(allStartingPoints,qset.queries[i].vec,k,L,-1);
+			// if((Fq == -1) || vertexMap[s].C == Fq) // if unfiltered query or s categorical attribute matches,add to l
 			vector<int> groundTruthNearestNeighbors = groundtruthDataSet.getVector(i);
 			totalKRecall += FilterGraph<int>::equals(neighbors,groundTruthNearestNeighbors);
 		}
 		else if(query_type == 1){ // equal + ANN
-			const auto& [neighbors,V] = fgraph.filteredGreedySearch({},qset.queries[i].vec,k,L,v);
+			const auto& [neighbors,V] = fgraph.filteredGreedySearch({filtersStartingPoints[v]},qset.queries[i].vec,k,L,v);
 			vector<int> groundTruthNearestNeighbors = groundtruthDataSet.getVector(i);
 			totalKRecall += FilterGraph<int>::equals(neighbors,groundTruthNearestNeighbors);
 		}
