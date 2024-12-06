@@ -15,8 +15,6 @@
 # include "../utility/Utils/Utils.h"
 # include "../utility/DataSet/DataSet.h"
 
-#define DIVIDER Utils<char>::printDivider();
-
 using namespace std;
 
 string dataFilename;
@@ -64,7 +62,13 @@ void runQueries(FilterGraph<T> fgraph,FilterQuerySet<T> qset,DataSet<int>& groun
 
 	const int nq = qset.numOfQueries;
 
-	double totalKRecall = 0.0;
+	int filteredQueries = 0;
+	int unfilteredQueries = 0;
+	int noneighborQueries = 0;
+	int otherQueries = 0;
+
+	double totalKRecallFiltered = 0.0;
+	double totalKRecallUnfiltered = 0.0;
 
 	map<int,int> filtersStartingPoints = fgraph.findMedoid();
 	vector<int> allStartingPoints;
@@ -74,23 +78,51 @@ void runQueries(FilterGraph<T> fgraph,FilterQuerySet<T> qset,DataSet<int>& groun
 		int query_type = qset.queries[i].queryType;
 		int v = qset.queries[i].v;
 
+		vector<int> groundTruthNearestNeighbors = groundtruthDataSet.getVector(i);
+
+		if(groundTruthNearestNeighbors[0] == 0) {
+			noneighborQueries++;
+			continue;
+		}
+
+		// resize the vector to cut the 1st element (containing the num of elements) and to stop at the first -1
+		groundTruthNearestNeighbors.erase(groundTruthNearestNeighbors.begin());
+		auto it = find(groundTruthNearestNeighbors.begin(), groundTruthNearestNeighbors.end(), -1);
+		if (it != groundTruthNearestNeighbors.end()) groundTruthNearestNeighbors.resize(distance(groundTruthNearestNeighbors.begin(), it));
 
 		if(query_type == 0){  // only ANN
+			unfilteredQueries++;
 			const auto& [neighbors,V] = fgraph.filteredGreedySearch(allStartingPoints,qset.queries[i].vec,k,L,-1);
-			// if((Fq == -1) || vertexMap[s].C == Fq) // if unfiltered query or s categorical attribute matches,add to l
-			vector<int> groundTruthNearestNeighbors = groundtruthDataSet.getVector(i);
-			totalKRecall += FilterGraph<int>::equals(neighbors,groundTruthNearestNeighbors);
+			totalKRecallUnfiltered += FilterGraph<int>::equals(neighbors,groundTruthNearestNeighbors);
 		}
 		else if(query_type == 1){ // equal + ANN
+			filteredQueries++;
 			const auto& [neighbors,V] = fgraph.filteredGreedySearch({filtersStartingPoints[v]},qset.queries[i].vec,k,L,v);
-			vector<int> groundTruthNearestNeighbors = groundtruthDataSet.getVector(i);
-			totalKRecall += FilterGraph<int>::equals(neighbors,groundTruthNearestNeighbors);
+			totalKRecallFiltered += FilterGraph<int>::equals(neighbors,groundTruthNearestNeighbors);
+		}
+		else {
+			otherQueries++;
 		}
 	}
 
-	PRINT_VAR(totalKRecall)
-	printf("k-recall@k: %.2lf%%\n",(totalKRecall / nq) * 100);
+	PRINT_VAR(filteredQueries)
+	PRINT_VAR(unfilteredQueries)
+	PRINT_VAR(otherQueries)
+	PRINT_VAR(noneighborQueries)
 
+
+	if(unfilteredQueries == 0) {
+		printf("filtered k-recall@k: %.2lf%%\n",(totalKRecallFiltered / filteredQueries) * 100);
+		printf("No unfiltered queries\n");
+	}
+	else if(filteredQueries == 0) {
+		printf("unfiltered k-recall@k: %.2lf%%\n",(totalKRecallUnfiltered / unfilteredQueries) * 100);
+		printf("No filtered queries\n");
+	}
+	else {
+		printf("filtered k-recall@k: %.2lf%%\n",(totalKRecallFiltered / filteredQueries) * 100);
+		printf("unfiltered k-recall@k: %.2lf%%\n",(totalKRecallUnfiltered / unfilteredQueries) * 100);
+	}
 }
 
 int main(int argc,char* argv[]) {
@@ -105,7 +137,6 @@ int main(int argc,char* argv[]) {
 		GET_STRING_ARG("-bv", dataFilename)
 		GET_STRING_ARG("-qv", queriesFileName)
 		GET_STRING_ARG("-gv", groundtruthFileName)
-
 	}
 
 
@@ -122,13 +153,11 @@ int main(int argc,char* argv[]) {
 
 	initializeDatasets(dataset,querySet,groundtruthSet);
 
-
 	DIVIDER
 
 	const string filteredVamanaFilename = "filtered_vamana_graph.bin";
 
 	const string stitchedVamanaFilename = "stitched_vamana_graph.bin";
-
 
 	FilterGraph<float> filteredGraph;
 

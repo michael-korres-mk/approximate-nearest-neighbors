@@ -71,7 +71,7 @@ int main(int argc,char* argv[]) {
 	for(int i = 0; i < numOfQueries;i++) {
 		q = queryDataSet.getVector(i);
 		const auto& [neighbors,v] = graph.greedySearch(medoidId,q,k,L);
-
+		// TODO: check the groundtruth vector's 0,1,2 elements
 		groundTruthNearestNeighbors = groundtruthDataSet.getVector(i);
 		double kRecall = Graph<int>::equals(neighbors,groundTruthNearestNeighbors);
 		totalKRecall += kRecall;

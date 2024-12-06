@@ -477,7 +477,7 @@ float FilterGraph<T>::euclideanDistance(const vector<T>& v1,const vector<T>& v2)
 template<typename T>
 double FilterGraph<T>::equals(const vector<T>& v1, vector<T>& v2) {
 
-    const int dim = min(v1.size(),v2.size());
+    const int dim = v2.size();
 
     int misses = 0;
 
@@ -493,7 +493,7 @@ double FilterGraph<T>::equals(const vector<T>& v1, vector<T>& v2) {
 
     }
 
-    return (dim - misses)/dim;
+    return static_cast<double>(dim - misses)/dim;
 }
 
 template <typename T>

@@ -66,4 +66,7 @@ public:
     static void printVec(vector<K> v);
 };
 
+#define DIVIDER Utils<char>::printDivider();
+
+
 #endif //ANN_UTILS_H

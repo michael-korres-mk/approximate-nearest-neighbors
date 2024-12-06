@@ -136,6 +136,7 @@ void DataSet<T>::print() {
 
     for(int i = 0; i < numOfVectors; i++) {
         Utils<T>::printVec(vectors[i]);
+        DIVIDER
     }
 }
 
