@@ -28,7 +28,7 @@ int L;
 int R;
 double a;
 
-void initializeDatasets(FilterDataset<float>& dataset, FilterQuerySet<float>& querySet,DataSet<int> groundtruthSet) {
+void initializeDatasets(FilterDataset<float>& dataset, FilterQuerySet<float>& querySet,DataSet<int>& groundtruthSet) {
 
 	cout << "Base Dataset: " << dataFilename << endl;
 	cout << "Query Dataset: " << queriesFileName << endl;
@@ -54,12 +54,16 @@ void initializeDatasets(FilterDataset<float>& dataset, FilterQuerySet<float>& qu
 
 	TIMER_BLOCK("Ground-truth dataset load",
 		groundtruthSet = DataSet<int>(groundtruthFileName);
+		// auto dset = DataSet<int>("dummy-groundtruth.bin");
+
 	)
 
 }
 
 template <typename T>
 void runQueries(FilterGraph<T> fgraph,FilterQuerySet<T> qset,DataSet<int>& groundtruthDataSet) {
+	DIVIDER
+
 	const int nq = qset.numOfQueries;
 
 	double totalKRecall = 0.0;
@@ -69,17 +73,25 @@ void runQueries(FilterGraph<T> fgraph,FilterQuerySet<T> qset,DataSet<int>& groun
 
 		if(query_type == 0){  // only ANN
 			const auto& [neighbors,V] = fgraph.filteredGreedySearch({},qset.queries[i].vec,k,L,-1);
+
+			if(neighbors.size() > 0) {
+				auto s  = neighbors.size();
+				PRINT_VAR(s);
+			}
+
 			vector<int> groundTruthNearestNeighbors = groundtruthDataSet.getVector(i);
-			double kRecall = FilterGraph<int>::equals(neighbors,groundTruthNearestNeighbors);
-			totalKRecall += kRecall;
+			totalKRecall += FilterGraph<int>::equals(neighbors,groundTruthNearestNeighbors);
 		}
 		else if(query_type == 1){ // equal + ANN
 			const auto& [neighbors,V] = fgraph.filteredGreedySearch({},qset.queries[i].vec,k,L,v);
 			vector<int> groundTruthNearestNeighbors = groundtruthDataSet.getVector(i);
-			double kRecall = FilterGraph<int>::equals(neighbors,groundTruthNearestNeighbors);
-			totalKRecall += kRecall;
+			totalKRecall += FilterGraph<int>::equals(neighbors,groundTruthNearestNeighbors);
 		}
 	}
+
+	PRINT_VAR(totalKRecall)
+	printf("k-recall@k: %.2lf%%\n",(totalKRecall / nq) * 100);
+
 }
 
 int main(int argc,char* argv[]) {
@@ -154,6 +166,6 @@ int main(int argc,char* argv[]) {
 		}
 	}
 
-	// runQueries<float>(filteredGraph,querySet,groundtruthSet);
+	runQueries<float>(filteredGraph,querySet,groundtruthSet);
 
 }

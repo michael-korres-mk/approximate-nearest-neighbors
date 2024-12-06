@@ -483,7 +483,7 @@ void Graph<T>::importGraph() {
     file.read(reinterpret_cast<char*>(&a), sizeof(double));
 
     // fetch vector type size
-    size_t typeSize;;
+    size_t typeSize;
     file.read(reinterpret_cast<char*>(&typeSize), sizeof(size_t));
 
     size_t numOfNeighbors;

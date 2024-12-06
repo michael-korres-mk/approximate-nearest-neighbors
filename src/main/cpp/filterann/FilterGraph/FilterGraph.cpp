@@ -151,6 +151,8 @@ map<int, int> FilterGraph<T>::findMedoid() {
 template<typename T>
 pair<vector<int>,vector<int>> FilterGraph<T>::filteredGreedySearch(const vector<int>& S, const vector<T>& q, const int k, const int L,int Fq) {
 
+    // todo: define what to pass to S
+
     VamanaContainer l(L);
     set<int> V;
 
@@ -504,9 +506,9 @@ float FilterGraph<T>::euclideanDistance(const vector<T>& v1,const vector<T>& v2)
 }
 
 template<typename T>
-double FilterGraph<T>::equals(const vector<T>& v1, vector<T>& v2) {
-    if(v1.size() == 0 || v2.size() == 0) return false;
-    const int dim = v1.size();
+int FilterGraph<T>::equals(const vector<T>& v1, vector<T>& v2) {
+
+    const int dim = min(v1.size(),v2.size());
 
     int misses = 0;
 
@@ -522,7 +524,7 @@ double FilterGraph<T>::equals(const vector<T>& v1, vector<T>& v2) {
 
     }
 
-    return (static_cast<double>(dim) - misses) / dim;
+    return dim - misses;
 }
 
 template <typename T>
@@ -684,10 +686,10 @@ void FilterGraph<T>::importFilterGraph(const string& filename) {
 
 
     // fetch vector type size
-    size_t typeSize;;
+    size_t typeSize;
     file.read(reinterpret_cast<char*>(&typeSize), sizeof(size_t));
 
-    size_t numOfNeighbors;
+    size_t numOfNeighbors = 0;
 
     // fetch vectors
     for(int i = 0; i < numOfDatapoints; i++) {
@@ -695,6 +697,9 @@ void FilterGraph<T>::importFilterGraph(const string& filename) {
         DataPoint<T> datapoint;
 
         file.read(reinterpret_cast<char*>(&datapoint.id), sizeof(int));
+        file.read(reinterpret_cast<char*>(&datapoint.C), sizeof(int));
+        file.read(reinterpret_cast<char*>(&datapoint.T), sizeof(int));
+
         T xi;
         for(int j = 0; j < d; j++) {
             file.read(reinterpret_cast<char*>(&xi), sizeof(typeSize));
@@ -713,7 +718,7 @@ void FilterGraph<T>::importFilterGraph(const string& filename) {
         for(unsigned int k = 0; k < numOfNeighbors; k++) {
             file.read(reinterpret_cast<char*>(&destination), sizeof(int));
             file.read(reinterpret_cast<char*>(&weight), sizeof(int));
-            neighbors.emplace_back(destination, weight);
+            neighbors.push_back(Edge(destination, weight));
         }
 
         g[id] = neighbors;

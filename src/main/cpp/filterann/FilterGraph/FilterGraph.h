@@ -63,7 +63,7 @@ public:
 
     // static
     static float euclideanDistance(const vector<T>& v1,const vector<T>& v2);
-    static double equals(const vector<T> &v1, vector<T> &v2);
+    static int equals(const vector<T> &v1, vector<T> &v2);
 
     // import-export graph
     void importFilterGraph(const string& filename);
