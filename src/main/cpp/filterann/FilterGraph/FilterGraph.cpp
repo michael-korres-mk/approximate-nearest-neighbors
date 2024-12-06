@@ -4,6 +4,11 @@
 
 #include "../FilterGraph/FilterGraph.h"
 
+#include <fstream>
+
+template <typename T>
+FilterGraph<T>::FilterGraph(){}
+
 template <typename T>
 FilterGraph<T>::FilterGraph(vector<DataPoint<T>> dataPoints, const int L,const int R,const int k,double a, int tau):numOfDatapoints(0),L(L),R(R),k(k),a(a),tau(tau){
     numOfDatapoints = dataPoints.size();
@@ -607,109 +612,114 @@ DataPoint<T> FilterGraph<T>::getVertex(unsigned int id) {
 
 // import-export graph
 template <typename T>
-void FilterGraph<T>::exportFilterGraph() {
-    //
-    // const string filename = "graph.bin";
-    // const string graphFilePath(RESOURCES_P + filename);
-    //
-    // ofstream file(graphFilePath, ios::binary);
-    // if (!file.is_open()) {
-    //     throw runtime_error("I/O error: Unable to open the file " + filename);
-    // }
-    //
-    // // persist graph metadata
-    // file.write(reinterpret_cast<const char*>(&AUTO_INCREMENT), sizeof(int));
-    // file.write(reinterpret_cast<const char*>(&L), sizeof(int));
-    // file.write(reinterpret_cast<const char*>(&R), sizeof(int));
-    // file.write(reinterpret_cast<const char*>(&k), sizeof(int));
-    // file.write(reinterpret_cast<const char*>(&d), sizeof(int));
-    // file.write(reinterpret_cast<const char*>(&a), sizeof(double));
-    //
-    // // persist vector type size
-    // size_t typeSize = sizeof(T);
-    // file.write(reinterpret_cast<const char*>(&typeSize), sizeof(size_t));
-    //
-    // size_t numOfNeighbors;
-    //
-    // // persist vectors
-    // for(const auto& [id, vector] : vertexMap) {
-    //     file.write(reinterpret_cast<const char*>(&id), sizeof(int));
-    //     for(auto& xi : vector) {
-    //         file.write(reinterpret_cast<const char*>(&xi), sizeof(typeSize));
-    //     }
-    //
-    //     // persist num of neighbors
-    //     numOfNeighbors = g[id].size();
-    //     file.write(reinterpret_cast<const char*>(&numOfNeighbors), sizeof(size_t));
-    //
-    //     // persist neighbors
-    //     auto& neighbors = g[id];
-    //     for(auto& n : neighbors) {
-    //         file.write(reinterpret_cast<const char*>(&n.destination), sizeof(int));
-    //         file.write(reinterpret_cast<const char*>(&n.weight), sizeof(int));
-    //     }
-    // }
-    //
-    // file.close();
+void FilterGraph<T>::exportFilterGraph(const string& filename) {
+
+    const string graphFilePath(RESOURCES_P + filename);
+
+    ofstream file(graphFilePath, ios::binary);
+    if (!file.is_open()) {
+        throw runtime_error("I/O error: Unable to open the file " + filename);
+    }
+
+    // persist graph metadata
+    file.write(reinterpret_cast<const char*>(&numOfDatapoints), sizeof(int));
+    file.write(reinterpret_cast<const char*>(&L), sizeof(int));
+    file.write(reinterpret_cast<const char*>(&R), sizeof(int));
+    file.write(reinterpret_cast<const char*>(&k), sizeof(int));
+    file.write(reinterpret_cast<const char*>(&a), sizeof(double));
+    const int d = vertexMap[0].vec.size();
+    file.write(reinterpret_cast<const char*>(&d), sizeof(int)); // dimension of a datapoint => same for all
+
+    // persist vector type size
+    size_t typeSize = sizeof(T);
+    file.write(reinterpret_cast<const char*>(&typeSize), sizeof(size_t));
+
+    size_t numOfNeighbors;
+
+    // persist vectors
+    for(const auto& [_, datapoint] : vertexMap) {
+
+        file.write(reinterpret_cast<const char*>(&datapoint.id), sizeof(int));
+        file.write(reinterpret_cast<const char*>(&datapoint.C), sizeof(int));
+        file.write(reinterpret_cast<const char*>(&datapoint.T), sizeof(int));
+
+        for(auto& xi : datapoint.vec) {
+            file.write(reinterpret_cast<const char*>(&xi), sizeof(typeSize));
+        }
+
+        // persist num of neighbors
+        numOfNeighbors = g[datapoint.id].size();
+        file.write(reinterpret_cast<const char*>(&numOfNeighbors), sizeof(size_t));
+
+        // persist neighbors
+        auto& neighbors = g[datapoint.id];
+        for(auto& n : neighbors) {
+            file.write(reinterpret_cast<const char*>(&n.destination), sizeof(int));
+            file.write(reinterpret_cast<const char*>(&n.weight), sizeof(int));
+        }
+    }
+
+    file.close();
 
 }
 
 template <typename T>
-void FilterGraph<T>::importFilterGraph() {
+void FilterGraph<T>::importFilterGraph(const string& filename) {
 
-    // const string filename = "graph.bin";
-    // const string graphFilePath(RESOURCES_P + filename);
-    //
-    // ifstream file(graphFilePath, ios::binary);
-    // if (!file.is_open()) {
-    //     throw runtime_error("I/O error: Unable to open the file " + filename);
-    // }
-    //
-    // // fetch graph metadata
-    // file.read(reinterpret_cast<char*>(&AUTO_INCREMENT), sizeof(int));
-    // file.read(reinterpret_cast<char*>(&L), sizeof(int));
-    // file.read(reinterpret_cast<char*>(&R), sizeof(int));
-    // file.read(reinterpret_cast<char*>(&k), sizeof(int));
-    // file.read(reinterpret_cast<char*>(&d), sizeof(int));
-    // file.read(reinterpret_cast<char*>(&a), sizeof(double));
-    //
-    // // fetch vector type size
-    // size_t typeSize;;
-    // file.read(reinterpret_cast<char*>(&typeSize), sizeof(size_t));
-    //
-    // size_t numOfNeighbors;
-    //
-    // // fetch vectors
-    // for(int i = 0; i < AUTO_INCREMENT; i++) {
-    //     int id;
-    //     vector<T> vec;
-    //
-    //     file.read(reinterpret_cast<char*>(&id), sizeof(int));
-    //     T xi;
-    //     for(int j = 0; j < d; j++) {
-    //         file.read(reinterpret_cast<char*>(&xi), sizeof(typeSize));
-    //         vec.push_back(xi);
-    //     }
-    //
-    //     vertexMap[id] = vec;
-    //
-    //     // fetch num of neighbors
-    //     file.read(reinterpret_cast<char*>(&numOfNeighbors), sizeof(size_t));
-    //
-    //     // fetch neighbors
-    //     vector<Edge> neighbors;
-    //     int destination;
-    //     double weight;
-    //     for(int k = 0; k < numOfNeighbors; k++) {
-    //         file.read(reinterpret_cast<char*>(&destination), sizeof(int));
-    //         file.read(reinterpret_cast<char*>(&weight), sizeof(int));
-    //         neighbors.emplace_back(destination, weight);
-    //     }
-    //
-    //     g[id] = neighbors;
-    // }
-    //
-    // file.close();
+    const string graphFilePath(RESOURCES_P + filename);
+
+    ifstream file(graphFilePath, ios::binary);
+    if (!file.is_open()) {
+        throw runtime_error("I/O error: Unable to open the file " + filename);
+    }
+
+    // fetch graph metadata
+    file.read(reinterpret_cast<char*>(&numOfDatapoints), sizeof(int));
+    file.read(reinterpret_cast<char*>(&L), sizeof(int));
+    file.read(reinterpret_cast<char*>(&R), sizeof(int));
+    file.read(reinterpret_cast<char*>(&k), sizeof(int));
+    file.read(reinterpret_cast<char*>(&a), sizeof(double));
+    int d = 0;
+    file.read(reinterpret_cast<char*>(&d), sizeof(int)); // dimension of a datapoint => same for all
+
+
+    // fetch vector type size
+    size_t typeSize;;
+    file.read(reinterpret_cast<char*>(&typeSize), sizeof(size_t));
+
+    size_t numOfNeighbors;
+
+    // fetch vectors
+    for(int i = 0; i < numOfDatapoints; i++) {
+        int id;
+        DataPoint<T> datapoint;
+
+        file.read(reinterpret_cast<char*>(&datapoint.id), sizeof(int));
+        T xi;
+        for(int j = 0; j < d; j++) {
+            file.read(reinterpret_cast<char*>(&xi), sizeof(typeSize));
+            datapoint.vec.push_back(xi);
+        }
+
+        vertexMap[id] = datapoint;
+
+        // fetch num of neighbors
+        file.read(reinterpret_cast<char*>(&numOfNeighbors), sizeof(size_t));
+
+        // fetch neighbors
+        vector<Edge> neighbors;
+        int destination;
+        double weight;
+        for(unsigned int k = 0; k < numOfNeighbors; k++) {
+            file.read(reinterpret_cast<char*>(&destination), sizeof(int));
+            file.read(reinterpret_cast<char*>(&weight), sizeof(int));
+            neighbors.emplace_back(destination, weight);
+        }
+
+        g[id] = neighbors;
+    }
+
+    file.close();
 
 }
 

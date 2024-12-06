@@ -29,6 +29,7 @@ public:
     double a;                       // Παράμετρος για το RobustPrune (κατώφλι απόστασης)
     unsigned int tau;                        // Παράμετρος για τη δειγματοληψία
 
+    FilterGraph();
     FilterGraph(vector<DataPoint<T>> dataPoints,int L,int R,int k,double a, int tau);
     void initializeRandomEdges();
     vector<Edge> randomNeighbors(int pId, int R);
@@ -65,8 +66,8 @@ public:
     static double equals(const vector<T> &v1, vector<T> &v2);
 
     // import-export graph
-    void importFilterGraph();
-    void exportFilterGraph();
+    void importFilterGraph(const string& filename);
+    void exportFilterGraph(const string& filename);
 };
 
 

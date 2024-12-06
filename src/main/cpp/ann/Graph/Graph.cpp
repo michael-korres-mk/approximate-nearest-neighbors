@@ -351,7 +351,7 @@ void Graph<T>::printVectorNeighbors(vector<Edge>& neighbors,ostream& out) {
         for(Edge neighbor : neighbors){
 
             out << "[" << neighbor.destination << "] = ";
-            Utils<T>::printVector(vertexMap[neighbor.destination]);
+            Utils<T>::printVec(vertexMap[neighbor.destination]);
             out << "(" << neighbor.weight << ")" << " ";
             out << endl;
         }
@@ -372,7 +372,7 @@ template <typename T>
 void Graph<T>::printGraph(ostream& out){
     out << "Graph with " << vertexMap.size() << " vertices:" << endl;
     for(const auto& pair : vertexMap){
-    Utils<T>::printVector(pair.second);
+    Utils<T>::printVec(pair.second);
         const int id = pair.first;
         printVectorNeighbors(g[id]);
     }
