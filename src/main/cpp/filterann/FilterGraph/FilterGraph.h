@@ -22,13 +22,15 @@ public:
     int numOfDatapoints;
     map<int, DataPoint<T>> vertexMap;
     map<int,vector<Edge>> g;
-    int L;
-    int R;                          // Μέγιστος αριθμός εξερχόμενων ακμών
+    unsigned int L;
+    unsigned int R;                          // Μέγιστος αριθμός εξερχόμενων ακμών
     int k;                          // Αριθμός γειτόνων που θα βρούμε
     // int d;
     double a;                       // Παράμετρος για το RobustPrune (κατώφλι απόστασης)
-    int tau;                        // Παράμετρος για τη δειγματοληψία
+    unsigned int tau;                        // Παράμετρος για τη δειγματοληψία
+    set<int> filters;
 
+    FilterGraph();
     FilterGraph(vector<DataPoint<T>> dataPoints,int L,int R,int k,double a, int tau);
     void initializeRandomEdges();
     vector<Edge> randomNeighbors(int pId, int R);
@@ -40,13 +42,18 @@ public:
     map<int, int> findMedoid();
     pair<vector<int>,vector<int>> filteredGreedySearch(const vector<int>& S, const vector<T>& q,int k, int L,int Fq);
     void filteredVamana();
+
+    map<int, int> getStartNodes();
+
     void stitchedVamana();
+
+    pair<vector<int>, vector<int>> greedySearch(int s, const vector<T> &q, int k, int L);
 
     void vamana();
 
-    vector<Edge> robustPrune(int p, const vector<int> &V, double a, int R);
+    vector<Edge> robustPrune(int p, const vector<int> &V, double a, unsigned int R);
 
-    vector<Edge> filteredRobustPrune(int p, const vector<int> &V, double a, int R);
+    vector<Edge> filteredRobustPrune(int p, const vector<int> &V, double a, unsigned int R);
 
     int argminDist(const vector<T>& p, const vector<int>& P);
     int argmindist(const vector<T>& p, const set<int>& P);
@@ -54,19 +61,16 @@ public:
     set<int> setDiff(VamanaContainer& A, set<int>& B);
     vector<int> edgesToVertices(vector<Edge> edges);
     vector<Edge> getNeighbors(int vertex);
-    void printVector(int id, ostream& out = cout);
-    void print(ostream& out = cout);
     void printVectorNeighbors(vector<Edge>& neighbors, ostream &out = cout);
-    DataPoint<T> getVertex(int id);
+    DataPoint<T> getVertex(unsigned int id);
 
     // static
     static float euclideanDistance(const vector<T>& v1,const vector<T>& v2);
-    static void printVector(pair<int,vector<T>>,ostream& out = cout);
     static double equals(const vector<T> &v1, vector<T> &v2);
 
     // import-export graph
-    void importFilterGraph();
-    void exportFilterGraph();
+    void importFilterGraph(const string& filename);
+    void exportFilterGraph(const string& filename);
 };
 
 

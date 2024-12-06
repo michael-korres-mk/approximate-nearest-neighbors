@@ -105,6 +105,10 @@ int main(int argc,char* argv[]) {
 
 	const auto vectors = runQueries<float>(dataset,querySet);
 
-	DataSet<int>::vecsWrite(groundtruthFilename,vectors);
+	DataSet<int>::vecsWrite(groundtruthFilename,vectors,k);
+
+	auto dset = DataSet<int>("dummy-groundtruth.bin");
+
+	dset.print();
 
 }

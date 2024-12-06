@@ -5,8 +5,18 @@
 #ifndef ANN_UTILS_H
 #define ANN_UTILS_H
 
+#include <chrono>
 # include <iostream>
 #include <vector>
+#include <algorithm>
+# include <iostream>
+# include <cstring>
+# include <cstdlib>
+# include <cstdio>
+#include <map>
+# include <random>
+# include <unistd.h>
+#include <sys/time.h>
 
 #define BUFFER_SIZE 1024
 
@@ -19,6 +29,31 @@
 #define FILTER_QUERY_SET_DIMENSION 104
 
 
+#define TIMER_BLOCK(MSG, CODE) { \
+    auto start = chrono::high_resolution_clock::now(); \
+    CODE \
+    auto finish = chrono::high_resolution_clock::now(); \
+    auto datasetDuration = chrono::duration_cast<chrono::milliseconds>(finish - start).count(); \
+    cout << MSG << ": " << datasetDuration << " ms" << endl; \
+}
+
+#define PRINT_VAR(var) cout << #var << " = " << var << endl;
+
+#define GET_INT_ARG(arg_name, variable)   \
+    if (strcmp(argv[i], arg_name) == 0) { \
+        variable = atoi(argv[i + 1]);    \
+    }
+
+#define GET_DOUBLE_ARG(arg_name, variable)  \
+    if (strcmp(argv[i], arg_name) == 0) {  \
+        variable = atof(argv[i + 1]);     \
+    }
+
+#define GET_STRING_ARG(arg_name, variable)  \
+if (strcmp(argv[i], arg_name) == 0) {  \
+    variable = argv[i + 1];     \
+}
+
 using namespace std;
 
 template <typename  K>
@@ -27,9 +62,11 @@ public:
     static vector<K>& shuffle(vector<K>& v);
     static int flipCoin();
     static int random(int a,int b);
-    static double euclideanDistance(const vector<K>& v1,const vector<K>& v2);
     static void printDivider();
     static void printVec(vector<K> v);
 };
+
+#define DIVIDER Utils<char>::printDivider();
+
 
 #endif //ANN_UTILS_H

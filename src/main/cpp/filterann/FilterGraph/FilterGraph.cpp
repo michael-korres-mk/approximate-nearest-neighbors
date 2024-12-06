@@ -4,6 +4,11 @@
 
 #include "../FilterGraph/FilterGraph.h"
 
+#include <fstream>
+
+template <typename T>
+FilterGraph<T>::FilterGraph(){}
+
 template <typename T>
 FilterGraph<T>::FilterGraph(vector<DataPoint<T>> dataPoints, const int L,const int R,const int k,double a, int tau):numOfDatapoints(0),L(L),R(R),k(k),a(a),tau(tau){
     numOfDatapoints = dataPoints.size();
@@ -150,7 +155,6 @@ pair<vector<int>,vector<int>> FilterGraph<T>::filteredGreedySearch(const vector<
     set<int> V;
 
     for (auto s : S) {
-        if((Fq == -1) || vertexMap[s].C == Fq) // if unfiltered query or s categorical attribute matches,add to l
         l.insert({s,euclideanDistance(q,vertexMap[s].vec)});
     }
 
@@ -185,80 +189,52 @@ pair<vector<int>,vector<int>> FilterGraph<T>::filteredGreedySearch(const vector<
 
 template <typename T>
 void FilterGraph<T>::filteredVamana() {
-    // Καθαρίζουμε τον γράφο G
-    g.clear();
 
+    // get all filters
+    for (const auto& [id, dp] : vertexMap) filters.insert(dp.C);
 
-    // Ορίζουμε τους κόμβους εκκίνησης για κάθε φίλτρο
-    map<int, int> st; // Χάρτης από φίλτρο σε κόμβο εκκίνησης
-    set<int> filters;
+    map<int, int> st = getStartNodes();
 
-    // Συλλέγουμε όλα τα φίλτρα από τα σημεία δεδομένων
-    for (const auto& [id, dp] : vertexMap) {
-        filters.insert(dp.C);
+    int x;
+    set<int> done;
+    while(done.size() != vertexMap.size()){
+        (!done.empty() && done.size() % 1000 == 0) && printf("completed %d %% ... \n",static_cast<int>(done.size()/100));
+
+        while (done.find(x = Utils<int>::random(0,numOfDatapoints - 1)) != done.end()) {}
+        done.insert(x);
+
+        DataPoint<T>& dp = vertexMap[x];
+
+        const auto& [_,Vx] = filteredGreedySearch({st[dp.C]}, dp.vec, k, L, dp.C); // x.C = x's filter
+
+        g[x] = filteredRobustPrune(x, Vx, a, R);
+
+        for (const Edge& e : g[x]) { // add reverse edges
+            int dest = e.destination;
+            int weight = e.weight;
+
+            addEdge(dest, x, weight);
+
+            // if dest out-degree violates R constraint => prune
+            if (g[dest].size() > R)
+                g[dest] = filteredRobustPrune(dest, edgesToVertices(g[dest]), a, R);
+
+        }
     }
+}
 
-    // Ορίζουμε τον κόμβο εκκίνησης για κάθε φίλτρο
+template <typename T>
+map<int,int> FilterGraph<T>::getStartNodes(){
+    map<int,int> S;
     for (int f : filters) {
-        for (const auto& [id, dp] : vertexMap) {
+        for (const auto& [id, dp] : vertexMap) { // assign as starting node the 1st of the corresponding filter class
             if (dp.C == f) {
-                st[f] = id;
+                S[f] = id;
                 break;
             }
         }
     }
-
-    // Δημιουργούμε μια τυχαία διάταξη σ των κόμβων του P
-    vector<int> sigma = getVerticesIds();
-    Utils<int>::shuffle(sigma);
-
-    // Βρόχος Επεξεργασίας Κόμβων
-    for (int x_id : sigma) {
-        DataPoint<T>& x = vertexMap[x_id];
-
-        // Υπολογισμός Ετικετών Εκκίνησης
-        vector<int> S_F_sigma_i;
-        int label = x.C; // Το φίλτρο του σημείου x
-
-        if (st.find(label) != st.end()) {
-            S_F_sigma_i.push_back(st[label]);
-        }
-
-        // Εκτέλεση Filtered Greedy Search
-        int Fq = label;
-        pair<vector<int>, vector<int>> searchResult = filteredGreedySearch(S_F_sigma_i, x.vec, k, L, Fq);
-        vector<int> V_F_x_sigma_i = searchResult.first;
-
-        // Συγχώνευση Υποψηφίων
-        const vector<int>& V = V_F_x_sigma_i;
-
-        // Εφαρμογή FilteredRobustPrune
-        vector<Edge> prunedNeighbors = filteredRobustPrune(x_id, V, a, R);
-
-        // Ενημέρωση του γράφου G με τους γείτονες που προέκυψαν από το Prune
-        g[x_id] = prunedNeighbors;
-
-        // Ενημέρωση Out-Neighborhoods
-        for (const Edge& e : prunedNeighbors) {
-            int j = e.destination;
-
-            // Προσθέτουμε τον x_id στους εξερχόμενους γείτονες του j
-            addEdge(j, x_id, e.weight);
-
-            // Ελέγχουμε αν το out-degree του j ξεπερνά το R
-            if (g[j].size() > R) {
-                vector<int> V_j;
-                for (const Edge& edge_j : g[j]) {
-                    V_j.push_back(edge_j.destination);
-                }
-
-                vector<Edge> prunedNeighbors_j = filteredRobustPrune(j, V_j, a, R);
-
-                // Ενημέρωση των εξερχόμενων γειτόνων του j
-                g[j] = prunedNeighbors_j;
-            }
-        }
-    }
+    return S;
 }
 
 template <typename T>
@@ -273,11 +249,11 @@ void FilterGraph<T>::stitchedVamana() {
     vector<FilterGraph> graphs;
 
     for (const int f: filters) {
-        graphs[f] = FilterGraph<T>({},100,250,60,1.2);
+        graphs[f] = FilterGraph<T>({},100,R/4,60,1.2,3);
         // todo: CHECKOUT VERTEX IDS
         for (const auto& [id, dp] : vertexMap) {
             if (dp.C == f) {
-                graphs[f].addVertex(dp.vec);
+                graphs[f].addVertex(dp);
                 for (const Edge& e : g[id]) {
                      graphs[f].addEdge(id,e.destination,e.weight);
                 }
@@ -300,6 +276,35 @@ void FilterGraph<T>::stitchedVamana() {
 
 }
 
+template<typename T>
+pair<vector<int>,vector<int>> FilterGraph<T>::greedySearch(int s, const vector<T>& q, const int k, int L) {
+
+    VamanaContainer l(L); l.insert({s,euclideanDistance(q,vertexMap[s].vec)});      // Σύνολο αναζήτησης
+    set<int> V;         // Σύνολο επισκεφθέντων κόμβων
+    set<int> diff = setDiff(l, V);
+
+    while(!diff.empty()){
+        int pStar = argmindist(q,diff);   // Βρίσκουμε το p* (τον πιο κοντινό κόμβο που δεν έχει επισκεφτεί ακόμα)
+
+        vector<Edge> neighbors = g[pStar];  // Βρίσκουμε τους γείτονες του p*
+
+        // Ενημερώνουμε το L με τους νέους γείτονες
+        for (Edge n : neighbors) {
+            l.insert({n.destination,n.weight});
+        }
+
+        V.insert(pStar);    // Προσθέτουμε το p* στο σύνολο επισκέψεων
+        diff = setDiff(l,V);
+
+    }
+
+    // Μετατροπή των αποτελεσμάτων για επιστροφή
+    vector<int> visitedVec(V.begin(), V.end());
+
+    return {l.subset(k), visitedVec};
+}
+
+
 template <typename T>
 void FilterGraph<T>::vamana(){
     cout << "vamana started" << endl;
@@ -307,7 +312,6 @@ void FilterGraph<T>::vamana(){
     initializeRandomEdges();
 
     const int s = medoid();
-    auto sigma = Utils<T>::shuffle;
 
     cout << "medoid calculated" << endl;
 
@@ -320,7 +324,7 @@ void FilterGraph<T>::vamana(){
         while (done.find(x = Utils<int>::random(0,numOfDatapoints)) != done.end()) {}
         done.insert(x);
 
-        const auto& [l,V] = greedySearch(s,vertexMap[x],k,L);
+        const auto& [l,V] = greedySearch(s,vertexMap[x].vec,k,L);
 
         vector<int> neighborIds = getVerticesIds();
         g[x] = robustPrune(x,V,a,R);
@@ -334,7 +338,7 @@ void FilterGraph<T>::vamana(){
                 g[y] = robustPrune(y,vertices,a,R);
             }
             else{
-                g[y].push_back(Edge(x,euclideanDistance(vertexMap[y],vertexMap[x])));
+                g[y].push_back(Edge(x,euclideanDistance(vertexMap[y].vec,vertexMap[x].vec)));
             }
         }
     }
@@ -342,7 +346,7 @@ void FilterGraph<T>::vamana(){
 }
 
 template <typename T>
-vector<Edge> FilterGraph<T>::robustPrune(int p, const vector<int> &V, double a, int R) {
+vector<Edge> FilterGraph<T>::robustPrune(int p, const vector<int> &V, double a, const unsigned int R) {
     // Αντιγραφή του συνόλου V, αφού θα το τροποποιήσουμε και αφαίρεση του p από το σύνολο των υποψήφιων γειτόνων
     vector<int> candidateNeighbors = V;
     vector<Edge> pOut = getNeighbors(p);
@@ -358,10 +362,10 @@ vector<Edge> FilterGraph<T>::robustPrune(int p, const vector<int> &V, double a, 
     // Ενώ υπάρχουν υποψήφιοι γείτονες
     while (!candidateNeighbors.empty()) {
         // Βρίσκουμε τον γείτονα που έχει την ελάχιστη απόσταση από το p
-        int p_star = argminDist(vertexMap[p], candidateNeighbors); // Χρήση της συνάρτησής σου
+        int p_star = argminDist(vertexMap[p].vec, candidateNeighbors); // Χρήση της συνάρτησής σου
 
         // Προσθήκη του p_star στους νέους γείτονες
-        N_out.push_back(Edge(p_star, euclideanDistance(vertexMap[p], vertexMap[p_star])));
+        N_out.push_back(Edge(p_star, euclideanDistance(vertexMap[p].vec, vertexMap[p_star].vec)));
 
         // Αφαίρεση του p_star από τους υποψήφιους
         candidateNeighbors.erase(std::remove(candidateNeighbors.begin(), candidateNeighbors.end(), p_star), candidateNeighbors.end());
@@ -373,7 +377,7 @@ vector<Edge> FilterGraph<T>::robustPrune(int p, const vector<int> &V, double a, 
 
         // Κλαδεύουμε τους υπόλοιπους υποψήφιους γείτονες
         for (auto it = candidateNeighbors.begin(); it != candidateNeighbors.end();) {
-            if (a * euclideanDistance(vertexMap[p_star], vertexMap[*it]) <= euclideanDistance(vertexMap[p], vertexMap[*it])) {
+            if (a * euclideanDistance(vertexMap[p_star].vec, vertexMap[*it].vec) <= euclideanDistance(vertexMap[p].vec, vertexMap[*it].vec)) {
                 it = candidateNeighbors.erase(it); // Αφαίρεση των γειτόνων που δεν πληρούν τα κριτήρια
             } else {
                 ++it;
@@ -386,7 +390,7 @@ vector<Edge> FilterGraph<T>::robustPrune(int p, const vector<int> &V, double a, 
 
 
 template <typename T>
-vector<Edge> FilterGraph<T>::filteredRobustPrune(int p, const vector<int> &V, double a, int R) {
+vector<Edge> FilterGraph<T>::filteredRobustPrune(int p, const vector<int> &V, double a,unsigned int R) {
     // Αντιγραφή του συνόλου V, αφού θα το τροποποιήσουμε και αφαίρεση του p από το σύνολο των υποψήφιων γειτόνων
     vector<int> candidateNeighbors = V;
     vector<Edge> pOut = getNeighbors(p);
@@ -472,8 +476,8 @@ float FilterGraph<T>::euclideanDistance(const vector<T>& v1,const vector<T>& v2)
 
 template<typename T>
 double FilterGraph<T>::equals(const vector<T>& v1, vector<T>& v2) {
-    if(v1.size() == 0 || v2.size() == 0) return false;
-    const int dim = v1.size();
+
+    const int dim = v2.size();
 
     int misses = 0;
 
@@ -489,7 +493,7 @@ double FilterGraph<T>::equals(const vector<T>& v1, vector<T>& v2) {
 
     }
 
-    return (static_cast<double>(dim) - misses) / dim;
+    return static_cast<double>(dim - misses)/dim;
 }
 
 template <typename T>
@@ -556,38 +560,13 @@ int FilterGraph<T>::argminDist(const vector<T>& p, const vector<int>& P) {
 }
 
 template <typename T>
-void FilterGraph<T>::printVector(int id,ostream& out) {
-    out << "Vertex[" << id << "] = ";
-
-    for(int j = 0; j < vertexMap[id].vec.size(); j++) {
-        out << vertexMap[id].vec[j] << " ";
-    }
-    out<< endl;
-}
-
-template <typename T>
-void FilterGraph<T>::printVector(pair<int,vector<T>> pair,ostream& out) {
-    const int id = pair.first;
-    out << "Vertex[" << id << "] = ";
-    for(int j = 0; j < pair.second.size(); j++) {
-        out << pair.second[j] << " ";
-    }
-    out<< endl;
-}
-
-template <typename T>
 void FilterGraph<T>::printVectorNeighbors(vector<Edge>& neighbors,ostream& out) {
 
     out << "Neighbors:" << endl;
     if(!neighbors.empty()) {
         for(Edge neighbor : neighbors){
-
             out << "[" << neighbor.destination << "] = ";
-            for(int j = 0; j < vertexMap[neighbor.destination].vec.size(); j++) {
-                out << vertexMap[neighbor.destination].vec[j] << " ";
-            }
-            out << "(" << neighbor.weight << ")" << " ";
-            out << endl;
+            Utils<T> :: printVec(vertexMap[neighbor.destination].vec);
         }
     }
     else {
@@ -596,7 +575,7 @@ void FilterGraph<T>::printVectorNeighbors(vector<Edge>& neighbors,ostream& out) 
 }
 
 template<typename T>
-DataPoint<T> FilterGraph<T>::getVertex(int id) {
+DataPoint<T> FilterGraph<T>::getVertex(unsigned int id) {
     if(id >= vertexMap.size()) return DataPoint<T>();
     return vertexMap[id];
 }
@@ -604,109 +583,116 @@ DataPoint<T> FilterGraph<T>::getVertex(int id) {
 
 // import-export graph
 template <typename T>
-void FilterGraph<T>::exportFilterGraph() {
-    //
-    // const string filename = "graph.bin";
-    // const string graphFilePath(RESOURCES_P + filename);
-    //
-    // ofstream file(graphFilePath, ios::binary);
-    // if (!file.is_open()) {
-    //     throw runtime_error("I/O error: Unable to open the file " + filename);
-    // }
-    //
-    // // persist graph metadata
-    // file.write(reinterpret_cast<const char*>(&AUTO_INCREMENT), sizeof(int));
-    // file.write(reinterpret_cast<const char*>(&L), sizeof(int));
-    // file.write(reinterpret_cast<const char*>(&R), sizeof(int));
-    // file.write(reinterpret_cast<const char*>(&k), sizeof(int));
-    // file.write(reinterpret_cast<const char*>(&d), sizeof(int));
-    // file.write(reinterpret_cast<const char*>(&a), sizeof(double));
-    //
-    // // persist vector type size
-    // size_t typeSize = sizeof(T);
-    // file.write(reinterpret_cast<const char*>(&typeSize), sizeof(size_t));
-    //
-    // size_t numOfNeighbors;
-    //
-    // // persist vectors
-    // for(const auto& [id, vector] : vertexMap) {
-    //     file.write(reinterpret_cast<const char*>(&id), sizeof(int));
-    //     for(auto& xi : vector) {
-    //         file.write(reinterpret_cast<const char*>(&xi), sizeof(typeSize));
-    //     }
-    //
-    //     // persist num of neighbors
-    //     numOfNeighbors = g[id].size();
-    //     file.write(reinterpret_cast<const char*>(&numOfNeighbors), sizeof(size_t));
-    //
-    //     // persist neighbors
-    //     auto& neighbors = g[id];
-    //     for(auto& n : neighbors) {
-    //         file.write(reinterpret_cast<const char*>(&n.destination), sizeof(int));
-    //         file.write(reinterpret_cast<const char*>(&n.weight), sizeof(int));
-    //     }
-    // }
-    //
-    // file.close();
+void FilterGraph<T>::exportFilterGraph(const string& filename) {
+
+    const string graphFilePath(RESOURCES_P + filename);
+
+    ofstream file(graphFilePath, ios::binary);
+    if (!file.is_open()) {
+        throw runtime_error("I/O error: Unable to open the file " + filename);
+    }
+
+    // persist graph metadata
+    file.write(reinterpret_cast<const char*>(&numOfDatapoints), sizeof(int));
+    file.write(reinterpret_cast<const char*>(&L), sizeof(int));
+    file.write(reinterpret_cast<const char*>(&R), sizeof(int));
+    file.write(reinterpret_cast<const char*>(&k), sizeof(int));
+    file.write(reinterpret_cast<const char*>(&a), sizeof(double));
+    const int d = vertexMap[0].vec.size();
+    file.write(reinterpret_cast<const char*>(&d), sizeof(int)); // dimension of a datapoint => same for all
+
+    // persist vector type size
+    size_t typeSize = sizeof(T);
+    file.write(reinterpret_cast<const char*>(&typeSize), sizeof(size_t));
+
+    size_t numOfNeighbors;
+
+    // persist vectors
+    for(const auto& [_, datapoint] : vertexMap) {
+
+        file.write(reinterpret_cast<const char*>(&datapoint.id), sizeof(int));
+        file.write(reinterpret_cast<const char*>(&datapoint.C), sizeof(int));
+        file.write(reinterpret_cast<const char*>(&datapoint.T), sizeof(int));
+
+        for(auto& xi : datapoint.vec) {
+            file.write(reinterpret_cast<const char*>(&xi), sizeof(typeSize));
+        }
+
+        // persist num of neighbors
+        numOfNeighbors = g[datapoint.id].size();
+        file.write(reinterpret_cast<const char*>(&numOfNeighbors), sizeof(size_t));
+
+        // persist neighbors
+        auto& neighbors = g[datapoint.id];
+        for(auto& n : neighbors) {
+            file.write(reinterpret_cast<const char*>(&n.destination), sizeof(int));
+            file.write(reinterpret_cast<const char*>(&n.weight), sizeof(int));
+        }
+    }
+
+    file.close();
 
 }
 
 template <typename T>
-void FilterGraph<T>::importFilterGraph() {
+void FilterGraph<T>::importFilterGraph(const string& filename) {
 
-    // const string filename = "graph.bin";
-    // const string graphFilePath(RESOURCES_P + filename);
-    //
-    // ifstream file(graphFilePath, ios::binary);
-    // if (!file.is_open()) {
-    //     throw runtime_error("I/O error: Unable to open the file " + filename);
-    // }
-    //
-    // // fetch graph metadata
-    // file.read(reinterpret_cast<char*>(&AUTO_INCREMENT), sizeof(int));
-    // file.read(reinterpret_cast<char*>(&L), sizeof(int));
-    // file.read(reinterpret_cast<char*>(&R), sizeof(int));
-    // file.read(reinterpret_cast<char*>(&k), sizeof(int));
-    // file.read(reinterpret_cast<char*>(&d), sizeof(int));
-    // file.read(reinterpret_cast<char*>(&a), sizeof(double));
-    //
-    // // fetch vector type size
-    // size_t typeSize;;
-    // file.read(reinterpret_cast<char*>(&typeSize), sizeof(size_t));
-    //
-    // size_t numOfNeighbors;
-    //
-    // // fetch vectors
-    // for(int i = 0; i < AUTO_INCREMENT; i++) {
-    //     int id;
-    //     vector<T> vec;
-    //
-    //     file.read(reinterpret_cast<char*>(&id), sizeof(int));
-    //     T xi;
-    //     for(int j = 0; j < d; j++) {
-    //         file.read(reinterpret_cast<char*>(&xi), sizeof(typeSize));
-    //         vec.push_back(xi);
-    //     }
-    //
-    //     vertexMap[id] = vec;
-    //
-    //     // fetch num of neighbors
-    //     file.read(reinterpret_cast<char*>(&numOfNeighbors), sizeof(size_t));
-    //
-    //     // fetch neighbors
-    //     vector<Edge> neighbors;
-    //     int destination;
-    //     double weight;
-    //     for(int k = 0; k < numOfNeighbors; k++) {
-    //         file.read(reinterpret_cast<char*>(&destination), sizeof(int));
-    //         file.read(reinterpret_cast<char*>(&weight), sizeof(int));
-    //         neighbors.emplace_back(destination, weight);
-    //     }
-    //
-    //     g[id] = neighbors;
-    // }
-    //
-    // file.close();
+    const string graphFilePath(RESOURCES_P + filename);
+
+    ifstream file(graphFilePath, ios::binary);
+    if (!file.is_open()) {
+        throw runtime_error("I/O error: Unable to open the file " + filename);
+    }
+
+    // fetch graph metadata
+    file.read(reinterpret_cast<char*>(&numOfDatapoints), sizeof(int));
+    file.read(reinterpret_cast<char*>(&L), sizeof(int));
+    file.read(reinterpret_cast<char*>(&R), sizeof(int));
+    file.read(reinterpret_cast<char*>(&k), sizeof(int));
+    file.read(reinterpret_cast<char*>(&a), sizeof(double));
+    int d = 0;
+    file.read(reinterpret_cast<char*>(&d), sizeof(int)); // dimension of a datapoint => same for all
+
+
+    // fetch vector type size
+    size_t typeSize;
+    file.read(reinterpret_cast<char*>(&typeSize), sizeof(size_t));
+
+    size_t numOfNeighbors = 0;
+
+    // fetch vectors
+    for(int i = 0; i < numOfDatapoints; i++) {
+        DataPoint<T> datapoint = DataPoint<T>();
+
+        file.read(reinterpret_cast<char*>(&datapoint.id), sizeof(int));
+        file.read(reinterpret_cast<char*>(&datapoint.C), sizeof(int));
+        file.read(reinterpret_cast<char*>(&datapoint.T), sizeof(int));
+
+        T xi;
+        for(int j = 0; j < d; j++) {
+            file.read(reinterpret_cast<char*>(&xi), sizeof(typeSize));
+            datapoint.vec.push_back(xi);
+        }
+
+        vertexMap.insert({datapoint.id, datapoint});
+
+        // fetch num of neighbors
+        file.read(reinterpret_cast<char*>(&numOfNeighbors), sizeof(size_t));
+
+        // fetch neighbors
+        vector<Edge> neighbors;
+        int destination;
+        double weight;
+        for(unsigned int k = 0; k < numOfNeighbors; k++) {
+            file.read(reinterpret_cast<char*>(&destination), sizeof(int));
+            file.read(reinterpret_cast<char*>(&weight), sizeof(int));
+            neighbors.push_back(Edge(destination, weight));
+        }
+
+        g[datapoint.id] = neighbors;
+    }
+
+    file.close();
 
 }
 

@@ -55,7 +55,7 @@ DataPoint<T> FilterDataset<T>::readDataPoint(ifstream& file,int id) {
         vec[j] = data;
     }
 
-    return DataPoint<T>(id,static_cast<int>(C),timestamp,vec);;
+    return DataPoint<T>(id,static_cast<int>(C),timestamp,vec);
 }
 
 

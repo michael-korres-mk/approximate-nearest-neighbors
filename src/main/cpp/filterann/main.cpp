@@ -8,119 +8,192 @@
 # include <fcntl.h>
 # include <unistd.h>
 # include <iomanip>
+#include <filesystem>
 # include "FilterGraph/FilterGraph.h"
 # include "FilterDataset/FilterDataset.h"
 # include "FilterQuerySet/FilterQuerySet.h"
-#include "../utility/Utils/Utils.h"
-#include "../utility/DataSet/DataSet.h"
+# include "../utility/Utils/Utils.h"
+# include "../utility/DataSet/DataSet.h"
 
 using namespace std;
 
-void initializeDatasets(FilterDataset<float>& dataset, FilterQuerySet<float>& querySet,char* argv[],int argc) ;
-
+string dataFilename;
+string queriesFileName;
+string groundtruthFileName;
 
 int k;
 int L;
 int R;
 double a;
 
-int main(int argc,char* argv[]) {
-	Utils<char>::printDivider();
+void initializeDatasets(FilterDataset<float>& dataset, FilterQuerySet<float>& querySet,DataSet<int>& groundtruthSet) {
 
-	FilterDataset<float> dataset;
-	FilterQuerySet<float> querySet;
+	cout << "Base Dataset: " << dataFilename << endl;
+	cout << "Query Dataset: " << queriesFileName << endl;
+	cout << "Ground-truth Dataset: " << groundtruthFileName << endl;
 
-	initializeDatasets(dataset,querySet,argv,argc);
+	DIVIDER
 
-	Utils<char>::printDivider();
+	TIMER_BLOCK("Base dataset load",
+		dataset = FilterDataset<float>(dataFilename);
+	)
 
-
-	for(int i = 1; i < argc;i++){	// Get arguments
-		if (strcmp(argv[i],"-k") == 0) {
-			k = atoi(argv[i+1]);
-		} else if (strcmp(argv[i],"-L") == 0) {
-			L = atoi(argv[i+1]);
-		} else if (strcmp(argv[i],"-R") == 0) {
-			R = atoi(argv[i+1]);
-		} else if (strcmp(argv[i],"-a") == 0) {
-			a = atof(argv[i+1]);
-		}
-	}
-
-
-	cout << "k = " << k << endl;
-	cout << "L = " << L << endl;
-	cout << "R = " << R << endl;
-	cout << "a = " << a << endl;
-
-	Utils<char>::printDivider();
-
-    // FilterGraph<float> graph(dataset.dataPoints,L,R,k,a, 10);
-    //
-    // cout << "Start findMedoid()" << endl;
-    // map<int,int> m = graph.findMedoid();
-    // cout << "Finish findMedoid()" << endl;
-
-
-}
-
-void initializeDatasets(FilterDataset<float>& dataset, FilterQuerySet<float>& querySet,char* argv[],int argc) {
-	string baseVectorsDataFileName;
-	string queryVectorsDataFileName;
-
-	for(int i = 1; i < argc;i++){	// Get arguments
-		if (strcmp(argv[i],"-bv") == 0) {
-			baseVectorsDataFileName = argv[i+1];
-		} else if (strcmp(argv[i],"-qv") == 0) {
-			queryVectorsDataFileName = argv[i+1];
-		}
-	}
-
-	cout << "Base Dataset: " << baseVectorsDataFileName << endl;
-	cout << "Query Dataset: " << queryVectorsDataFileName << endl;
-
-	Utils<char>::printDivider();
-
-	auto datasetStart = chrono::high_resolution_clock::now();
-	dataset = FilterDataset<float>(baseVectorsDataFileName);
-
-	auto datasetEnd = chrono::high_resolution_clock::now();
-	auto datasetDuration = chrono::duration_cast<chrono::milliseconds>(datasetEnd - datasetStart).count();
-	cout << "base dataset load: " << datasetDuration << " ms" << endl;
 	cout << "Num of datapoints: " << dataset.numOfDataPoints << endl;
 
-	Utils<char>::printDivider();
+	DIVIDER
 
-	auto queryDatasetStart = chrono::high_resolution_clock::now();
-	querySet = FilterQuerySet<float>(queryVectorsDataFileName);
+	TIMER_BLOCK("Query dataset load",
+		querySet = FilterQuerySet<float>(queriesFileName);
+	)
 
-	auto queryDatasetEnd = chrono::high_resolution_clock::now();
-	auto queryDatasetDuration = chrono::duration_cast<chrono::milliseconds>(queryDatasetEnd - queryDatasetStart).count();
-	cout << "query dataset load: " << queryDatasetDuration << " ms" << endl;
 	cout << "Num of queries: " << querySet.numOfQueries << endl;
+
+	DIVIDER
+
+	TIMER_BLOCK("Ground-truth dataset load",
+		groundtruthSet = DataSet<int>(groundtruthFileName);
+	)
 
 }
 
 template <typename T>
 void runQueries(FilterGraph<T> fgraph,FilterQuerySet<T> qset,DataSet<int>& groundtruthDataSet) {
-	int nq = qset.numOfQueries;
+	DIVIDER
 
-	double totalKRecall = 0.0;
+	const int nq = qset.numOfQueries;
+
+	int filteredQueries = 0;
+	int unfilteredQueries = 0;
+	int noneighborQueries = 0;
+	int otherQueries = 0;
+
+	double totalKRecallFiltered = 0.0;
+	double totalKRecallUnfiltered = 0.0;
+
+	map<int,int> filtersStartingPoints = fgraph.findMedoid();
+	vector<int> allStartingPoints;
+	for (const auto&[_, point] : filtersStartingPoints) allStartingPoints.push_back(point);
+
 	for(int i = 0; i < nq; i++) {
 		int query_type = qset.queries[i].queryType;
 		int v = qset.queries[i].v;
 
+		vector<int> groundTruthNearestNeighbors = groundtruthDataSet.getVector(i);
+
+		if(groundTruthNearestNeighbors[0] == 0) {
+			noneighborQueries++;
+			continue;
+		}
+
+		// resize the vector to cut the 1st element (containing the num of elements) and to stop at the first -1
+		groundTruthNearestNeighbors.erase(groundTruthNearestNeighbors.begin());
+		auto it = find(groundTruthNearestNeighbors.begin(), groundTruthNearestNeighbors.end(), -1);
+		if (it != groundTruthNearestNeighbors.end()) groundTruthNearestNeighbors.resize(distance(groundTruthNearestNeighbors.begin(), it));
+
 		if(query_type == 0){  // only ANN
-			const auto& [neighbors,V] = fgraph.filteredGreedySearch({},qset.queries[i].vec,k,L,-1);
-			vector<int> groundTruthNearestNeighbors = groundtruthDataSet.getVector(i);
-			double kRecall = FilterGraph<int>::equals(neighbors,groundTruthNearestNeighbors);
-			totalKRecall += kRecall;
+			unfilteredQueries++;
+			const auto& [neighbors,V] = fgraph.filteredGreedySearch(allStartingPoints,qset.queries[i].vec,k,L,-1);
+			totalKRecallUnfiltered += FilterGraph<int>::equals(neighbors,groundTruthNearestNeighbors);
 		}
 		else if(query_type == 1){ // equal + ANN
-			const auto& [neighbors,V] = fgraph.filteredGreedySearch({},qset.queries[i].vec,k,L,v);
-			vector<int> groundTruthNearestNeighbors = groundtruthDataSet.getVector(i);
-			double kRecall = FilterGraph<int>::equals(neighbors,groundTruthNearestNeighbors);
-			totalKRecall += kRecall;
+			filteredQueries++;
+			const auto& [neighbors,V] = fgraph.filteredGreedySearch({filtersStartingPoints[v]},qset.queries[i].vec,k,L,v);
+			totalKRecallFiltered += FilterGraph<int>::equals(neighbors,groundTruthNearestNeighbors);
+		}
+		else {
+			otherQueries++;
 		}
 	}
+
+	PRINT_VAR(filteredQueries)
+	PRINT_VAR(unfilteredQueries)
+	PRINT_VAR(otherQueries)
+	PRINT_VAR(noneighborQueries)
+
+
+	if(unfilteredQueries == 0) {
+		printf("filtered k-recall@k: %.2lf%%\n",(totalKRecallFiltered / filteredQueries) * 100);
+		printf("No unfiltered queries\n");
+	}
+	else if(filteredQueries == 0) {
+		printf("unfiltered k-recall@k: %.2lf%%\n",(totalKRecallUnfiltered / unfilteredQueries) * 100);
+		printf("No filtered queries\n");
+	}
+	else {
+		printf("filtered k-recall@k: %.2lf%%\n",(totalKRecallFiltered / filteredQueries) * 100);
+		printf("unfiltered k-recall@k: %.2lf%%\n",(totalKRecallUnfiltered / unfilteredQueries) * 100);
+	}
+}
+
+int main(int argc,char* argv[]) {
+
+	DIVIDER
+
+	for (int i = 1; i < argc; i++) {    // Get arguments
+		GET_INT_ARG("-k", k)
+		GET_INT_ARG("-L", L)
+		GET_INT_ARG("-R", R)
+		GET_DOUBLE_ARG("-a", a)
+		GET_STRING_ARG("-bv", dataFilename)
+		GET_STRING_ARG("-qv", queriesFileName)
+		GET_STRING_ARG("-gv", groundtruthFileName)
+	}
+
+
+	PRINT_VAR(k)
+	PRINT_VAR(L)
+	PRINT_VAR(R)
+	PRINT_VAR(a)
+
+	DIVIDER
+
+	FilterDataset<float> dataset;
+	FilterQuerySet<float> querySet;
+	DataSet<int> groundtruthSet;
+
+	initializeDatasets(dataset,querySet,groundtruthSet);
+
+	DIVIDER
+
+	const string filteredVamanaFilename = "filtered_vamana_graph.bin";
+
+	const string stitchedVamanaFilename = "stitched_vamana_graph.bin";
+
+	FilterGraph<float> filteredGraph;
+
+	bool filteredVamana = true;
+
+	if(filteredVamana) {
+		if(filesystem::path filePath(RESOURCES_P + filteredVamanaFilename); exists(filePath)) {
+			filteredGraph = FilterGraph<float>({},L,R,k,a, 10);
+			TIMER_BLOCK("Filtered Vamana Index Import",
+				filteredGraph.importFilterGraph(filteredVamanaFilename);
+			)
+		}
+		else {
+			filteredGraph = FilterGraph<float>(dataset.datapoints,L,R,k,a, 10);
+			TIMER_BLOCK("Filtered Vamana Index build",
+				filteredGraph.filteredVamana();
+			)
+			filteredGraph.exportFilterGraph(filteredVamanaFilename);
+		}
+	}
+	else {
+		if(filesystem::path filePath(RESOURCES_P + stitchedVamanaFilename); exists(filePath)) {
+			filteredGraph = FilterGraph<float>({},L,R,k,a, 10);
+			TIMER_BLOCK("Stitched Vamana Index Import",
+				filteredGraph.importFilterGraph(stitchedVamanaFilename);
+			)
+		}
+		else {
+			filteredGraph = FilterGraph<float>(dataset.datapoints,L,R,k,a, 10);
+			TIMER_BLOCK("Stitched Vamana Index build",
+				filteredGraph.stitchedVamana();
+			)
+			filteredGraph.exportFilterGraph(stitchedVamanaFilename);
+		}
+	}
+
+	runQueries<float>(filteredGraph,querySet,groundtruthSet);
+
 }
