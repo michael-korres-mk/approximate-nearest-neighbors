@@ -662,7 +662,6 @@ void FilterGraph<T>::importFilterGraph(const string& filename) {
 
     // fetch vectors
     for(int i = 0; i < numOfDatapoints; i++) {
-        int id;
         DataPoint<T> datapoint = DataPoint<T>();
 
         file.read(reinterpret_cast<char*>(&datapoint.id), sizeof(int));
@@ -675,7 +674,7 @@ void FilterGraph<T>::importFilterGraph(const string& filename) {
             datapoint.vec.push_back(xi);
         }
 
-        vertexMap[id] = datapoint;
+        vertexMap.insert({datapoint.id, datapoint});
 
         // fetch num of neighbors
         file.read(reinterpret_cast<char*>(&numOfNeighbors), sizeof(size_t));
@@ -690,7 +689,7 @@ void FilterGraph<T>::importFilterGraph(const string& filename) {
             neighbors.push_back(Edge(destination, weight));
         }
 
-        g[id] = neighbors;
+        g[datapoint.id] = neighbors;
     }
 
     file.close();
