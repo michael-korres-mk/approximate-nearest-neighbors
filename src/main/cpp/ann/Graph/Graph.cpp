@@ -1,9 +1,11 @@
 #include "Graph.h"
 
+template<typename T>
+Graph<T>::Graph() {}
+
 template <typename T>
-Graph<T>::Graph(vector<vector<T>> vecs, const int L,const int R,const int k,double a):AUTO_INCREMENT(0),R(R),k(k),a(a),L(L),d((vecs.size() > 0)?static_cast<int>(vecs[0].size()):0){
-    // TODO: Revisit d initialization
-    for(int i = 0; i < vecs.size() ; i++ ) {
+Graph<T>::Graph(vector<vector<T>> vecs, const int L,const int R,const int k, const double a):AUTO_INCREMENT(0),L(L),R(R),k(k),a(a){
+    for(unsigned int i = 0; i < vecs.size() ; i++ ) {
         vertexMap.insert({AUTO_INCREMENT,vecs[i]});
         AUTO_INCREMENT++;
     }
@@ -18,13 +20,15 @@ void Graph<T>::vamana(){
     const int s = medoid();
 
     cout << "medoid calculated" << endl;
-
-    int x;
     set<int> done;
-    while(done.size() != vertexMap.size()){
-        (!done.empty() && done.size() % 1000 == 0) && printf("completed %d %% ... \n",static_cast<int>(done.size()/100));
+    vector<int> givenIds = getVerticesIds();
+    Utils<int>::shuffle(givenIds);
 
-        while (done.find(x = Utils<int>::random(0,AUTO_INCREMENT - 1)) != done.end()) {}
+    for(int x : givenIds){
+        if (AUTO_INCREMENT > 10 && !done.empty() && done.size() % (AUTO_INCREMENT / 10) == 0) {
+            printf("completed %d %% ... \n", static_cast<int>(done.size() * 100 / AUTO_INCREMENT));
+        }
+
         done.insert(x);
 
         const auto& [l,Vx] = greedySearch(s,vertexMap[x],k,L);
@@ -49,38 +53,43 @@ void Graph<T>::vamana(){
 
 template <typename T>
 void Graph<T>::initializeRandomEdges(){
-	auto start = chrono::high_resolution_clock::now();
-    for(const auto& [key, value] : vertexMap) {
-        vector<Edge> neighbors = randomNeighbors(key,R);
-        g.insert({key,neighbors});
-        // if(pair.first > 0 && (pair.first+1) % 1000 == 0) cout<< pair.first + 1 << " nodes' neighbors have been calculated"<< endl;
-    }
-
-    auto end = chrono::high_resolution_clock::now();
-    auto duration = chrono::duration_cast<chrono::milliseconds>(end - start).count();
-    cout << "graph initialization: " << duration << " ms" << endl;
+    TIMER_BLOCK("Graph initialization",
+        for(const auto& [id, _] : vertexMap) {
+            vector<Edge> neighbors = randomNeighbors(id);
+            g.insert({id,neighbors});
+        }
+    )
 }
 
 template <typename T>
-vector<Edge> Graph<T>::randomNeighbors(int pId,int R) {
+vector<Edge> Graph<T>::randomNeighbors(int pId) {
     vector<Edge> neighbors;
-
-    vector<T> p = vertexMap[pId];
-    int randomId = Utils<int>::random(0,AUTO_INCREMENT - 1);
-
+    auto p = vertexMap[pId];
     set<int> added;
+    const unsigned int n = (AUTO_INCREMENT >= R)? R : AUTO_INCREMENT;
 
-    for (int i = 0; i < R; ++i) {
-        while (randomId == pId || added.find(randomId) != added.end()) {
-            randomId = Utils<int>::random(0,AUTO_INCREMENT - 1);
-        }
+    vector<int> givenIds = getVerticesIds();
 
+    for (unsigned int i = 0; i < n; ++i) {
+
+        int randomId = getRandomId(givenIds);
         added.insert(randomId);
-        vector<T> vec = vertexMap[randomId];
-        neighbors.push_back(Edge(randomId, euclideanDistance(p,vec)));
+
+        auto randVec = vertexMap[randomId];
+        neighbors.push_back(Edge(randomId, euclideanDistance(p, randVec)));
     }
 
+
     return neighbors;
+}
+
+template <typename T>
+int Graph<T>::getRandomId(vector<int>& givenIds) {
+    if (givenIds.empty()) throw std::runtime_error("No elements in givenIds to select from");
+    const int i = Utils<int>::random(0,static_cast<int>(givenIds.size() - 1));
+    const auto id = givenIds[i];
+    givenIds.erase(givenIds.begin() + i);
+    return id;
 }
 
 
@@ -175,29 +184,6 @@ double Graph<T>::equals(const vector<T>& v1, vector<T>& v2) {
     }
 
     return (static_cast<double>(dim) - misses) / dim;
-}
-
-template<typename T>
-vector<Edge> Graph<T>::calculateNearestNeighbors(const vector<T>& q,const int& k) {
-    vector<pair<int, float>> distances;
-
-    for(int i = 0; i < vertexMap.size(); i++) {
-        if(float dist = euclideanDistance(q,vertexMap[i]); dist != 0) distances.emplace_back( i ,dist);
-    }
-
-    auto comparator = [&](const pair<int, float>& a, const pair<int, float>& b) {
-        return a.second < b.second; // Sort by distance in ascending order
-    };
-
-    sort(distances.begin(), distances.end(), comparator);
-
-    vector<Edge> kNearest;
-
-    for (int i = 0; i < k && i < distances.size(); i++) {
-        kNearest.emplace_back(distances[i].first,distances[i].second);
-    }
-
-    return kNearest;
 }
 
 template<typename T>
@@ -360,7 +346,7 @@ void Graph<T>::printVectorNeighbors(vector<Edge>& neighbors,ostream& out) {
 }
 
 template<typename T>
-vector<T> Graph<T>::getVertex(int id) {
+vector<T> Graph<T>::getVertex(unsigned int id) {
     if(id >= vertexMap.size()) return vector<T>();
     return vertexMap[id];
 }
@@ -414,9 +400,8 @@ int Graph<T>::getTotalEdges() const {
 
 // import-export graph
 template <typename T>
-void Graph<T>::exportGraph() {
+void Graph<T>::exportGraph(const string& filename) {
 
-    const string filename = "graph.bin";
     const string graphFilePath(RESOURCES_P + filename);
 
     ofstream file(graphFilePath, ios::binary);
@@ -429,11 +414,12 @@ void Graph<T>::exportGraph() {
     file.write(reinterpret_cast<const char*>(&L), sizeof(int));
     file.write(reinterpret_cast<const char*>(&R), sizeof(int));
     file.write(reinterpret_cast<const char*>(&k), sizeof(int));
-    file.write(reinterpret_cast<const char*>(&d), sizeof(int));
     file.write(reinterpret_cast<const char*>(&a), sizeof(double));
+    const int d = vertexMap[0].size();
+    file.write(reinterpret_cast<const char*>(&d), sizeof(int));
 
     // persist vector type size
-    size_t typeSize = sizeof(T);
+    const size_t typeSize = sizeof(T);
     file.write(reinterpret_cast<const char*>(&typeSize), sizeof(size_t));
 
     size_t numOfNeighbors;
@@ -462,9 +448,8 @@ void Graph<T>::exportGraph() {
 }
 
 template <typename T>
-void Graph<T>::importGraph() {
+void Graph<T>::importGraph(const string& filename) {
 
-    const string filename = "graph.bin";
     const string graphFilePath(RESOURCES_P + filename);
 
     ifstream file(graphFilePath, ios::binary);
@@ -477,8 +462,9 @@ void Graph<T>::importGraph() {
     file.read(reinterpret_cast<char*>(&L), sizeof(int));
     file.read(reinterpret_cast<char*>(&R), sizeof(int));
     file.read(reinterpret_cast<char*>(&k), sizeof(int));
-    file.read(reinterpret_cast<char*>(&d), sizeof(int));
     file.read(reinterpret_cast<char*>(&a), sizeof(double));
+    int d = 0;
+    file.read(reinterpret_cast<char*>(&d), sizeof(int));
 
     // fetch vector type size
     size_t typeSize;
@@ -487,7 +473,7 @@ void Graph<T>::importGraph() {
     size_t numOfNeighbors;
 
     // fetch vectors
-    for(int i = 0; i < AUTO_INCREMENT; i++) {
+    for(unsigned int i = 0; i < AUTO_INCREMENT; i++) {
         int id;
         vector<T> vec;
 
@@ -507,7 +493,7 @@ void Graph<T>::importGraph() {
         vector<Edge> neighbors;
         int destination;
         double weight;
-        for(int k = 0; k < numOfNeighbors; k++) {
+        for(unsigned int k = 0; k < numOfNeighbors; k++) {
             file.read(reinterpret_cast<char*>(&destination), sizeof(int));
             file.read(reinterpret_cast<char*>(&weight), sizeof(int));
             neighbors.emplace_back(destination, weight);

@@ -5,115 +5,136 @@
 # include <fcntl.h>
 # include <unistd.h>
 # include <iomanip>
+# include <filesystem>
 #include "Graph/Graph.h"
 #include "../utility/Utils/Utils.h"
 
 using namespace std;
 
-void initializeDatasets(DataSet<float>& baseDataSet, DataSet<float>& queryDataSet, DataSet<int>& groundtruthDataSet,char* argv[],int argc) ;
+string dataFilename;
+string queriesFileName;
+string groundtruthFileName;
 
-int main(int argc,char* argv[]) {
-	// if(argc < 9)exit(EXIT_FAILURE
-	Utils<char>::printDivider();
-
-	DataSet<float> baseDataSet;
-	DataSet<float> queryDataSet;
-	DataSet<int> groundtruthDataSet;
-
-	initializeDatasets(baseDataSet,queryDataSet,groundtruthDataSet,argv,argc);
-
-	Utils<char>::printDivider();
-
-	int numOfQueries = queryDataSet.getNumOfVectors();
-
-	int k; // groundtruthDataSet.getD();
-	int L;
-	int R;
-	double a;
-
-	for(int i = 1; i < argc;i++){	// Get arguments
-		if (strcmp(argv[i],"-k") == 0) {
-			k = atoi(argv[i+1]);
-		} else if (strcmp(argv[i],"-L") == 0) {
-			L = atoi(argv[i+1]);
-		} else if (strcmp(argv[i],"-R") == 0) {
-			R = atoi(argv[i+1]);
-		} else if (strcmp(argv[i],"-a") == 0) {
-			a = atof(argv[i+1]);
-		}
-	}
+int k;
+int L;
+int R;
+double a;
 
 
-	cout << "k = " << k << endl;
-	cout << "L = " << L << endl;
-	cout << "R = " << R << endl;
-	cout << "a = " << a << endl;
+void initializeDatasets(DataSet<float>& dataset, DataSet<float>& querySet, DataSet<int>& groundtruthSet)  {
 
-	Utils<char>::printDivider();
+	cout << "Base Dataset: " << dataFilename << endl;
+	cout << "Query Dataset: " << queriesFileName << endl;
+	cout << "Ground-truth Dataset: " << groundtruthFileName << endl;
 
-	Graph graph(baseDataSet.getVectors(),L,R,k,a);
+	DIVIDER
 
-	auto start = chrono::high_resolution_clock::now();
+	TIMER_BLOCK("Base dataset load",
+		dataset = DataSet<float>(dataFilename);
+	)
 
-	graph.vamana();
+	cout << "Num of datapoints: " << dataset.getNumOfVectors() << endl;
 
-	auto end = chrono::high_resolution_clock::now();
-	auto duration = chrono::duration_cast<chrono::milliseconds>(end - start).count();
-	cout << "index build: " << duration << " ms" << endl;
+	DIVIDER
 
-	vector<Edge> nearestNeighborsEdges;
-	vector<int> groundTruthNearestNeighbors;
+		TIMER_BLOCK("Query dataset load",
+			querySet = DataSet<float>(queriesFileName);
+		)
+
+		cout << "Num of queries: " << querySet.getNumOfVectors() << endl;
+
+	DIVIDER
+
+	TIMER_BLOCK("Ground-truth dataset load",
+		groundtruthSet = DataSet<int>(groundtruthFileName);
+	)
+}
+
+template <typename T>
+void runQueries(Graph<T> graph,DataSet<T> qset,DataSet<int>& groundtruthDataSet) {
+	DIVIDER
+
 
 	int medoidId = graph.medoid();
-
 	vector<float> q;
 	double totalKRecall = 0.0;
-	for(int i = 0; i < numOfQueries;i++) {
-		q = queryDataSet.getVector(i);
+	const int nq = qset.getNumOfVectors();
+
+	if(nq == 0) throw runtime_error("No queries given ...");
+
+	printf("running queries ... \n");
+	for(int i = 0; i < nq; i++) {
+
+		if (nq > 10 && i > 0 && i % (nq / 10) == 0) printf("queries completed %d %% ... \n", i * 100 / nq);
+
+		q = qset.getVector(i);
+
 		const auto& [neighbors,v] = graph.greedySearch(medoidId,q,k,L);
-		// TODO: check the groundtruth vector's 0,1,2 elements
-		groundTruthNearestNeighbors = groundtruthDataSet.getVector(i);
-		double kRecall = Graph<int>::equals(neighbors,groundTruthNearestNeighbors);
+		vector<int> groundTruthNearestNeighbors = groundtruthDataSet.getVector(i);
+
+		const double kRecall = Graph<int>::equals(neighbors,groundTruthNearestNeighbors);
 		totalKRecall += kRecall;
-		// cout << "Q" << i << ": " << kRecall * 100 << "%" << endl;
+
 	}
 
-	Utils<char>::printDivider();
-	printf("k-recall@k: %.2lf%%\n",(totalKRecall / numOfQueries) * 100);
+	printf("queries completed 100 %% ... \n");
 
-	graph.exportGraph();
+	DIVIDER
+
+	printf("k-recall@k: %.2lf%%\n",(totalKRecall / nq) * 100);
 
 }
 
-void initializeDatasets(DataSet<float>& baseDataSet, DataSet<float>& queryDataSet, DataSet<int>& groundtruthDataSet,char* argv[],int argc)  {
+int main(int argc,char* argv[]) {
+	DIVIDER
 
-	string baseVectorsDataFileName;
-	string queryVectorsDataFileName;
-	string groundtruthVectorsDataFileName;
-
-	for(int i = 1; i < argc;i++){	// Get arguments
-		if (strcmp(argv[i],"-bv") == 0) {
-			baseVectorsDataFileName = argv[i+1];
-		} else if (strcmp(argv[i],"-qv") == 0) {
-			queryVectorsDataFileName = argv[i+1];
-		} else if (strcmp(argv[i],"-gv") == 0) {
-			groundtruthVectorsDataFileName = argv[i+1];
-		}
+	for (int i = 1; i < argc; i++) {    // Get arguments
+		GET_INT_ARG("-k", k)
+		GET_INT_ARG("-L", L)
+		GET_INT_ARG("-R", R)
+		GET_DOUBLE_ARG("-a", a)
+		GET_STRING_ARG("-bv", dataFilename)
+		GET_STRING_ARG("-qv", queriesFileName)
+		GET_STRING_ARG("-gv", groundtruthFileName)
 	}
 
-	cout << "Base Dataset: " << baseVectorsDataFileName << endl;
-	cout << "Query Dataset: " << queryVectorsDataFileName << endl;
-	cout << "Ground-truth Dataset: " << groundtruthVectorsDataFileName << endl;
 
-	Utils<char>::printDivider();
+	PRINT_VAR(k)
+	PRINT_VAR(L)
+	PRINT_VAR(R)
+	PRINT_VAR(a)
 
-	auto start = chrono::high_resolution_clock::now();
-	baseDataSet = DataSet<float>(baseVectorsDataFileName);
+	DIVIDER
 
-	auto end = chrono::high_resolution_clock::now();
-	auto duration = chrono::duration_cast<chrono::milliseconds>(end - start).count();
-	cout << "base dataset load: " << duration << " ms" << endl;
+	DataSet<float> dataset,querySet;
+	DataSet<int> groundtruthSet;
 
-	queryDataSet = DataSet<float>(queryVectorsDataFileName);
-	groundtruthDataSet = DataSet<int>(groundtruthVectorsDataFileName);
+	initializeDatasets(dataset,querySet,groundtruthSet);
+
+	Graph<float> graph;
+
+	DIVIDER
+
+	const string vamanaFilename = "vamana_graph.bin";
+
+	if(filesystem::path filePath(RESOURCES_P + vamanaFilename); exists(filePath)) {
+		graph = Graph<float>({},L,R,k,a);
+		TIMER_BLOCK("Filtered Vamana Index Import",
+			graph.importGraph(vamanaFilename);
+		)
+	}
+	else {
+		graph = Graph<float>(dataset.getVectors(),L,R,k,a);
+		TIMER_BLOCK("Vamana Index build",
+			graph.vamana();
+		)
+		graph.exportGraph(vamanaFilename);
+	}
+
+	TIMER_BLOCK("Filter Queries Computation",
+		runQueries<float>(graph,querySet,groundtruthSet);
+	)
+
+	DIVIDER
+
 }
