@@ -12,66 +12,60 @@ FilterGraph<T>::FilterGraph(){}
 template <typename T>
 FilterGraph<T>::FilterGraph(vector<DataPoint<T>> dataPoints, const int L,const int R,const int k,double a, int tau):numOfDatapoints(0),L(L),R(R),k(k),a(a),tau(tau){
     numOfDatapoints = dataPoints.size();
-    for(int i = 0; i < numOfDatapoints ; i++ ) {
+    for(unsigned int i = 0; i < numOfDatapoints ; i++ ) {
         vertexMap.insert({dataPoints[i].id,dataPoints[i]});
+        filters.insert(dataPoints[i].C);
     }
+
+    for (const auto& [id, _] : vertexMap) ids.push_back(id);
 }
 
 template <typename T>
 void FilterGraph<T>::initializeRandomEdges(){
-	auto start = chrono::high_resolution_clock::now();
-    for(const auto& [key, value] : vertexMap) {
-        vector<Edge> neighbors = randomNeighbors(key,R);
-        g.insert({key,neighbors});
-        // if(pair.first > 0 && (pair.first+1) % 1000 == 0) cout<< pair.first + 1 << " nodes' neighbors have been calculated"<< endl;
-    }
-
-    auto end = chrono::high_resolution_clock::now();
-    auto duration = chrono::duration_cast<chrono::milliseconds>(end - start).count();
-    cout << "graph initialization: " << duration << " ms" << endl;
+    TIMER_BLOCK("Graph initialization",
+        for(const auto& [id, _] : vertexMap) {
+            vector<Edge> neighbors = randomNeighbors(id);
+            g.insert({id,neighbors});
+        }
+    )
 }
 
 template <typename T>
-vector<Edge> FilterGraph<T>::randomNeighbors(int pId,int R) {
+vector<Edge> FilterGraph<T>::randomNeighbors(int pId) {
     vector<Edge> neighbors;
-
-    vector<T> p = vertexMap[pId].vec;
-    int randomId = Utils<int>::random(0,numOfDatapoints);
-
+    auto p = vertexMap[pId].vec;
     set<int> added;
+    const unsigned int n = (numOfDatapoints >= R)? R : numOfDatapoints;
 
-    for (int i = 0; i < R; ++i) {
-        while (randomId == pId || added.find(randomId) != added.end()) {
-            randomId = Utils<int>::random(0,numOfDatapoints);
-        }
+    vector<int> givenIds = getVerticesIds();
 
+    for (unsigned int i = 0; i < n; ++i) {
+
+        int randomId = getRandomId(givenIds);
         added.insert(randomId);
-        vector<T> vec = vertexMap[randomId].vec;
-        neighbors.push_back(Edge(randomId, euclideanDistance(p,vec)));
+
+        auto randVec = vertexMap[randomId].vec;
+        neighbors.push_back(Edge(randomId, euclideanDistance(p, randVec)));
     }
+
 
     return neighbors;
 }
 
-////////
 
 // Μειώνεται η πολυπλοκότητα από O(n^2) σε O(m^2), όπου m είναι το μέγεθος του δείγματος (m << n).
 // Το δείγμα θα πρέπει να είναι περίπου το 10% του συνολικού αριθμού των κόμβων
 template <typename T>
 int FilterGraph<T>::medoid() {
-    int n = vertexMap.size();
-    int sample_size = n/10;
-    sample_size = min(sample_size, n);
+    const int sample_size = numOfDatapoints/10 + 1;
 
-    int randomId = Utils<int>::random(0,numOfDatapoints);
+    set<int> added;
 
-    set<int> randomIds;
+    vector<int> givenIds = getVerticesIds();
 
     for (int i = 0; i < sample_size; ++i) {
-        while (randomIds.find(randomId) != randomIds.end()) {
-            randomId = Utils<int>::random(0,numOfDatapoints);
-        }
-        randomIds.insert(randomId);
+        int randomId = getRandomId(givenIds);
+        added.insert(randomId);
     }
 
 
@@ -79,9 +73,9 @@ int FilterGraph<T>::medoid() {
     double min_total_distance = numeric_limits<double>::infinity();
 
     // Υπολογίζουμε το medoid στο δείγμα
-    for (int id_i : randomIds) {
+    for (int id_i : added) {
         double total_distance = 0.0;
-        for (int id_j : randomIds) {
+        for (int id_j : added) {
             if (id_i != id_j) {
                 total_distance += euclideanDistance(vertexMap[id_i].vec, vertexMap[id_j].vec);
             }
@@ -190,18 +184,18 @@ pair<vector<int>,vector<int>> FilterGraph<T>::filteredGreedySearch(const vector<
 template <typename T>
 void FilterGraph<T>::filteredVamana() {
 
-    // get all filters
-    for (const auto& [id, dp] : vertexMap) filters.insert(dp.C);
-
     map<int, int> st = getStartNodes();
 
     int x;
     set<int> done;
-    while(done.size() != vertexMap.size()){
-        (!done.empty() && done.size() % 1000 == 0) && printf("completed %d %% ... \n",static_cast<int>(done.size()/100));
+    vector<int> givenIds = getVerticesIds();
 
-        while (done.find(x = Utils<int>::random(0,numOfDatapoints - 1)) != done.end()) {}
-        done.insert(x);
+    while(done.size() != vertexMap.size()){
+        if (numOfDatapoints > 10 && !done.empty() && done.size() % (numOfDatapoints / 10) == 0) {
+            printf("completed %d %% ... \n", static_cast<int>(done.size() * 100 / numOfDatapoints));
+        }
+
+        x = getRandomId(givenIds);
 
         DataPoint<T>& dp = vertexMap[x];
 
@@ -220,7 +214,9 @@ void FilterGraph<T>::filteredVamana() {
                 g[dest] = filteredRobustPrune(dest, edgesToVertices(g[dest]), a, R);
 
         }
+        done.insert(x);
     }
+    printf("completed 100%% ... \n");
 }
 
 template <typename T>
@@ -240,32 +236,30 @@ map<int,int> FilterGraph<T>::getStartNodes(){
 template <typename T>
 void FilterGraph<T>::stitchedVamana() {
 
-    set<int> filters;
-
-    for (const auto& [id, dp] : vertexMap) {
-        filters.insert(dp.C);
-    }
-
-    vector<FilterGraph> graphs;
+    vector<FilterGraph> graphs(filters.size());
 
     for (const int f: filters) {
-        graphs[f] = FilterGraph<T>({},100,R/4,60,1.2,3);
-        // todo: CHECKOUT VERTEX IDS
-        for (const auto& [id, dp] : vertexMap) {
-            if (dp.C == f) {
-                graphs[f].addVertex(dp);
-                for (const Edge& e : g[id]) {
-                     graphs[f].addEdge(id,e.destination,e.weight);
-                }
-            }
+
+        vector<DataPoint<T>> fvertices;
+        for (const auto& [id, dp] : vertexMap) if (dp.C == f) fvertices.push_back(dp);
+
+        if(fvertices.size() == 0) cout << "No filter graph found" << endl;
+
+        graphs[f] = FilterGraph<T>(fvertices,L,(R+4)/4,k,a,tau); // Rsmall = floor(R/4) + 1
+
+        if(graphs[f].numOfDatapoints > 1) {
+            graphs[f].vamana();
         }
-        graphs[f].vamana();
+        else {
+            printf("One node graph\n");
+        }
+
     }
 
     for (const auto& graph : graphs) {
         for (const auto& [id, edges] : graph.g) {
             for (const auto& edge : edges) {
-                this->addEdge(id, edge.destination, edge.weight);
+                addEdge(id, edge.destination, edge.weight);
             }
         }
     }
@@ -315,19 +309,18 @@ void FilterGraph<T>::vamana(){
 
     cout << "medoid calculated" << endl;
 
-    vector<int> V;
-    int x;
     set<int> done;
-    while(done.size() != vertexMap.size()){
-        (!done.empty() && done.size() % 1000 == 0) && printf("completed %d %% ... \n",static_cast<int>(done.size()/100));
+    vector<int> givenIds = getVerticesIds();
+    Utils<int>::shuffle(givenIds);
 
-        while (done.find(x = Utils<int>::random(0,numOfDatapoints)) != done.end()) {}
-        done.insert(x);
+    for(int x : givenIds){
+        if (numOfDatapoints > 10 && !done.empty() && done.size() % (numOfDatapoints / 10) == 0) {
+            printf("completed %d %% ... \n", static_cast<int>(done.size() * 100 / numOfDatapoints));
+        }
 
-        const auto& [l,V] = greedySearch(s,vertexMap[x].vec,k,L);
+        const auto& [l,Vx] = greedySearch(s,vertexMap[x].vec,k,L);
 
-        vector<int> neighborIds = getVerticesIds();
-        g[x] = robustPrune(x,V,a,R);
+        g[x] = robustPrune(x,Vx,a,R);
 
         vector<int> xNeighbors =  edgesToVertices(g[x]);
 
@@ -341,8 +334,18 @@ void FilterGraph<T>::vamana(){
                 g[y].push_back(Edge(x,euclideanDistance(vertexMap[y].vec,vertexMap[x].vec)));
             }
         }
+        done.insert(x);
     }
-    printf("completed %d %%\n",static_cast<int>(done.size()/100));
+    printf("completed 100%% ... \n");
+}
+
+template <typename T>
+int FilterGraph<T>::getRandomId(vector<int>& givenIds) {
+    if (givenIds.empty()) throw std::runtime_error("No elements in givenIds to select from");
+    const int i = Utils<int>::random(0,static_cast<int>(givenIds.size() - 1));
+    const auto id = givenIds[i];
+    givenIds.erase(givenIds.begin() + i);
+    return id;
 }
 
 template <typename T>
@@ -465,9 +468,10 @@ void FilterGraph<T>::removeEdge(const int src, const int dest){
 
 template<typename T>
 float FilterGraph<T>::euclideanDistance(const vector<T>& v1,const vector<T>& v2) {
-    int dim = v1.size();
+    const unsigned int dim = v1.size();
     float dist = 0;
-    for(int j = 0; j < dim; j++) {
+
+    for(unsigned int j = 0; j < dim; j++) {
         dist += (v2[j] - v1[j]) * (v2[j] - v1[j]);
     }
 
@@ -661,7 +665,7 @@ void FilterGraph<T>::importFilterGraph(const string& filename) {
     size_t numOfNeighbors = 0;
 
     // fetch vectors
-    for(int i = 0; i < numOfDatapoints; i++) {
+    for(unsigned int i = 0; i < numOfDatapoints; i++) {
         DataPoint<T> datapoint = DataPoint<T>();
 
         file.read(reinterpret_cast<char*>(&datapoint.id), sizeof(int));

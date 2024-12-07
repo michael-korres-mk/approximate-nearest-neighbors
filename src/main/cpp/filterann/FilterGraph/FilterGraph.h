@@ -19,7 +19,7 @@
 template <typename T>
 class FilterGraph{
 public:
-    int numOfDatapoints;
+    unsigned int numOfDatapoints;
     map<int, DataPoint<T>> vertexMap;
     map<int,vector<Edge>> g;
     unsigned int L;
@@ -29,11 +29,12 @@ public:
     double a;                       // Παράμετρος για το RobustPrune (κατώφλι απόστασης)
     unsigned int tau;                        // Παράμετρος για τη δειγματοληψία
     set<int> filters;
+    vector<int> ids;
 
     FilterGraph();
     FilterGraph(vector<DataPoint<T>> dataPoints,int L,int R,int k,double a, int tau);
     void initializeRandomEdges();
-    vector<Edge> randomNeighbors(int pId, int R);
+    vector<Edge> randomNeighbors(int pId);
     void addVertex(DataPoint<T> vertex);
     void addEdge(int src, int dest,float dist);
     void removeEdge(int src, int dest);
@@ -50,6 +51,8 @@ public:
     pair<vector<int>, vector<int>> greedySearch(int s, const vector<T> &q, int k, int L);
 
     void vamana();
+
+    static int getRandomId(vector<int>& givenIds);
 
     vector<Edge> robustPrune(int p, const vector<int> &V, double a, unsigned int R);
 

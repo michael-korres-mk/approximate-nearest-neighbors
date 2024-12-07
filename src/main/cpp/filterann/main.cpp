@@ -26,6 +26,8 @@ int L;
 int R;
 double a;
 
+int filteredVamana;
+
 void initializeDatasets(FilterDataset<float>& dataset, FilterQuerySet<float>& querySet,DataSet<int>& groundtruthSet) {
 
 	cout << "Base Dataset: " << dataFilename << endl;
@@ -137,6 +139,7 @@ int main(int argc,char* argv[]) {
 		GET_STRING_ARG("-bv", dataFilename)
 		GET_STRING_ARG("-qv", queriesFileName)
 		GET_STRING_ARG("-gv", groundtruthFileName)
+		GET_INT_ARG("-fvamana", filteredVamana)
 	}
 
 
@@ -160,8 +163,6 @@ int main(int argc,char* argv[]) {
 	const string stitchedVamanaFilename = "stitched_vamana_graph.bin";
 
 	FilterGraph<float> filteredGraph;
-
-	bool filteredVamana = true;
 
 	if(filteredVamana) {
 		if(filesystem::path filePath(RESOURCES_P + filteredVamanaFilename); exists(filePath)) {
