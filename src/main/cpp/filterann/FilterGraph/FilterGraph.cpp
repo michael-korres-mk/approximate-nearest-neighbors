@@ -186,16 +186,14 @@ void FilterGraph<T>::filteredVamana() {
 
     map<int, int> st = getStartNodes();
 
-    int x;
     set<int> done;
     vector<int> givenIds = getVerticesIds();
+    Utils<int>::shuffle(givenIds);
 
-    while(done.size() != vertexMap.size()){
+    for(int x : givenIds){
         if (numOfDatapoints > 10 && !done.empty() && done.size() % (numOfDatapoints / 10) == 0) {
             printf("completed %d %% ... \n", static_cast<int>(done.size() * 100 / numOfDatapoints));
         }
-
-        x = getRandomId(givenIds);
 
         DataPoint<T>& dp = vertexMap[x];
 
