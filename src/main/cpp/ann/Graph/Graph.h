@@ -17,23 +17,25 @@ using namespace std;
 template <typename T>
 class Graph {
 public:
-    int AUTO_INCREMENT;             // Χρησιμοποιείται για την ανάθεση μοναδικών ID σε κάθε κορυφή. Ξεκινά από το 0 και αυξάνεται αυτόματα κατά την εισαγωγή κάθε νέας κορυφής.
+    unsigned int AUTO_INCREMENT;             // Χρησιμοποιείται για την ανάθεση μοναδικών ID σε κάθε κορυφή. Ξεκινά από το 0 και αυξάνεται αυτόματα κατά την εισαγωγή κάθε νέας κορυφής.
     map<int, vector<T>> vertexMap;
     map<int,vector<Edge>> g;
-    int L;
-    int R;                          // Μέγιστος αριθμός εξερχόμενων ακμών
-    int k;                          // Αριθμός γειτόνων που θα βρούμε
-    int d;
+    unsigned int L;
+    unsigned int R;                          // Μέγιστος αριθμός εξερχόμενων ακμών
+    unsigned int k;                          // Αριθμός γειτόνων που θα βρούμε
     double a;                       // Παράμετρος για το RobustPrune (κατώφλι απόστασης)
+    Graph();
     Graph(vector<vector<T>> vecs,int L,int R,int k,double a);
     void vamana();
     void initializeRandomEdges();
-    vector<Edge> randomNeighbors(int pId, int R);
+    vector<Edge> randomNeighbors(int pId);
+
+    int getRandomId(vector<int> &givenIds);
+
     int medoid();
     void addVertex(vector<T> vertex);
     void addEdge(int src, int dest,float dist);
     void removeEdge(int src, int dest);
-    vector<Edge> calculateNearestNeighbors(const vector<T>& q,const int& k);
     vector<Edge> robustPrune(int p, const std::vector<int> &V, double a, unsigned int R);
     int argminDist(const vector<T>& p, const vector<int>& P);
     int argmindist(const vector<T>& p, const set<int>& P);
@@ -44,7 +46,7 @@ public:
     vector<Edge> getNeighbors(int vertex);
     void printGraph(ostream& out = cout);
     void printVectorNeighbors(vector<Edge>& neighbors, ostream &out = cout);
-    vector<T> getVertex(int id);
+    vector<T> getVertex(unsigned int id);
 
     // static
     static float euclideanDistance(const vector<T>& v1,const vector<T>& v2);
@@ -60,8 +62,8 @@ public:
     }
 
     // import-export graph
-    void importGraph();
-    void exportGraph();
+    void importGraph(const string &filename);
+    void exportGraph(const string &filename);
 };
 
 

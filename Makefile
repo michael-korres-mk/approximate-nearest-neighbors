@@ -1,14 +1,15 @@
 # Include external parameter file
 include configs/ann.mk.conf
-include configs/annimport.mk.conf
 include configs/filterann.mk.conf
 include configs/groundtruthcalc.mk.conf
-include configs/filterannimport.mk.conf
 
 BUILD_DIR = build
 
-TARGETS = ann annimport filterann groundtruthcalc filterannimport
+TARGETS = ann filterann groundtruthcalc
 TESTS = $(patsubst src/tests/cpp/%.cpp,build/tests/%,$(shell find src/tests/cpp -name "*.cpp"))
+
+b: $(addsuffix b, $(TARGETS))
+	@:
 
 $(addsuffix b, $(TARGETS)):
 	@clear

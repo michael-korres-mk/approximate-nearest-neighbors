@@ -1,7 +1,10 @@
 //
-// Created by mkorres on 12/6/2024.
+// Created by mkorres on 12/7/2024.
 //
 
+#include "../../../include/acutest.h"
+#include "../../main/cpp/ann/Graph/Graph.h"
+#include <vector>
 #include <iostream>
 #include <map>
 #include <vector>
@@ -15,19 +18,18 @@
 #include <cmath>
 #include <limits>
 #include <algorithm>
-# include "../filterann/FilterQuerySet/FilterQuerySet.h"
-# include "../filterann/FilterDataset/FilterDataset.h"
-# include "../utility/Utils/Utils.h"
-# include "../utility/DataSet/DataSet.h"
-#include "../utility/VamanaContainer/VamanaContainer.h"
-#include "../filterann/FilterGraph/FilterGraph.h"
-#include "../filterann/DataPoint/DataPoint.h"
+# include "../../main/cpp/filterann/FilterQuerySet/FilterQuerySet.h"
+# include "../../main/cpp/filterann/FilterDataset/FilterDataset.h"
+# include "../../main/cpp/utility/Utils/Utils.h"
+# include "../../main/cpp/utility/DataSet/DataSet.h"
+#include "../../main/cpp/utility/VamanaContainer/VamanaContainer.h"
+#include "../../main/cpp/filterann/FilterGraph/FilterGraph.h"
+#include "../../main/cpp/filterann/DataPoint/DataPoint.h"
 
-using namespace std;
+void test_filterannimport() {
 
-int main() {
-    // Step 1: Create a test graph with known data
-    // Arrange
+   // Arrange
+
     vector<int> data0 = {0, 0};
     vector<int> data1 = {0, 1};
     vector<int> data2 = {0, 2};
@@ -56,49 +58,46 @@ int main() {
 
     string filename = "imextest_graph.bin";
 
+    // Act
     graph.exportFilterGraph(filename);
 
     FilterGraph<int> importedGraph({}, 1, 5, 3, 3, 3);
     importedGraph.importFilterGraph(filename);
 
-    // Compare metadata
-    assert(graph.numOfDatapoints == importedGraph.numOfDatapoints);
-    assert(graph.L == importedGraph.L);
-    assert(graph.R == importedGraph.R);
-    assert(graph.k == importedGraph.k);
-    assert(graph.a == importedGraph.a);
-
-
-    int a = graph.vertexMap.size();
-    int b = importedGraph.vertexMap.size();
-    PRINT_VAR(a)
-    PRINT_VAR(b)
+    // Assert
+    TEST_ASSERT(graph.numOfDatapoints == importedGraph.numOfDatapoints);
+    TEST_ASSERT(graph.L == importedGraph.L);
+    TEST_ASSERT(graph.R == importedGraph.R);
+    TEST_ASSERT(graph.k == importedGraph.k);
+    TEST_ASSERT(graph.a == importedGraph.a);
 
     // Compare vertexMap
-    assert(graph.vertexMap.size() == importedGraph.vertexMap.size());
+    TEST_ASSERT(graph.vertexMap.size() == importedGraph.vertexMap.size());
     for (const auto& [id, dp] : graph.vertexMap) {
         const auto& importedDp = importedGraph.vertexMap.at(id);
-        assert(dp.id == importedDp.id);
-        assert(dp.C == importedDp.C);
-        assert(dp.T == importedDp.T);
+        TEST_ASSERT(dp.id == importedDp.id);
+        TEST_ASSERT(dp.C == importedDp.C);
+        TEST_ASSERT(dp.T == importedDp.T);
 
         for(unsigned int j = 0; j < importedDp.vec.size(); j++) {
-            assert(dp.vec[j] == importedDp.vec[j]);
+            TEST_ASSERT(dp.vec[j] == importedDp.vec[j]);
         }
     }
 
     // Compare adjacency list (graph edges)
-    assert(graph.g.size() == importedGraph.g.size());
+    TEST_ASSERT(graph.g.size() == importedGraph.g.size());
     for (const auto& [id, edges] : graph.g) {
         const auto& importedEdges = importedGraph.g.at(id);
-        assert(edges.size() == importedEdges.size());
+        TEST_ASSERT(edges.size() == importedEdges.size());
         for (size_t i = 0; i < edges.size(); ++i) {
-            assert(edges[i].destination == importedEdges[i].destination);
-            assert(edges[i].weight == importedEdges[i].weight);
+            TEST_ASSERT(edges[i].destination == importedEdges[i].destination);
+            TEST_ASSERT(edges[i].weight == importedEdges[i].weight);
         }
     }
 
-    cout << "Test passed: The export and import methods are symmetric." << endl;
-
-    return 0;
 }
+
+TEST_LIST = {
+    { "test filterann import", test_filterannimport },
+    { NULL, NULL }
+};
