@@ -1,11 +1,26 @@
 #include "../../../include/acutest.h"
-#include "../../main/cpp/filterann/FilterGraph/FilterGraph.h"
-#include "../../main/cpp/filterann/DataPoint/DataPoint.h"
-#include "../../main/cpp/utility/Utils/Utils.h" // Βεβαιώσου ότι το path είναι σωστό
+#include "../../main/cpp/ann/Graph/Graph.h"
 #include <vector>
 #include <iostream>
 #include <map>
-#include <set>
+#include <vector>
+#include <cassert>
+# include <chrono>
+# include <iostream>
+# include <cstring>
+# include <fcntl.h>
+# include <unistd.h>
+# include <iomanip>
+#include <cmath>
+#include <limits>
+#include <algorithm>
+# include "../../main/cpp/filterann/FilterQuerySet/FilterQuerySet.h"
+# include "../../main/cpp/filterann/FilterDataset/FilterDataset.h"
+# include "../../main/cpp/utility/Utils/Utils.h"
+# include "../../main/cpp/utility/DataSet/DataSet.h"
+#include "../../main/cpp/utility/VamanaContainer/VamanaContainer.h"
+#include "../../main/cpp/filterann/FilterGraph/FilterGraph.h"
+#include "../../main/cpp/filterann/DataPoint/DataPoint.h"
 
 void test_findMedoid() {
     // Arrange
@@ -21,16 +36,16 @@ void test_findMedoid() {
     std::vector<int> data9 = {0, 9};
 
     std::vector<DataPoint<int>> data = {
-        DataPoint<int>(0, -1, data0), // ID 0
-        DataPoint<int>(1, -1, data1), // ID 1
-        DataPoint<int>(2, -1, data2), // ID 2
-        DataPoint<int>(0, -1, data3), // ID 3
-        DataPoint<int>(1, -1, data4), // ID 4
-        DataPoint<int>(2, -1, data5), // ID 5
-        DataPoint<int>(0, -1, data6), // ID 6
-        DataPoint<int>(1, -1, data7), // ID 7
-        DataPoint<int>(2, -1, data8), // ID 8
-        DataPoint<int>(0, -1, data9)  // ID 9
+        DataPoint<int>(0,0, -1, data0), // ID 0
+        DataPoint<int>(1,1, -1, data1), // ID 1
+        DataPoint<int>(2,2, -1, data2), // ID 2
+        DataPoint<int>(3,0, -1, data3), // ID 3
+        DataPoint<int>(4,1, -1, data4), // ID 4
+        DataPoint<int>(5,2, -1, data5), // ID 5
+        DataPoint<int>(6,0, -1, data6), // ID 6
+        DataPoint<int>(7,1, -1, data7), // ID 7
+        DataPoint<int>(8,2, -1, data8), // ID 8
+        DataPoint<int>(9,0, -1, data9)  // ID 9
     };
 
     FilterGraph<int> graph(data, 1, 5, 3, 3, 3);

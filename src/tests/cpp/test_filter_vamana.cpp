@@ -1,8 +1,26 @@
 #include "../../../include/acutest.h"
-#include "../../main/cpp/filterann/FilterGraph/FilterGraph.h"
-#include "../../main/cpp/filterann/DataPoint/DataPoint.h"
+#include "../../main/cpp/ann/Graph/Graph.h"
 #include <vector>
 #include <iostream>
+#include <map>
+#include <vector>
+#include <cassert>
+# include <chrono>
+# include <iostream>
+# include <cstring>
+# include <fcntl.h>
+# include <unistd.h>
+# include <iomanip>
+#include <cmath>
+#include <limits>
+#include <algorithm>
+# include "../../main/cpp/filterann/FilterQuerySet/FilterQuerySet.h"
+# include "../../main/cpp/filterann/FilterDataset/FilterDataset.h"
+# include "../../main/cpp/utility/Utils/Utils.h"
+# include "../../main/cpp/utility/DataSet/DataSet.h"
+#include "../../main/cpp/utility/VamanaContainer/VamanaContainer.h"
+#include "../../main/cpp/filterann/FilterGraph/FilterGraph.h"
+#include "../../main/cpp/filterann/DataPoint/DataPoint.h"
 
 using namespace std;
 
@@ -20,16 +38,16 @@ void test_filter_vamana() {
     vector<int> data9 = {0, 9};
 
     vector<DataPoint<int>> data = {
-        DataPoint<int>(0,-1,data0),
-        DataPoint<int>(1,-1,data1),
-        DataPoint<int>(2,-1,data2),
-        DataPoint<int>(0,-1,data3),
-        DataPoint<int>(1,-1,data4),
-        DataPoint<int>(2,-1,data5),
-        DataPoint<int>(0,-1,data6),
-        DataPoint<int>(1,-1,data7),
-        DataPoint<int>(2,-1,data8),
-        DataPoint<int>(0,-1,data9)
+        DataPoint<int>(0,0,-1,data0),
+        DataPoint<int>(1,1,-1,data1),
+        DataPoint<int>(2,2,-1,data2),
+        DataPoint<int>(3,0,-1,data3),
+        DataPoint<int>(4,1,-1,data4),
+        DataPoint<int>(5,2,-1,data5),
+        DataPoint<int>(6,0,-1,data6),
+        DataPoint<int>(7,1,-1,data7),
+        DataPoint<int>(8,2,-1,data8),
+        DataPoint<int>(9,0,-1,data9)
     };
 
     FilterGraph<int> graph(data, 1, 5, 3, 3, 3);
