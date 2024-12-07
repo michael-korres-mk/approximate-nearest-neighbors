@@ -65,9 +65,7 @@ void test_stitched_vamana() {
         DataPoint<int> dp = graph.getVertex(id);
         for (const Edge& e : neighbors) {
             DataPoint<int> neighbor_dp = graph.getVertex(e.destination);
-            TEST_CHECK_MSG(dp.C == neighbor_dp.C,
-                "Node %d has neighbor %d with different filter (%d vs %d)",
-                id, e.destination, dp.C, neighbor_dp.C);
+            TEST_CHECK(dp.C == neighbor_dp.C);
         }
     }
 
