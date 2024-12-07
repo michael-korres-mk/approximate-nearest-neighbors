@@ -214,7 +214,7 @@ void FilterGraph<T>::filteredVamana() {
         }
         done.insert(x);
     }
-    printf("completed 100%% ... \n");
+    printf("completed 100 %% ... \n");
 }
 
 template <typename T>
@@ -246,11 +246,14 @@ void FilterGraph<T>::stitchedVamana() {
         graphs[f] = FilterGraph<T>(fvertices,L,(R+4)/4,k,a,tau); // Rsmall = floor(R/4) + 1
 
         if(graphs[f].numOfDatapoints > 1) {
+            printf("-------- Vamana on graph[f],f = %d\n",f);
             graphs[f].vamana();
         }
         else {
-            printf("One node graph\n");
+            printf("-------- Single-node graph[f],f = %d\n",f);
         }
+
+        DIVIDER
 
     }
 
@@ -334,7 +337,7 @@ void FilterGraph<T>::vamana(){
         }
         done.insert(x);
     }
-    printf("completed 100%% ... \n");
+    printf("completed 100 %% ... \n");
 }
 
 template <typename T>

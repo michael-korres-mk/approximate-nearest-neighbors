@@ -76,7 +76,11 @@ void runQueries(FilterGraph<T> fgraph,FilterQuerySet<T> qset,DataSet<int>& groun
 	vector<int> allStartingPoints;
 	for (const auto&[_, point] : filtersStartingPoints) allStartingPoints.push_back(point);
 
+	printf("running queries ... \n");
 	for(int i = 0; i < nq; i++) {
+
+		if (nq > 10 && i > 0 && i % (nq / 10) == 0) printf("queries completed %d %% ... \n", i * 100 / nq);
+
 		int query_type = qset.queries[i].queryType;
 		int v = qset.queries[i].v;
 
@@ -107,6 +111,8 @@ void runQueries(FilterGraph<T> fgraph,FilterQuerySet<T> qset,DataSet<int>& groun
 		}
 	}
 
+	printf("queries completed 100 %% ... \n");
+
 	PRINT_VAR(filteredQueries)
 	PRINT_VAR(unfilteredQueries)
 	PRINT_VAR(otherQueries)
@@ -125,6 +131,7 @@ void runQueries(FilterGraph<T> fgraph,FilterQuerySet<T> qset,DataSet<int>& groun
 		printf("filtered k-recall@k: %.2lf%%\n",(totalKRecallFiltered / filteredQueries) * 100);
 		printf("unfiltered k-recall@k: %.2lf%%\n",(totalKRecallUnfiltered / unfilteredQueries) * 100);
 	}
+	DIVIDER
 }
 
 int main(int argc,char* argv[]) {
@@ -195,6 +202,9 @@ int main(int argc,char* argv[]) {
 		}
 	}
 
-	runQueries<float>(filteredGraph,querySet,groundtruthSet);
+	TIMER_BLOCK("Filter Queries Computation",
+		runQueries<float>(filteredGraph,querySet,groundtruthSet);
+	)
 
+	DIVIDER
 }
