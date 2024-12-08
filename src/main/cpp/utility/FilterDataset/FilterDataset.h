@@ -6,7 +6,6 @@
 #define FILTERDATASET_H
 
 #include "../../utility/DataPoint/DataPoint.h"
-#include "../Query/Query.h"
 #include "../../utility/Utils/Utils.h"
 
 #include <map>

@@ -6,8 +6,8 @@
 # include <unistd.h>
 # include <iomanip>
 # include <filesystem>
-#include "Graph/Graph.h"
 #include "../utility/Utils/Utils.h"
+#include "../utility/FilterGraph/FilterGraph.h"
 
 using namespace std;
 
@@ -51,7 +51,7 @@ void initializeDatasets(DataSet<float>& dataset, DataSet<float>& querySet, DataS
 }
 
 template <typename T>
-void runQueries(Graph<T> graph,DataSet<T> qset,DataSet<int>& groundtruthDataSet) {
+void runQueries(FilterGraph<T> graph,DataSet<T> qset,DataSet<int>& groundtruthDataSet) {
 	DIVIDER
 
 	int medoidId = graph.medoid();
@@ -71,7 +71,7 @@ void runQueries(Graph<T> graph,DataSet<T> qset,DataSet<int>& groundtruthDataSet)
 		const auto& [neighbors,v] = graph.greedySearch(medoidId,q,k,L);
 		DataPoint<int> groundTruthNearestNeighbors = groundtruthDataSet.datapoints[i];
 
-		const double kRecall = Graph<int>::equals(neighbors,groundTruthNearestNeighbors.vec);
+		const double kRecall = FilterGraph<int>::equals(neighbors,groundTruthNearestNeighbors.vec);
 		totalKRecall += kRecall;
 
 	}
@@ -110,20 +110,20 @@ int main(int argc,char* argv[]) {
 
 	initializeDatasets(dataset,querySet,groundtruthSet);
 
-	Graph<float> graph;
+	FilterGraph<float> graph;
 
 	DIVIDER
 
 	const string vamanaFilename = "vamana_graph.bin";
 
 	if(filesystem::path filePath(RESOURCES_P + vamanaFilename); exists(filePath)) {
-		graph = Graph<float>({},L,R,k,a);
+		graph = FilterGraph<float>({},L,R,k,a,-1);
 		TIMER_BLOCK("Filtered Vamana Index Import",
 			graph.importGraph(vamanaFilename);
 		)
 	}
 	else {
-		graph = Graph<float>(dataset.datapoints,L,R,k,a);
+		graph = FilterGraph<float>(dataset.datapoints,L,R,k,a,-1);
 		TIMER_BLOCK("Vamana Index build",
 			graph.vamana();
 		)

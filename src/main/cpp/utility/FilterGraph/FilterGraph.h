@@ -67,13 +67,19 @@ public:
     void printVectorNeighbors(vector<Edge>& neighbors, ostream &out = cout);
     DataPoint<T> getVertex(unsigned int id);
 
+
+    const map<int, DataPoint<T>>& getVertexMap() const {
+        return vertexMap;
+    }
+
     // static
     static float euclideanDistance(const vector<T>& v1,const vector<T>& v2);
     static double equals(const vector<T> &v1, vector<T> &v2);
 
     // import-export graph
-    void importFilterGraph(const string& filename);
-    void exportFilterGraph(const string& filename);
+    void importGraph(const string& filename);
+    void exportGraph(const string& filename);
+
 };
 
 

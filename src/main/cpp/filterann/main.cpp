@@ -9,8 +9,8 @@
 # include <unistd.h>
 # include <iomanip>
 #include <filesystem>
-# include "FilterGraph/FilterGraph.h"
-# include "FilterDataset/FilterDataset.h"
+# include "../utility/FilterGraph/FilterGraph.h"
+# include "../utility/FilterDataset/FilterDataset.h"
 # include "FilterQuerySet/FilterQuerySet.h"
 # include "../utility/Utils/Utils.h"
 # include "../utility/DataSet/DataSet.h"
@@ -175,7 +175,7 @@ int main(int argc,char* argv[]) {
 		if(filesystem::path filePath(RESOURCES_P + filteredVamanaFilename); exists(filePath)) {
 			filteredGraph = FilterGraph<float>({},L,R,k,a, 10);
 			TIMER_BLOCK("Filtered Vamana Index Import",
-				filteredGraph.importFilterGraph(filteredVamanaFilename);
+				filteredGraph.importGraph(filteredVamanaFilename);
 			)
 		}
 		else {
@@ -183,14 +183,14 @@ int main(int argc,char* argv[]) {
 			TIMER_BLOCK("Filtered Vamana Index build",
 				filteredGraph.filteredVamana();
 			)
-			filteredGraph.exportFilterGraph(filteredVamanaFilename);
+			filteredGraph.exportGraph(filteredVamanaFilename);
 		}
 	}
 	else {
 		if(filesystem::path filePath(RESOURCES_P + stitchedVamanaFilename); exists(filePath)) {
 			filteredGraph = FilterGraph<float>({},L,R,k,a, 10);
 			TIMER_BLOCK("Stitched Vamana Index Import",
-				filteredGraph.importFilterGraph(stitchedVamanaFilename);
+				filteredGraph.importGraph(stitchedVamanaFilename);
 			)
 		}
 		else {
@@ -198,7 +198,7 @@ int main(int argc,char* argv[]) {
 			TIMER_BLOCK("Stitched Vamana Index build",
 				filteredGraph.stitchedVamana();
 			)
-			filteredGraph.exportFilterGraph(stitchedVamanaFilename);
+			filteredGraph.exportGraph(stitchedVamanaFilename);
 		}
 	}
 

@@ -585,10 +585,9 @@ DataPoint<T> FilterGraph<T>::getVertex(unsigned int id) {
     return vertexMap[id];
 }
 
-
 // import-export graph
 template <typename T>
-void FilterGraph<T>::exportFilterGraph(const string& filename) {
+void FilterGraph<T>::exportGraph(const string& filename) {
 
     const string graphFilePath(RESOURCES_P + filename);
 
@@ -640,7 +639,7 @@ void FilterGraph<T>::exportFilterGraph(const string& filename) {
 }
 
 template <typename T>
-void FilterGraph<T>::importFilterGraph(const string& filename) {
+void FilterGraph<T>::importGraph(const string& filename) {
 
     const string graphFilePath(RESOURCES_P + filename);
 
