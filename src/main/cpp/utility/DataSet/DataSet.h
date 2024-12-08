@@ -21,22 +21,15 @@ using namespace std;
 
 template <typename T>
 class DataSet {
+public:
     int d;
     int numOfVectors;
     vector<vector<T>> vectors;
-public:
 
     // instance
     explicit DataSet();
     explicit DataSet(const string& dataFileName);
-    int getD();
-    int getNumOfVectors();
-    vector<vector<T>> getVectors();
-    vector<T> getVector(int id);
-    vector<vector<T>> vecsRead(const string& filename, pair<int, int> bounds);
-
     static void vecsWrite(const string &filename, const vector<vector<T>> &vectors,int globalDim);
-
     void print();
 };
 

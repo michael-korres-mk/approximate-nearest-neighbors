@@ -84,7 +84,7 @@ void runQueries(FilterGraph<T> fgraph,FilterQuerySet<T> qset,DataSet<int>& groun
 		int query_type = qset.queries[i].queryType;
 		int v = qset.queries[i].v;
 
-		vector<int> groundTruthNearestNeighbors = groundtruthDataSet.getVector(i);
+		vector<int> groundTruthNearestNeighbors = groundtruthDataSet.vectors[i];
 
 		if(groundTruthNearestNeighbors[0] == 0) {
 			noneighborQueries++;
