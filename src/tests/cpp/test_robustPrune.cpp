@@ -1,5 +1,6 @@
 #include "../../../include/acutest.h"
-#include "../../main/cpp/ann/Graph/Graph.h"
+#include "../../main/cpp/utility/FilterGraph/FilterGraph.h"
+#include "../../main/cpp/utility/DataPoint/DataPoint.h"
 #include <vector>
 #include <iostream>
 
@@ -7,20 +8,20 @@ using namespace std;
 
 void test_robustPrune() {
     // Arrange
-    vector<int> data0 = {0, 0};
-    vector<int> data1 = {0, 1};
-    vector<int> data2 = {0, 2};
-    vector<int> data3 = {0, 3};
-    vector<int> data4 = {0, 4};
-    vector<int> data5 = {0, 5};
-    vector<int> data6 = {0, 6};
-    vector<int> data7 = {0, 7};
-    vector<int> data8 = {0, 8};
-    vector<int> data9 = {0, 9};
+    DataPoint<int> data0(0,-1,-1,vector<int>({0, 0}));
+    DataPoint<int> data1(1,-1,-1,vector<int>({0, 1}));
+    DataPoint<int> data2(2,-1,-1,vector<int>({0, 2}));
+    DataPoint<int> data3(3,-1,-1,vector<int>({0, 3}));
+    DataPoint<int> data4(4,-1,-1,vector<int>({0, 4}));
+    DataPoint<int> data5(5,-1,-1,vector<int>({0, 5}));
+    DataPoint<int> data6(6,-1,-1,vector<int>({0, 6}));
+    DataPoint<int> data7(7,-1,-1,vector<int>({0, 7}));
+    DataPoint<int> data8(8,-1,-1,vector<int>({0, 8}));
+    DataPoint<int> data9(9,-1,-1,vector<int>({0, 9}));
 
-    vector<vector<int>> data = {data0,data1,data2,data3,data4,data5,data6,data7,data8,data9};
+    vector<DataPoint<int>> data = {data0,data1,data2,data3,data4,data5,data6,data7,data8,data9};
 
-    Graph<int> graph(data, 1, 5, 3,3);
+    FilterGraph<int> graph(data, 1, 5, 3,3,-1);
 
     int p = 0;
     std::vector<int> V = graph.getVerticesIds();
@@ -32,47 +33,54 @@ void test_robustPrune() {
     // Act
     vector<Edge> result = graph.robustPrune(p,V,a,R);
 
-    for (int i = 0; i < result.size(); i++) {
+    for (unsigned int i = 0; i < result.size(); i++) {
         TEST_ASSERT(result[i].destination == expectedNeighbors[i]);
     }
 
 }
 
 void test_robustPrune2() {
-    vector<vector<int>> vec = {{0, 2}, {2, 5}, {2, 10}, {-1, 8}, {5, 6}, {7, 20}, {1, 2}};
+    DataPoint<int> data0(0,-1,-1,vector<int>({0, 2}));
+    DataPoint<int> data1(1,-1,-1,vector<int>({2, 5}));
+    DataPoint<int> data2(2,-1,-1,vector<int>({2, 10}));
+    DataPoint<int> data3(3,-1,-1,vector<int>({-1, 8}));
+    DataPoint<int> data4(4,-1,-1,vector<int>({5, 6}));
+    DataPoint<int> data5(5,-1,-1,vector<int>({7, 20}));
+    DataPoint<int> data6(6,-1,-1,vector<int>({1, 2}));
+
+    vector<DataPoint<int>> data = {data0,data1,data2,data3,data4,data5,data6};
+
     int R = 3;
-    Graph<int> graph({}, 1, R, 4, 1.2);
-    for (auto v : vec){
-      graph.addVertex(v);
-    }
+    FilterGraph<int> graph({}, 1, R, 4, 1.2,-1);
+    for (auto d : data) graph.addVertex(d);
 
-    graph.addEdge(0, 5, graph.euclideanDistance(vec[0], vec[5]));
-    graph.addEdge(0, 4, graph.euclideanDistance(vec[0], vec[4]));
-    graph.addEdge(0, 2, graph.euclideanDistance(vec[0], vec[2]));
+    graph.addEdge(0, 5, graph.euclideanDistance(data[0].vec, data[5].vec));
+    graph.addEdge(0, 4, graph.euclideanDistance(data[0].vec, data[4].vec));
+    graph.addEdge(0, 2, graph.euclideanDistance(data[0].vec, data[2].vec));
 
-    graph.addEdge(1, 4, graph.euclideanDistance(vec[1], vec[4]));
-    graph.addEdge(1, 6, graph.euclideanDistance(vec[1], vec[6]));
-    graph.addEdge(1, 2, graph.euclideanDistance(vec[1], vec[2]));
+    graph.addEdge(1, 4, graph.euclideanDistance(data[1].vec, data[4].vec));
+    graph.addEdge(1, 6, graph.euclideanDistance(data[1].vec, data[6].vec));
+    graph.addEdge(1, 2, graph.euclideanDistance(data[1].vec, data[2].vec));
 
-    graph.addEdge(2, 1, graph.euclideanDistance(vec[2], vec[1]));
-    graph.addEdge(2, 3, graph.euclideanDistance(vec[2], vec[3]));
-    graph.addEdge(2, 4, graph.euclideanDistance(vec[2], vec[4]));
+    graph.addEdge(2, 1, graph.euclideanDistance(data[2].vec, data[1].vec));
+    graph.addEdge(2, 3, graph.euclideanDistance(data[2].vec, data[3].vec));
+    graph.addEdge(2, 4, graph.euclideanDistance(data[2].vec, data[4].vec));
 
-    graph.addEdge(3, 2, graph.euclideanDistance(vec[3], vec[2]));
-    graph.addEdge(3, 0, graph.euclideanDistance(vec[3], vec[0]));
-    graph.addEdge(3, 5, graph.euclideanDistance(vec[3], vec[5]));
+    graph.addEdge(3, 2, graph.euclideanDistance(data[3].vec, data[2].vec));
+    graph.addEdge(3, 0, graph.euclideanDistance(data[3].vec, data[0].vec));
+    graph.addEdge(3, 5, graph.euclideanDistance(data[3].vec, data[5].vec));
 
-    graph.addEdge(4, 0, graph.euclideanDistance(vec[4], vec[0]));
-    graph.addEdge(4, 1, graph.euclideanDistance(vec[4], vec[1]));
-    graph.addEdge(4, 6, graph.euclideanDistance(vec[4], vec[6]));
+    graph.addEdge(4, 0, graph.euclideanDistance(data[4].vec, data[0].vec));
+    graph.addEdge(4, 1, graph.euclideanDistance(data[4].vec, data[1].vec));
+    graph.addEdge(4, 6, graph.euclideanDistance(data[4].vec, data[6].vec));
 
-    graph.addEdge(5, 1, graph.euclideanDistance(vec[5], vec[1]));
-    graph.addEdge(5, 6, graph.euclideanDistance(vec[5], vec[6]));
-    graph.addEdge(5, 4, graph.euclideanDistance(vec[5], vec[4]));
+    graph.addEdge(5, 1, graph.euclideanDistance(data[5].vec, data[1].vec));
+    graph.addEdge(5, 6, graph.euclideanDistance(data[5].vec, data[6].vec));
+    graph.addEdge(5, 4, graph.euclideanDistance(data[5].vec, data[4].vec));
 
-    graph.addEdge(6, 2, graph.euclideanDistance(vec[6], vec[2]));
-    graph.addEdge(6, 1, graph.euclideanDistance(vec[6], vec[1]));
-    graph.addEdge(6, 3, graph.euclideanDistance(vec[6], vec[3]));
+    graph.addEdge(6, 2, graph.euclideanDistance(data[6].vec, data[2].vec));
+    graph.addEdge(6, 1, graph.euclideanDistance(data[6].vec, data[1].vec));
+    graph.addEdge(6, 3, graph.euclideanDistance(data[6].vec, data[3].vec));
 
     int p = 1;
     vector<int> V = {2, 3, 5, 6};

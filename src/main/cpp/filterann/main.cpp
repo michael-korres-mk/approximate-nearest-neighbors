@@ -9,8 +9,8 @@
 # include <unistd.h>
 # include <iomanip>
 #include <filesystem>
-# include "FilterGraph/FilterGraph.h"
-# include "FilterDataset/FilterDataset.h"
+# include "../utility/FilterGraph/FilterGraph.h"
+# include "../utility/FilterDataset/FilterDataset.h"
 # include "FilterQuerySet/FilterQuerySet.h"
 # include "../utility/Utils/Utils.h"
 # include "../utility/DataSet/DataSet.h"
@@ -84,27 +84,27 @@ void runQueries(FilterGraph<T> fgraph,FilterQuerySet<T> qset,DataSet<int>& groun
 		int query_type = qset.queries[i].queryType;
 		int v = qset.queries[i].v;
 
-		vector<int> groundTruthNearestNeighbors = groundtruthDataSet.getVector(i);
+		DataPoint<int> groundTruthNearestNeighbors = groundtruthDataSet.datapoints[i];
 
-		if(groundTruthNearestNeighbors[0] == 0) {
+		if(groundTruthNearestNeighbors.vec[0] == 0) {
 			noneighborQueries++;
 			continue;
 		}
 
 		// resize the vector to cut the 1st element (containing the num of elements) and to stop at the first -1
-		groundTruthNearestNeighbors.erase(groundTruthNearestNeighbors.begin());
-		auto it = find(groundTruthNearestNeighbors.begin(), groundTruthNearestNeighbors.end(), -1);
-		if (it != groundTruthNearestNeighbors.end()) groundTruthNearestNeighbors.resize(distance(groundTruthNearestNeighbors.begin(), it));
+		groundTruthNearestNeighbors.vec.erase(groundTruthNearestNeighbors.vec.begin());
+		auto it = find(groundTruthNearestNeighbors.vec.begin(), groundTruthNearestNeighbors.vec.end(), -1);
+		if (it != groundTruthNearestNeighbors.vec.end()) groundTruthNearestNeighbors.vec.resize(distance(groundTruthNearestNeighbors.vec.begin(), it));
 
 		if(query_type == 0){  // only ANN
 			unfilteredQueries++;
 			const auto& [neighbors,V] = fgraph.filteredGreedySearch(allStartingPoints,qset.queries[i].vec,k,L,-1);
-			totalKRecallUnfiltered += FilterGraph<int>::equals(neighbors,groundTruthNearestNeighbors);
+			totalKRecallUnfiltered += FilterGraph<int>::equals(neighbors,groundTruthNearestNeighbors.vec);
 		}
 		else if(query_type == 1){ // equal + ANN
 			filteredQueries++;
 			const auto& [neighbors,V] = fgraph.filteredGreedySearch({filtersStartingPoints[v]},qset.queries[i].vec,k,L,v);
-			totalKRecallFiltered += FilterGraph<int>::equals(neighbors,groundTruthNearestNeighbors);
+			totalKRecallFiltered += FilterGraph<int>::equals(neighbors,groundTruthNearestNeighbors.vec);
 		}
 		else {
 			otherQueries++;
@@ -175,7 +175,7 @@ int main(int argc,char* argv[]) {
 		if(filesystem::path filePath(RESOURCES_P + filteredVamanaFilename); exists(filePath)) {
 			filteredGraph = FilterGraph<float>({},L,R,k,a, 10);
 			TIMER_BLOCK("Filtered Vamana Index Import",
-				filteredGraph.importFilterGraph(filteredVamanaFilename);
+				filteredGraph.importGraph(filteredVamanaFilename);
 			)
 		}
 		else {
@@ -183,14 +183,14 @@ int main(int argc,char* argv[]) {
 			TIMER_BLOCK("Filtered Vamana Index build",
 				filteredGraph.filteredVamana();
 			)
-			filteredGraph.exportFilterGraph(filteredVamanaFilename);
+			filteredGraph.exportGraph(filteredVamanaFilename);
 		}
 	}
 	else {
 		if(filesystem::path filePath(RESOURCES_P + stitchedVamanaFilename); exists(filePath)) {
 			filteredGraph = FilterGraph<float>({},L,R,k,a, 10);
 			TIMER_BLOCK("Stitched Vamana Index Import",
-				filteredGraph.importFilterGraph(stitchedVamanaFilename);
+				filteredGraph.importGraph(stitchedVamanaFilename);
 			)
 		}
 		else {
@@ -198,7 +198,7 @@ int main(int argc,char* argv[]) {
 			TIMER_BLOCK("Stitched Vamana Index build",
 				filteredGraph.stitchedVamana();
 			)
-			filteredGraph.exportFilterGraph(stitchedVamanaFilename);
+			filteredGraph.exportGraph(stitchedVamanaFilename);
 		}
 	}
 

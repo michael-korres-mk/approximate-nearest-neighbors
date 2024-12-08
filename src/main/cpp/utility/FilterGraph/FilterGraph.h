@@ -5,7 +5,7 @@
 #ifndef FILTERGRAPH_H
 #define FILTERGRAPH_H
 
-#include "../DataPoint/DataPoint.h"
+#include "../../utility/DataPoint/DataPoint.h"
 #include "../../utility/Utils/Utils.h"
 #include "../../utility/Edge/Edge.h"
 #include "../../utility/VamanaContainer/VamanaContainer.h"
@@ -67,13 +67,19 @@ public:
     void printVectorNeighbors(vector<Edge>& neighbors, ostream &out = cout);
     DataPoint<T> getVertex(unsigned int id);
 
+
+    const map<int, DataPoint<T>>& getVertexMap() const {
+        return vertexMap;
+    }
+
     // static
     static float euclideanDistance(const vector<T>& v1,const vector<T>& v2);
     static double equals(const vector<T> &v1, vector<T> &v2);
 
     // import-export graph
-    void importFilterGraph(const string& filename);
-    void exportFilterGraph(const string& filename);
+    void importGraph(const string& filename);
+    void exportGraph(const string& filename);
+
 };
 
 

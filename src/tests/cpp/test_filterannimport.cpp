@@ -3,7 +3,7 @@
 //
 
 #include "../../../include/acutest.h"
-#include "../../main/cpp/ann/Graph/Graph.h"
+#include "../../main/cpp/utility/FilterGraph/FilterGraph.h"
 #include <vector>
 #include <iostream>
 #include <map>
@@ -19,12 +19,12 @@
 #include <limits>
 #include <algorithm>
 # include "../../main/cpp/filterann/FilterQuerySet/FilterQuerySet.h"
-# include "../../main/cpp/filterann/FilterDataset/FilterDataset.h"
+# include "../../main/cpp/utility/FilterDataset/FilterDataset.h"
 # include "../../main/cpp/utility/Utils/Utils.h"
 # include "../../main/cpp/utility/DataSet/DataSet.h"
 #include "../../main/cpp/utility/VamanaContainer/VamanaContainer.h"
-#include "../../main/cpp/filterann/FilterGraph/FilterGraph.h"
-#include "../../main/cpp/filterann/DataPoint/DataPoint.h"
+# include "../../main/cpp/utility/FilterDataset/FilterDataset.h"
+#include "../../main/cpp/utility/DataPoint/DataPoint.h"
 
 void test_filterannimport() {
 
@@ -59,10 +59,10 @@ void test_filterannimport() {
     string filename = "imextest_graph.bin";
 
     // Act
-    graph.exportFilterGraph(filename);
+    graph.exportGraph(filename);
 
     FilterGraph<int> importedGraph({}, 1, 5, 3, 3, 3);
-    importedGraph.importFilterGraph(filename);
+    importedGraph.importGraph(filename);
 
     // Assert
     TEST_ASSERT(graph.numOfDatapoints == importedGraph.numOfDatapoints);

@@ -3,7 +3,8 @@
 //
 
 #include "../../../include/acutest.h"
-#include "../../main/cpp/ann/Graph/Graph.h"
+#include "../../main/cpp/utility/FilterGraph/FilterGraph.h"
+#include "../../main/cpp/utility/DataPoint/DataPoint.h"
 #include <vector>
 #include <iostream>
 
@@ -11,24 +12,24 @@ using namespace std;
 
 void test_greedySearch() {
     // Arrange
-    vector<int> data0 = {0, 0};
-    vector<int> data1 = {0, 1};
-    vector<int> data2 = {0, 2};
-    vector<int> data3 = {0, 3};
-    vector<int> data4 = {0, 4};
-    vector<int> data5 = {0, 5};
-    vector<int> data6 = {0, 6};
-    vector<int> data7 = {0, 7};
-    vector<int> data8 = {0, 8};
-    vector<int> data9 = {0, 9};
+    DataPoint<int> data0(0,-1,-1,vector<int>({0, 0}));
+    DataPoint<int> data1(1,-1,-1,vector<int>({0, 1}));
+    DataPoint<int> data2(2,-1,-1,vector<int>({0, 2}));
+    DataPoint<int> data3(3,-1,-1,vector<int>({0, 3}));
+    DataPoint<int> data4(4,-1,-1,vector<int>({0, 4}));
+    DataPoint<int> data5(5,-1,-1,vector<int>({0, 5}));
+    DataPoint<int> data6(6,-1,-1,vector<int>({0, 6}));
+    DataPoint<int> data7(7,-1,-1,vector<int>({0, 7}));
+    DataPoint<int> data8(8,-1,-1,vector<int>({0, 8}));
+    DataPoint<int> data9(9,-1,-1,vector<int>({0, 9}));
 
-    vector<vector<int>> data = {data0,data1,data2,data3,data4,data5,data6,data7,data8,data9};
+    vector<DataPoint<int>> data = {data0,data1,data2,data3,data4,data5,data6,data7,data8,data9};
 
-    Graph<int> graph(data, 1, 5, 3,3);
+    FilterGraph<int> graph(data, 1, 5, 3,3,-1);
 
-    for (int i = 0; i < data.size(); ++i) {
-        for (int j = i + 1; j < data.size(); ++j) {
-            graph.addEdge(i, j,Graph<int>::euclideanDistance(graph.getVertex(i),graph.getVertex(j))); // Adding edges between all vertices
+    for (unsigned int i = 0; i < data.size(); ++i) {
+        for (unsigned int j = i + 1; j < data.size(); ++j) {
+            graph.addEdge(i, j,FilterGraph<int>::euclideanDistance(graph.getVertex(i).vec,graph.getVertex(j).vec)); // Adding edges between all vertices
         }
     }
     int startVertex = 0;

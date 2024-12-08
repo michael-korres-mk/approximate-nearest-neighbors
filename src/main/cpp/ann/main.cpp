@@ -6,8 +6,8 @@
 # include <unistd.h>
 # include <iomanip>
 # include <filesystem>
-#include "Graph/Graph.h"
 #include "../utility/Utils/Utils.h"
+#include "../utility/FilterGraph/FilterGraph.h"
 
 using namespace std;
 
@@ -33,7 +33,7 @@ void initializeDatasets(DataSet<float>& dataset, DataSet<float>& querySet, DataS
 		dataset = DataSet<float>(dataFilename);
 	)
 
-	cout << "Num of datapoints: " << dataset.getNumOfVectors() << endl;
+	cout << "Num of datapoints: " << dataset.numOfDatapoints << endl;
 
 	DIVIDER
 
@@ -41,7 +41,7 @@ void initializeDatasets(DataSet<float>& dataset, DataSet<float>& querySet, DataS
 			querySet = DataSet<float>(queriesFileName);
 		)
 
-		cout << "Num of queries: " << querySet.getNumOfVectors() << endl;
+		cout << "Num of queries: " << querySet.numOfDatapoints << endl;
 
 	DIVIDER
 
@@ -51,14 +51,13 @@ void initializeDatasets(DataSet<float>& dataset, DataSet<float>& querySet, DataS
 }
 
 template <typename T>
-void runQueries(Graph<T> graph,DataSet<T> qset,DataSet<int>& groundtruthDataSet) {
+void runQueries(FilterGraph<T> graph,DataSet<T> qset,DataSet<int>& groundtruthDataSet) {
 	DIVIDER
-
 
 	int medoidId = graph.medoid();
 	vector<float> q;
 	double totalKRecall = 0.0;
-	const int nq = qset.getNumOfVectors();
+	const int nq = qset.numOfDatapoints;
 
 	if(nq == 0) throw runtime_error("No queries given ...");
 
@@ -67,12 +66,12 @@ void runQueries(Graph<T> graph,DataSet<T> qset,DataSet<int>& groundtruthDataSet)
 
 		if (nq > 10 && i > 0 && i % (nq / 10) == 0) printf("queries completed %d %% ... \n", i * 100 / nq);
 
-		q = qset.getVector(i);
+		q = qset.datapoints[i].vec;
 
 		const auto& [neighbors,v] = graph.greedySearch(medoidId,q,k,L);
-		vector<int> groundTruthNearestNeighbors = groundtruthDataSet.getVector(i);
+		DataPoint<int> groundTruthNearestNeighbors = groundtruthDataSet.datapoints[i];
 
-		const double kRecall = Graph<int>::equals(neighbors,groundTruthNearestNeighbors);
+		const double kRecall = FilterGraph<int>::equals(neighbors,groundTruthNearestNeighbors.vec);
 		totalKRecall += kRecall;
 
 	}
@@ -111,20 +110,20 @@ int main(int argc,char* argv[]) {
 
 	initializeDatasets(dataset,querySet,groundtruthSet);
 
-	Graph<float> graph;
+	FilterGraph<float> graph;
 
 	DIVIDER
 
 	const string vamanaFilename = "vamana_graph.bin";
 
 	if(filesystem::path filePath(RESOURCES_P + vamanaFilename); exists(filePath)) {
-		graph = Graph<float>({},L,R,k,a);
+		graph = FilterGraph<float>({},L,R,k,a,-1);
 		TIMER_BLOCK("Filtered Vamana Index Import",
 			graph.importGraph(vamanaFilename);
 		)
 	}
 	else {
-		graph = Graph<float>(dataset.getVectors(),L,R,k,a);
+		graph = FilterGraph<float>(dataset.datapoints,L,R,k,a,-1);
 		TIMER_BLOCK("Vamana Index build",
 			graph.vamana();
 		)
