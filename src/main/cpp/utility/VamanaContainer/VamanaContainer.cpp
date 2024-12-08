@@ -28,16 +28,14 @@ void VamanaContainer::insert(const pair<int,double>& newItem) {
 }
 
 bool VamanaContainer:: contains(int id) const {
-    for(const auto& [itemId,_] : items ) {
-        if(itemId == id) return true;
-    }
-    return false;
+    return any_of(items.begin(), items.end(), [id](const auto& item) {return item.first == id;});
 }
 
 vector<int> VamanaContainer::subset(int k) {
     // Αποθήκευση των k πιο κοντινών γειτόνων
     vector<int> subset;
-    for (int i = 0; (k == -1 || i < k) && i < items.size(); i++) {
+    int itemSize = static_cast<int>(items.size());
+    for (int i = 0; (k == -1 || i < k) && i < itemSize; i++) {
         subset.emplace_back(items[i].first);
     }
     return subset;

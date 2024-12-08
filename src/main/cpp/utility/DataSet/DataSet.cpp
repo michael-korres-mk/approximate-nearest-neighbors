@@ -2,112 +2,110 @@
 // Created by mkorres on 10/9/2024.
 //
 
-# include "DataSet.h"
+#include "DataSet.h"
 
-#include <chrono>
-
-# include "../Utils/Utils.h"
+#include "../DataPoint/DataPoint.h"
 
 template<typename T>
-DataSet<T>::DataSet() {
-}
+DataSet<T>::DataSet() {}
 
 template <typename T>
-DataSet<T>::DataSet(const string& dataFileName) {
-    this->vectors = this->vecsRead(dataFileName,{1,-1});
-    assert(!vectors.empty());
-    this->d = this->vectors[0].size();
-    this->numOfVectors = this->vectors.size();
-}
+DataSet<T>::DataSet(const string& filename) {
+    const string filePath(RESOURCES_P + filename);
 
-template <typename T>
-vector<vector<T>> DataSet<T>::vecsRead(const string& filename, pair<int, int> bounds) {
-
-    string dataFilePath(RESOURCES_P + filename);
-
-    ifstream file(dataFilePath, ios::binary);
-    if (!file.is_open()) {
-        throw runtime_error("I/O error: Unable to open the file " + filename);
-    }
+    ifstream file(filePath, ios::binary);
+    if (!file.is_open()) throw runtime_error("I/O error: Unable to open the file " + filename);
 
     // Read the vector size (dimension)
-    int d;
-    file.read(reinterpret_cast<char*>(&d), sizeof(int));
-    int vectorSize = sizeof(int) + d * sizeof(T);
+    int globalDim;
+    file.read(reinterpret_cast<char*>(&globalDim), sizeof(int));
+    const int vectorSize = sizeof(int) + globalDim * sizeof(T);
 
     // Find total number of vectors in the file
     file.seekg(0, ios::end);
-    streampos fileSize = file.tellg();
-    int bmax = fileSize / vectorSize;
-
-    int a = bounds.first;
-    int b = (bounds.second == -1) ? bmax : bounds.second;
-
-    // Ensure the bounds are valid
-    assert(a >= 1);
-    if (b > bmax) b = bmax;
-    if (b == 0 || b < a) return {};
-
-    // Calculate the number of vectors to read
-    int n = b - a + 1;
-
-    // Seek to the starting position
-    file.seekg((a - 1) * vectorSize, ios::beg);
+    const int n = file.tellg() / vectorSize;
+    file.seekg(0, ios::beg);
 
     // Read the vectors
-    vector<vector<T>> vectors(n, vector<T>(d));
-
-    T data;
+    vector<DataPoint<T>> datapoints;
 
     for (int i = 0; i < n; ++i) {
-        int dim;
-        file.read(reinterpret_cast<char*>(&dim), sizeof(int));
-        assert(dim == d);
+        DataPoint<T> dataPoint = readDataPoint(file,i);
+        datapoints.push_back(dataPoint);
+    }
 
-        for(int j = 0; j < d; j++) {
-            file.read(reinterpret_cast<char*>(&data),sizeof(T));
-            vectors[i][j] = data;
+    file.close();
+
+    d = globalDim;
+
+    this->datapoints = datapoints;
+    assert(!datapoints.empty());
+    numOfDatapoints = datapoints.size();
+}
+
+template<typename T>
+DataPoint<T> DataSet<T>::readDataPoint(ifstream& file,int id) {
+    // Read the vectors
+    int dim;
+    file.read(reinterpret_cast<char*>(&dim), sizeof(int));
+
+    T data;
+    vector<T> vec(dim);
+
+    for(int j = 0; j < dim; j++) {
+        file.read(reinterpret_cast<char*>(&data),sizeof(T));
+        vec[j] = data;
+    }
+
+    return DataPoint<T>(id,-1,-1,vec);
+}
+
+template <typename T>
+void DataSet<T>::vecsWrite(const string& filename, const vector<vector<T>>& vectors,int globalDim) {
+    const string dataFilePath(RESOURCES_P + filename);
+
+    ofstream file(dataFilePath, ios::binary);
+    if (!file.is_open()) throw runtime_error("I/O error: Unable to open the file " + filename + " for writing.");
+
+    // Read the vector size (dimension)
+    file.write(reinterpret_cast<char*>(&globalDim), sizeof(int));
+
+    constexpr int placeholder = -1;
+
+    // Write each vector's dimension and data to the file
+    for (const auto& vec : vectors) {
+        int dimension = vec.size();
+
+        // Write the dimension
+        if (!file.write(reinterpret_cast<const char*>(&dimension), sizeof(int)))
+            throw runtime_error("I/O error: Unable to write vector dimension to the file.");
+
+
+        // Write all elements of the vector
+        for (int j = 0; j < dimension; j++){
+            if (!file.write(reinterpret_cast<const char*>(&vec[j]), sizeof(T)))
+                throw runtime_error("I/O error: Unable to write vector data to the file.");
+        }
+        for (int j = dimension; j < globalDim; j++) {
+            if (!file.write(reinterpret_cast<const char*>(&placeholder), sizeof(T)))
+                throw runtime_error("I/O error: Unable to write vector data to the file.");
         }
 
     }
 
     file.close();
-    return vectors;
-}
-
-template <typename T>
-int DataSet<T>::getD() {
-    return this->d;
-}
-
-template <typename T>
-int DataSet<T>::getNumOfVectors() {
-    return this->numOfVectors;
-}
-
-template <typename T>
-vector<vector<T>> DataSet<T>::getVectors() {
-    return this->vectors;
-}
-
-template<typename T>
-vector<T> DataSet<T>::getVector(int id) {
-    return this->vectors[id];
 }
 
 template <typename T>
 void DataSet<T>::print() {
 
     cout << "d=" << d << endl;
-    cout << "numOfVectors=" << numOfVectors << endl;
+    cout << "numOfVectors=" << numOfDatapoints << endl;
     cout << "sizeof(T)=" << sizeof(T) << endl;
 
-    for(int i = 0; i < this->getNumOfVectors(); i++) {
-        fprintf(stdout, "\e[36mvector[ %d ] is:   \e[0m\n",i);
-        for(int j = 0; j < this->getD() - 1; j++) {
-            cout << vectors[i][j] << " ";
-        }
-        cout << setw(4) << fixed << setprecision(4) << vectors[i][this->getD() - 1] << endl;
+    for(int i = 0; i < numOfDatapoints; i++) {
+        Utils<T>::printVec(datapoints[i].vec);
+        DIVIDER
     }
 }
 

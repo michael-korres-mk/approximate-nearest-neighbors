@@ -1,44 +1,48 @@
-all:
-	$(MAKE) -f make-ann
-	$(MAKE) -f make-test
+include $(wildcard configs/*.mk.conf)
 
-# Target: clean
-clean:
-	$(MAKE) clean -f make-ann
-	$(MAKE) clean -f make-test
-#	rm -f $(shell find $(RESOURCES_DIR) -type f ! -name 'voters*0.bin')
-
-.PHONY: all clean
-
-# Directory where object files will be placed
 BUILD_DIR = build
 
-# Directory where resource files will be placed
-RESOURCES_DIR = src/main/resources
+TARGETS = ann filterann groundtruthcalc
+TESTS = $(patsubst src/tests/cpp/%.cpp,build/tests/%,$(shell find src/tests/cpp -name "*.cpp"))
 
-DATASET = siftsmall
-BASE_DATA_FILE = $(DATASET)/$(DATASET)_base.fvecs
-GROUNDTRUTH_DATA_FILE = $(DATASET)/$(DATASET)_groundtruth.ivecs
-QUERY_DATA_FILE = $(DATASET)/$(DATASET)_query.fvecs
+b: $(addsuffix b, $(TARGETS))
+	@:
 
-k = 100
-L = 250
-R = 60
-a = 1.2
+$(addsuffix b, $(TARGETS)):
+	@clear
+	$(MAKE) INCLUDE=configs/$(@:b=).mk.conf -f makefiles/template.mk
 
-main:
-	$(BUILD_DIR)/ann -k $(k) -L $(L) -R $(R) -a $(a) -bv $(BASE_DATA_FILE) -gv $(GROUNDTRUTH_DATA_FILE) -qv $(QUERY_DATA_FILE)
+testb:
+	@clear
+	$(MAKE) -f makefiles/make-test.mk
 
+$(TARGETS):
+	@clear
+	$(BUILD_DIR)/$@/main $($(shell echo "$@" | tr 'a-z' 'A-Z')_CLINE_ARGS)
 
-TEST_SOURCES = $(wildcard tests/*)
-TEST_EXECUTABLES = $(patsubst %.cpp,build/%,$(TEST_SOURCES))
-
-tests: $(TEST_EXECUTABLES)
-	@for test in $(TEST_EXECUTABLES); do \
-		echo "Running $$test"; \
+test: $(TESTS)
+	@clear
+	@for test in $(TESTS); do \
+		echo "------------------------------ Running $$test ------------------------------"; \
 		$$test; \
 	done
 
+clean:
+	@clear
+	@for target in $(TARGETS); do \
+		$(MAKE) clean INCLUDE=configs/$$target.mk.conf -f makefiles/template.mk; \
+	done
 
-valgrind-ann:
-	valgrind --trace-children=yes --leak-check=full --show-leak-kinds=all  --leak-resolution=med --track-origins=yes --vgdb=no 	$(BUILD_DIR)/ann -bv $(BASE_DATA_FILE) -gv $(GROUNDTRUTH_DATA_FILE) -qv $(QUERY_DATA_FILE)
+VALGRIND_FLAGS = --trace-children=yes --leak-check=full --show-leak-kinds=all  --leak-resolution=med --track-origins=yes --vgdb=no
+
+# TODO: checkout running w/ valgrind error messages
+$(addsuffix v, $(TARGETS)):
+	@clear
+	valgrind $(VALGRIND_FLAGS) $(BUILD_DIR)/$(@:v=)/main $($(shell echo "$(@:v=)" | tr 'a-z' 'A-Z')_CLINE_ARGS)
+
+testv: $(TESTS)
+	@clear
+	@for test in $(TESTS); do \
+		echo "------------------------------ Running $$test ------------------------------"; \
+		valgrind $(VALGRIND_FLAGS) $$test; \
+	done

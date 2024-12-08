@@ -1,11 +1,12 @@
-#include "../include/acutest.h"
-#include "../src/main/cpp/utility/Graph/Graph.h"
+#include "../../../include/acutest.h"
+#include "../../main/cpp/utility/FilterGraph/FilterGraph.h"
+#include "../../main/cpp/utility/DataPoint/DataPoint.h"
 #include <vector>
 #include <iostream>
 #include <random>
 
 void test_medoid() {
-    Graph<int> graph({}, 2, 5, 3, 0.5);
+    FilterGraph<int> graph({}, 2, 5, 3, 0.5,-1);
     int num_points = 10000; // Αριθμός σημείων (μεγαλύτερο από 1000)
     mt19937 rng(42); // Σταθερός seed για αναπαραγωγή
     uniform_int_distribution<int> dist(-100, 100);
@@ -13,7 +14,7 @@ void test_medoid() {
     // arrange
     // Προσθήκη τυχαίων σημείων στον γράφο
     for (int i = 0; i < num_points; ++i) {
-        vector<int> point = {dist(rng), dist(rng)};
+        DataPoint<int> point(i,-1,-1,vector<int>({dist(rng), dist(rng)}));
         graph.addVertex(point);
     }
 
@@ -33,13 +34,13 @@ void test_medoid() {
     int medoid_id = -1;
     double min_total_distance = numeric_limits<double>::infinity();
 
-    const auto& vertex_map = graph.getVertexMap();
+    auto vertex_map = graph.getVertexMap();
     // Διατρέχουμε όλα τα σημεία για να υπολογίσουμε το medoid
-    for (const auto& [id_i, vec_i] : vertex_map) {
+    for (const auto& [id_i, datapoint_i] : vertex_map) {
         double total_distance = 0.0;
-        for (const auto& [id_j, vec_j] : vertex_map) {
+        for (const auto& [id_j, datapoint_j] : vertex_map) {
             if (id_i != id_j) {
-                total_distance += graph.euclideanDistance(vec_i, vec_j);
+                total_distance += graph.euclideanDistance(datapoint_i.vec, datapoint_j.vec);
             }
         }
         if (id_i == medoid_sample_id1) {

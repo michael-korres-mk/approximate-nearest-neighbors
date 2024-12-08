@@ -1,0 +1,41 @@
+name: ANN CI
+
+on:
+  push:
+    branches: [ "master","develop" ]
+  pull_request:
+    branches: [ "master","develop" ]
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up the build environment
+      - name: Install dependencies
+        shell: bash
+        run: |
+          sudo add-apt-repository universe
+          sudo apt update
+          sudo apt install -y gcc gdb make git valgrind lcov graphviz libgl-dev
+
+      # Step 3: Build the project using `make b` and `make testb`
+      - name: Build the project
+        shell: bash
+        run: |
+          export TERM=xterm-256color
+          make b
+          make testb
+
+      # Step 4: Run the tests using `make test`
+      - name: Run tests
+        shell: bash
+        run: |
+          export TERM=xterm-256color
+          make test
+
+# NOTE: The $TERM environment variable is used by applications to take advantage of the capabilities of that terminal emulator

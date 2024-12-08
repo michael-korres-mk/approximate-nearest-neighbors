@@ -2,23 +2,65 @@
 
 ### Build Project
 ```
-make
+make b
 ```
 
-### Run Project
+### Run A Target
 ```
 make ann
 ```
+```
+make filterann
+```
 
-### Run Project with Valgrind
+#### NOTE \#1
+In the configs/filterann.mk.config: \
+FILTERANN_FVAMANA = 0 => Stitched Vamana \
+FILTERANN_FVAMANA = 1 => Filtered Vamana
+
+#### NOTE \#2
+If corresponding precomputed graph file exists in src/main/resources,\
+then the graph will **automatically get imported**,instead of calculated from scratch.\
+Delete the corresponding file {vamana_graph.bin,stitched_vamana_graph.bin,filtered_vamana_graph.bin} to run the algorithms.
+
+
 ```
-make valgrind-ann
+make groundtruthcalc
 ```
+
+### Build Specific Target
+#### Just add a **b** to the target ==> {ann => ann**b**}
+
+### Run Target with Valgrind
+#### Just add a **v** to the target ==> {ann => ann**v**}
 
 ### Clean
 ```
 make clean
 ```
+--------------
+### Project Contribution
+
+#### Michael Korres
+* Software Design
+* Build Mechanism and API Design & Implementation
+* Project Setup (Project File-Structure, Data Input & Core Implementations)
+* GreedySearch Implementation
+* Vamana Implementation
+* FilteredGreedySearch Implementation
+* StitchedVamana Implementation
+* CI Pipeline
+
+#### Marios Kindynis
+* RobustPrune Implementation
+* Implementation Optimizations & Fixes
+* Testing
+* Commenting & README
+* FindMedoid Implementation
+* FilteredVamana Implementation
+* FilteredRobustPrune Implementation
+
+--------------
 
 ## About the project
 
@@ -42,28 +84,30 @@ make clean
 
 Δώσαμε ιδιαίτερη προσοχή στη διαχείριση της μνήμης και την αποφυγή διαρροών, χρησιμοποιώντας κατάλληλες δομές δεδομένων και εξασφαλίζοντας ότι όλες οι δυναμικές μνήμες απελευθερώνονται σωστά. Ο συνάδελφός μου και εγώ φροντίσαμε ο κώδικας να είναι καλά σχολιασμένος και δομημένος, ώστε να είναι εύκολα κατανοητός και επεκτάσιμος στο μέλλον.
 
+### Changes and Additions for the Second Deliverable
+Στην παρούσα επέκταση για το δεύτερο παραδοτέο, προσαρμόσαμε τον αλγόριθμο και τις δομές δεδομένων μας ώστε να υποστηρίζουν φιλτραρισμένες ερωτήσεις (filtered queries). Αυτό μας επιτρέπει να εκτελούμε αναζητήσεις εγγύτερων γειτόνων όχι μόνο με βάση την ευκλείδεια απόσταση, αλλά και υπό την προϋπόθ**εση ότι τα σημεία δεδομένων ανήκουν σε συγκεκριμένες κατηγορίες ή φέρουν ορισμένες ετικέτες (filters).
+
+Πιο συγκεκριμένα, εισαγάγαμε τους ακόλουθους αλγόριθμους:**
+1. Find Medoid: επιλέγει ένα medoid για κάθε φίλτρο εφαρμόζοντας τυχαία δειγματοληψία στα σχετικά σημεία δεδομένων. Αρχικά, ομαδοποιεί τα σημεία ανά φίλτρο και αντλεί τυχαία δείγματα με βάση το μέγεθος του tau. Στη συνέχεια, επιλέγει ως medoid εκείνο το σημείο που έχει χρησιμοποιηθεί λιγότερο φορές ως medoid στο παρελθόν, ώστε να κατανεμηθεί ισορροπημένα το “φορτίο”. Τέλος, ενημερώνει τους σχετικούς χάρτες (M, medoidCount) καταγράφοντας το επιλεγμένο medoid για κάθε φίλτρο.
+2. Filtered Greedy Search: Η κλασική greedySearch() προσαρμόστηκε ώστε να λαμβάνει υπόψη φίλτρα κατά τη διάρκεια της αναζήτησης. Πλέον, σε κάθε βήμα εξετάζονται μόνο οι κόμβοι που ικανοποιούν τα κριτήρια φιλτραρίσματος, εξασφαλίζοντας ότι το αποτέλεσμα περιλαμβάνει μόνο εκείνα τα σημεία που πληρούν τις απαιτούμενες ετικέτες. 
+3. Filtered Robust Prune: Η διαδικασία robustPrune() προσαρμόστηκε σε filteredRobustPrune() ώστε να λαμβάνει υπόψη το σύνολο φίλτρων κατά το κλάδεμα των ακμών. Αυτό εξασφαλίζει ότι, εκτός από το κριτήριο απόστασης, τα διατηρούμενα ακριακά σημεία έχουν τουλάχιστον μία κοινή ετικέτα με τον κόμβο αναφοράς. Έτσι, ο γράφος παραμένει αραιός και σχετικός με τα φίλτρα, χωρίς να θυσιάζεται η ποιότητα των αναζητήσεων. 
+4. Filtered Vamana: Επεκτείναμε τον αλγόριθμο κατασκευής του ευρετηρίου (Vamana) για να υποστηρίζει τη δημιουργία φιλτραρισμένων γραφημάτων. Στην υλοποίηση της filteredVamana(), εκτελούμε τοπικές αναζητήσεις με φίλτρα (FilteredGreedySearch) και στη συνέχεια εφαρμόζουμε την προσαρμοσμένη διαδικασία κλαδέματος (FilteredRobustPrune) για να διατηρούμε μόνο τους σχετικούς γείτονες με βάση τα φίλτρα. Με αυτόν τον τρόπο, εξασφαλίζουμε ότι οι ακμές του γράφου συνδέουν κόμβους που μοιράζονται τις ίδιες ετικέτες, βελτιώνοντας την ακρίβεια και την ταχύτητα των μελλοντικών φιλτραρισμένων αναζητήσεων.
+5. Stitched Vamana: Σε περιπτώσεις όπου υπάρχουν πολλαπλά φίλτρα, χρησιμοποιούμε τον αλγόριθμο stitchedVamana() για να ενοποιήσουμε τα επιμέρους ευρετήρια που έχουν κατασκευαστεί χωριστά για κάθε φίλτρο. Με την ολοκλήρωση της διαδικασίας, και αφού εφαρμόσουμε το FilteredRobustPrune, επιτυγχάνουμε έναν τελικό, συνεκτικό γράφο ευρετηρίου ικανό να υποστηρίζει αναζητήσεις με πολλαπλά φίλτρα.
+
+Με αυτές τις αλλαγές, το σύστημά μας δεν περιορίζεται πλέον στην απλή αναζήτηση κατά προσέγγιση πλησιέστερων γειτόνων, αλλά υποστηρίζει και φιλτραρισμένες αναζητήσεις, επιτρέποντάς μας να περιορίσουμε τον χώρο αναζήτησης και να βελτιώσουμε περαιτέρω το recall σε ερωτήματα που αφορούν συγκεκριμένες κατηγορίες δεδομένων. Η αρχιτεκτονική παραμένει επεκτάσιμη και ευέλικτη, διευκολύνοντας τη μελλοντική προσθήκη επιπλέον κριτηρίων ή φίλτρων.
+
+--------------
+
 ## Unit Tests
-### Build Project - Unit Test
+### Build Test Targets
 ```
-make
-```
-
-### Run Unit Test
-```
-make tests
+make testb
 ```
 
-### Project Contribution
-Michael Korres
-* Project Setup (Project File-Structure, Data Input & Core Implementations)
-* GreedySearch Implementation
-* Vamana Implementation
-
-Marios Kindynis
-* RobustPrune Implementation
-* Implementation Optimizations & Fixes
-* Testing
-* Commenting & README
+### Run Tests
+```
+make test
+```
 
 ### Description
 
@@ -81,19 +125,43 @@ Marios Kindynis
 
 Στα παρακάτω αρχεία test_*.cpp, έχουμε δημιουργήσει unit tests για να επαληθεύσουμε τη σωστή λειτουργία των κύριων μεθόδων του κώδικά μας όπου κάθε test επικεντρώνεται σε συγκεκριμένη λειτουργία:
 1. test_addEdge.cpp: Ελέγχει την προσθήκη ακμής μεταξύ δύο κόμβων στον γράφο και την ακρίβεια των γειτόνων.
+2. test_addVertex.cpp: Ελέγχει την προσθήκη ενός νέου κόμβου στον γράφο και την ακρίβεια των δεδομένων του.
+3. test_medoid.cpp: Ελέγχει την ακρίβεια εύρεσης του medoid μέσω δειγματοληψίας σε μεγάλο σύνολο δεδομένων.
+4. test_greedySearch.cpp: Ελέγχει τη λειτουργία της άπληστης αναζήτησης για εύρεση πλησιέστερων γειτόνων.
+5. test_robustPrune.cpp: Ελέγχει τη λειτουργία κλαδέματος των γειτόνων για έναν κόμβο, βάσει του αλγορίθμου robustPrune.
+6. test_vamana.cpp: Ελέγχει την πλήρη λειτουργία του αλγορίθμου Vamana για σωστή κατασκευή και πλοήγηση στον γράφο. 
+7. test_filterannimport.cpp: Ελέγχει την εισαγωγή και εξαγωγή φιλτραρισμένου ευρετηρίου (Import/Export), επαληθεύοντας την ακεραιότητα των δεδομένων. 
+8. test_findMedoid.cpp: Ελέγχει την εύρεση medoid σε περίπτωση πολλαπλών φίλτρων και τη σωστή επιλογή σημείου.
+9. test_filter_greedySearch.cpp: Ελέγχει την φιλτραρισμένη αναζήτηση μέσω GreedySearch, επαληθεύοντας την ορθότητα φιλτραρίσματος των αποτελεσμάτων.
+10. test_filteredRobustPrune.cpp:Ελέγχει την προσαρμοσμένη λειτουργία RobustPrune όταν υπάρχουν φίλτρα και ετικέτες, ώστε να διατηρούνται μόνο οι σχετικοί γείτονες.
+11. test_filter_vamana.cpp: Ελέγχει τον προσαρμοσμένο αλγόριθμο FilteredVamana για κατασκευή ευρετηρίου με φίλτρα.
+12. test_stitched_vamana.cpp: Ελέγχει την ορθή stitching πολλαπλών γράφων Vamana σε ένα τελικό φιλτραρισμένο ευρετήριο.
 
-2. test_weightAddedProperly.cpp: Επαληθεύει ότι το βάρος της ακμής που προστίθεται υπολογίζεται σωστά.
+Συνολικά, η προσέγγισή μας στα unit tests μάς επέτρεψε να διασφαλίσουμε την ορθότητα και την αξιοπιστία της υλοποίησής μας.
 
-3. test_addVertex.cpp: Δοκιμάζει την προσθήκη ενός νέου κόμβου στον γράφο και την ακρίβεια των δεδομένων του.
+--------------
 
-4. test_invalidIdIsNullptr.cpp: Ελέγχει την επιστροφή κενού διανύσματος όταν ζητείται κόμβος με μη έγκυρο ID.
+## Build Mechanism Description
 
-5. test_greedySearch.cpp: Δοκιμάζει τη λειτουργία της άπληστης αναζήτησης για εύρεση πλησιέστερων γειτόνων.
+Η δημιουργία του οποιουδήποτε νέου εκτελέσιμου με όνομα \<TARGET\> ακολουθεί την εξής διαδικασία:
+1. Δημιουργία του φακέλου **src/main/cpp/\<TARGET\>**
+2. Δημιουργία **-μοναδικού στο φάκελο(και τους υποφακέλους του)**- αρχείου **main.cpp**
+3. Δημιουργία λοιπών αρχείων που χρειάζεται το εκτελέσιμο 
+4. Δημιουργία στον φάκελο configs/ του αρχείου \<TARGET\>.mk.config με την ακόλουθη δομή:
 
-6. test_medoid.cpp: Ελέγχει την ακρίβεια εύρεσης του medoid μέσω δειγματοληψίας σε μεγάλο σύνολο δεδομένων.
+--------------
 
-7. test_robustPrune.cpp: Δοκιμάζει τη λειτουργία κλαδέματος των γειτόνων για έναν κόμβο, βάσει του αλγορίθμου robustPrune.
+\# build config \
+TARGET = \<TARGET\> \
+DEPENDENCIES = DEPENDENCIES(\<TARGET\>) \# e.g \$(shell find \$(SRC_DIR)/utility -name "*.cpp")
 
-8. test_vamana.cpp: Ελέγχει την πλήρη λειτουργία του αλγορίθμου Vamana για σωστή κατασκευή και πλοήγηση στον γράφο.
+\# arguments \
+\<ARG1\> = ARG_VAL1 \
+...
 
-Συνολικά, η προσέγγισή μας στα unit tests μάς επέτρεψε να διασφαλίσουμε την ορθότητα και την αξιοπιστία της υλοποίησής μας. 
+\# command line arguments \
+\<TARGET\>_CLINE_ARGS = $(<ARG1>) ... ARG_VALN
+
+#### NOTE: No need to list in "DEPENDENCIES" the files existing in **src/main/cpp/\<TARGET\>**
+
+--------------
