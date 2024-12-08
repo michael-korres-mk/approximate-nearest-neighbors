@@ -1,7 +1,4 @@
-# Include external parameter file
-include configs/ann.mk.conf
-include configs/filterann.mk.conf
-include configs/groundtruthcalc.mk.conf
+include $(wildcard configs/*.mk.conf)
 
 BUILD_DIR = build
 

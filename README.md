@@ -5,20 +5,62 @@
 make b
 ```
 
-### Run Project
+### Run A Target
 ```
 make ann
 ```
+```
+make filterann
+```
 
-### Run Project with Valgrind
+#### NOTE \#1
+In the configs/filterann.mk.config: \
+FILTERANN_FVAMANA = 0 => Stitched Vamana \
+FILTERANN_FVAMANA = 1 => Filtered Vamana
+
+#### NOTE \#2
+If corresponding precomputed graph file exists in src/main/resources,\
+then the graph will **automatically get imported**,instead of calculated from scratch.\
+Delete the corresponding file {vamana_graph.bin,stitched_vamana_graph.bin,filtered_vamana_graph.bin} to run the algorithms.
+
+
 ```
-make valgrind-ann
+make groundtruthcalc
 ```
+
+### Build Specific Target
+#### Just add a **b** to the target ==> {ann => ann**b**}
+
+### Run Target with Valgrind
+#### Just add a **v** to the target ==> {ann => ann**v**}
 
 ### Clean
 ```
 make clean
 ```
+--------------
+### Project Contribution
+
+#### Michael Korres
+* Software Design
+* Build Mechanism and API Design & Implementation
+* Project Setup (Project File-Structure, Data Input & Core Implementations)
+* GreedySearch Implementation
+* Vamana Implementation
+* FilteredGreedySearch Implementation
+* StitchedVamana Implementation
+* CI Pipeline
+
+#### Marios Kindynis
+* RobustPrune Implementation
+* Implementation Optimizations & Fixes
+* Testing
+* Commenting & README
+* FindMedoid Implementation
+* FilteredVamana Implementation
+* FilteredRobustPrune Implementation
+
+--------------
 
 ## About the project
 
@@ -54,13 +96,15 @@ make clean
 
 Με αυτές τις αλλαγές, το σύστημά μας δεν περιορίζεται πλέον στην απλή αναζήτηση κατά προσέγγιση πλησιέστερων γειτόνων, αλλά υποστηρίζει και φιλτραρισμένες αναζητήσεις, επιτρέποντάς μας να περιορίσουμε τον χώρο αναζήτησης και να βελτιώσουμε περαιτέρω το recall σε ερωτήματα που αφορούν συγκεκριμένες κατηγορίες δεδομένων. Η αρχιτεκτονική παραμένει επεκτάσιμη και ευέλικτη, διευκολύνοντας τη μελλοντική προσθήκη επιπλέον κριτηρίων ή φίλτρων.
 
+--------------
+
 ## Unit Tests
-### Build Project - Unit Test
+### Build Test Targets
 ```
 make testb
 ```
 
-### Run Unit Test
+### Run Tests
 ```
 make test
 ```
@@ -93,22 +137,31 @@ make test
 11. test_filter_vamana.cpp: Ελέγχει τον προσαρμοσμένο αλγόριθμο FilteredVamana για κατασκευή ευρετηρίου με φίλτρα.
 12. test_stitched_vamana.cpp: Ελέγχει την ορθή stitching πολλαπλών γράφων Vamana σε ένα τελικό φιλτραρισμένο ευρετήριο.
 
-Συνολικά, η προσέγγισή μας στα unit tests μάς επέτρεψε να διασφαλίσουμε την ορθότητα και την αξιοπιστία της υλοποίησής μας. 
+Συνολικά, η προσέγγισή μας στα unit tests μάς επέτρεψε να διασφαλίσουμε την ορθότητα και την αξιοπιστία της υλοποίησής μας.
 
+--------------
 
-### Project Contribution
-Michael Korres
-* Project Setup (Project File-Structure, Data Input & Core Implementations)
-* GreedySearch Implementation
-* Vamana Implementation
-* FilteredGreedySearch Implementation
-* StitchedVamana Implementation
+## Build Mechanism Description
 
-Marios Kindynis
-* RobustPrune Implementation
-* Implementation Optimizations & Fixes
-* Testing
-* Commenting & README
-* FindMedoid Implementation
-* FilteredVamana Implementation
-* FilteredRobustPrune Implementation
+Η δημιουργία του οποιουδήποτε νέου εκτελέσιμου με όνομα \<TARGET\> ακολουθεί την εξής διαδικασία:
+1. Δημιουργία του φακέλου **src/main/cpp/\<TARGET\>**
+2. Δημιουργία **-μοναδικού στο φάκελο(και τους υποφακέλους του)**- αρχείου **main.cpp**
+3. Δημιουργία λοιπών αρχείων που χρειάζεται το εκτελέσιμο 
+4. Δημιουργία στον φάκελο configs/ του αρχείου \<TARGET\>.mk.config με την ακόλουθη δομή:
+
+--------------
+
+\# build config \
+TARGET = \<TARGET\> \
+DEPENDENCIES = DEPENDENCIES(\<TARGET\>) \# e.g \$(shell find \$(SRC_DIR)/utility -name "*.cpp")
+
+\# arguments \
+\<ARG1\> = ARG_VAL1 \
+...
+
+\# command line arguments \
+\<TARGET\>_CLINE_ARGS = $(<ARG1>) ... ARG_VALN
+
+#### NOTE: No need to list in "DEPENDENCIES" the files existing in **src/main/cpp/\<TARGET\>**
+
+--------------
