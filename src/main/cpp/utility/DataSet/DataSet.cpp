@@ -4,14 +4,16 @@
 
 #include "DataSet.h"
 
+#include "../DataPoint/DataPoint.h"
+
 template<typename T>
 DataSet<T>::DataSet() {}
 
 template <typename T>
 DataSet<T>::DataSet(const string& filename) {
-    string dataFilePath(RESOURCES_P + filename);
+    const string filePath(RESOURCES_P + filename);
 
-    ifstream file(dataFilePath, ios::binary);
+    ifstream file(filePath, ios::binary);
     if (!file.is_open()) throw runtime_error("I/O error: Unable to open the file " + filename);
 
     // Read the vector size (dimension)
@@ -21,33 +23,41 @@ DataSet<T>::DataSet(const string& filename) {
 
     // Find total number of vectors in the file
     file.seekg(0, ios::end);
-    int n = file.tellg() / vectorSize;
+    const int n = file.tellg() / vectorSize;
     file.seekg(0, ios::beg);
 
     // Read the vectors
-    vector<vector<T>> vectors(n, vector<T>(globalDim));
-
-    T data;
+    vector<DataPoint<T>> datapoints;
 
     for (int i = 0; i < n; ++i) {
-
-        int dim;
-        file.read(reinterpret_cast<char*>(&dim), sizeof(int));
-
-        for(int j = 0; j < globalDim; j++) {
-            file.read(reinterpret_cast<char*>(&data),sizeof(T));
-            vectors[i][j] = data;
-        }
-
+        DataPoint<T> dataPoint = readDataPoint(file,i);
+        datapoints.push_back(dataPoint);
     }
 
     file.close();
 
     d = globalDim;
 
-    this->vectors = vectors;
-    assert(!vectors.empty());
-    numOfVectors = vectors.size();
+    this->datapoints = datapoints;
+    assert(!datapoints.empty());
+    numOfDatapoints = datapoints.size();
+}
+
+template<typename T>
+DataPoint<T> DataSet<T>::readDataPoint(ifstream& file,int id) {
+    // Read the vectors
+    int dim;
+    file.read(reinterpret_cast<char*>(&dim), sizeof(int));
+
+    T data;
+    vector<T> vec(dim);
+
+    for(int j = 0; j < dim; j++) {
+        file.read(reinterpret_cast<char*>(&data),sizeof(T));
+        vec[j] = data;
+    }
+
+    return DataPoint<T>(id,-1,-1,vec);
 }
 
 template <typename T>
@@ -90,11 +100,11 @@ template <typename T>
 void DataSet<T>::print() {
 
     cout << "d=" << d << endl;
-    cout << "numOfVectors=" << numOfVectors << endl;
+    cout << "numOfVectors=" << numOfDatapoints << endl;
     cout << "sizeof(T)=" << sizeof(T) << endl;
 
-    for(int i = 0; i < numOfVectors; i++) {
-        Utils<T>::printVec(vectors[i]);
+    for(int i = 0; i < numOfDatapoints; i++) {
+        Utils<T>::printVec(datapoints[i].vec);
         DIVIDER
     }
 }

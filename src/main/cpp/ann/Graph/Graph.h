@@ -8,6 +8,7 @@
 #include "../../utility/Edge/Edge.h"
 #include "../../utility/VamanaContainer/VamanaContainer.h"
 #include "../../utility/Utils/Utils.h"
+#include "../../utility/DataPoint/DataPoint.h"
 
 #include <chrono>
 #include <set>
@@ -18,14 +19,14 @@ template <typename T>
 class Graph {
 public:
     unsigned int AUTO_INCREMENT;             // Χρησιμοποιείται για την ανάθεση μοναδικών ID σε κάθε κορυφή. Ξεκινά από το 0 και αυξάνεται αυτόματα κατά την εισαγωγή κάθε νέας κορυφής.
-    map<int, vector<T>> vertexMap;
+    map<int, DataPoint<T>> vertexMap;
     map<int,vector<Edge>> g;
     unsigned int L;
     unsigned int R;                          // Μέγιστος αριθμός εξερχόμενων ακμών
     unsigned int k;                          // Αριθμός γειτόνων που θα βρούμε
     double a;                       // Παράμετρος για το RobustPrune (κατώφλι απόστασης)
     Graph();
-    Graph(vector<vector<T>> vecs,int L,int R,int k,double a);
+    Graph(vector<DataPoint<T>> vecs,int L,int R,int k,double a);
     void vamana();
     void initializeRandomEdges();
     vector<Edge> randomNeighbors(int pId);
@@ -57,7 +58,7 @@ public:
     const vector<T>& getVertexData(int id) const;
     const vector<Edge>& getEdges(int node) const;
     int getTotalEdges() const;
-    const map<int, vector<T>>& getVertexMap() const {
+    const map<int, DataPoint<T>>& getVertexMap() const {
         return vertexMap;
     }
 

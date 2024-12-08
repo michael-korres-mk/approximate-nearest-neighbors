@@ -4,7 +4,7 @@ template<typename T>
 Graph<T>::Graph() {}
 
 template <typename T>
-Graph<T>::Graph(vector<vector<T>> vecs, const int L,const int R,const int k, const double a):AUTO_INCREMENT(0),L(L),R(R),k(k),a(a){
+Graph<T>::Graph(vector<DataPoint<T>> vecs, const int L,const int R,const int k, const double a):AUTO_INCREMENT(0),L(L),R(R),k(k),a(a){
     for(unsigned int i = 0; i < vecs.size() ; i++ ) {
         vertexMap.insert({AUTO_INCREMENT,vecs[i]});
         AUTO_INCREMENT++;
@@ -31,7 +31,7 @@ void Graph<T>::vamana(){
 
         done.insert(x);
 
-        const auto& [l,Vx] = greedySearch(s,vertexMap[x],k,L);
+        const auto& [l,Vx] = greedySearch(s,vertexMap[x].vec,k,L);
 
         g[x] = robustPrune(x,Vx,a,R);
 
@@ -44,7 +44,7 @@ void Graph<T>::vamana(){
                 g[y] = robustPrune(y,V,a,R);
             }
             else{
-                g[y].push_back(Edge(x,euclideanDistance(vertexMap[y],vertexMap[x])));
+                g[y].push_back(Edge(x,euclideanDistance(vertexMap[y].vec,vertexMap[x].vec)));
             }
         }
     }
@@ -64,7 +64,7 @@ void Graph<T>::initializeRandomEdges(){
 template <typename T>
 vector<Edge> Graph<T>::randomNeighbors(int pId) {
     vector<Edge> neighbors;
-    auto p = vertexMap[pId];
+    auto p = vertexMap[pId].vec;
     set<int> added;
     const unsigned int n = (AUTO_INCREMENT >= R)? R : AUTO_INCREMENT;
 
@@ -75,7 +75,7 @@ vector<Edge> Graph<T>::randomNeighbors(int pId) {
         int randomId = getRandomId(givenIds);
         added.insert(randomId);
 
-        auto randVec = vertexMap[randomId];
+        auto randVec = vertexMap[randomId].vec;
         neighbors.push_back(Edge(randomId, euclideanDistance(p, randVec)));
     }
 
@@ -120,7 +120,7 @@ int Graph<T>::medoid() {
         double total_distance = 0.0;
         for (int id_j : randomIds) {
             if (id_i != id_j) {
-                total_distance += euclideanDistance(vertexMap[id_i], vertexMap[id_j]);
+                total_distance += euclideanDistance(vertexMap[id_i].vec, vertexMap[id_j].vec);
             }
         }
         if (total_distance < min_total_distance) {
@@ -139,7 +139,7 @@ void Graph<T>::addEdge(int src, int dest,float dist){
 
 template <typename T>
 void Graph<T>::addVertex(vector<T> vertex){
-    vertexMap.insert({AUTO_INCREMENT,vertex});
+    vertexMap.insert({AUTO_INCREMENT,DataPoint<T>(AUTO_INCREMENT,-1,-1,vertex)});
     g.insert({AUTO_INCREMENT,vector<Edge>()});
     AUTO_INCREMENT++;
 }
@@ -191,7 +191,7 @@ int Graph<T>::argmindist(const vector<T>& p, const set<int>& P) {
     float minDist = numeric_limits<float>::max();
     int pStar = -1;
     for(auto p2 : P){
-        if(float dist = euclideanDistance(p,vertexMap[p2]); dist < minDist){
+        if(float dist = euclideanDistance(p,vertexMap[p2].vec); dist < minDist){
             minDist = dist;
             pStar = p2;
         }
@@ -211,7 +211,7 @@ vector<int> Graph<T>::getVerticesIds() {
 template<typename T>
 pair<vector<int>,vector<int>> Graph<T>::greedySearch(int s, const vector<T>& q, const int k, int L) {
 
-    VamanaContainer l(L); l.insert({s,euclideanDistance(q,vertexMap[s])});      // Σύνολο αναζήτησης
+    VamanaContainer l(L); l.insert({s,euclideanDistance(q,vertexMap[s].vec)});      // Σύνολο αναζήτησης
     set<int> V;         // Σύνολο επισκεφθέντων κόμβων
     set<int> diff = setDiff(l, V);
 
@@ -268,7 +268,7 @@ int Graph<T>::argminDist(const vector<T>& p, const vector<int>& P) {
     double minDist = std::numeric_limits<double>::max();
     int pStar = -1;
     for (int p2 : P) {
-        double dist = euclideanDistance(p, vertexMap[p2]);
+        double dist = euclideanDistance(p, vertexMap[p2].vec);
         if (dist < minDist) {
             minDist = dist;
             pStar = p2;
@@ -300,10 +300,10 @@ vector<Edge> Graph<T>::robustPrune(int p, const vector<int> &V, double a,unsigne
     // Ενώ υπάρχουν υποψήφιοι γείτονες
     while (!candidateNeighbors.empty()) {
         // Βρίσκουμε τον γείτονα που έχει την ελάχιστη απόσταση από το p
-        int p_star = argminDist(vertexMap[p], candidateNeighbors); // Χρήση της συνάρτησής σου
+        int p_star = argminDist(vertexMap[p].vec, candidateNeighbors); // Χρήση της συνάρτησής σου
 
         // Προσθήκη του p_star στους νέους γείτονες
-        N_out.push_back(Edge(p_star, euclideanDistance(vertexMap[p], vertexMap[p_star])));
+        N_out.push_back(Edge(p_star, euclideanDistance(vertexMap[p].vec, vertexMap[p_star].vec)));
 
         // Αφαίρεση του p_star από τους υποψήφιους
         candidateNeighbors.erase(std::remove(candidateNeighbors.begin(), candidateNeighbors.end(), p_star), candidateNeighbors.end());
@@ -315,7 +315,7 @@ vector<Edge> Graph<T>::robustPrune(int p, const vector<int> &V, double a,unsigne
 
         // Κλαδεύουμε τους υπόλοιπους υποψήφιους γείτονες
         for (auto it = candidateNeighbors.begin(); it != candidateNeighbors.end();) {
-            if (a * euclideanDistance(vertexMap[p_star], vertexMap[*it]) <= euclideanDistance(vertexMap[p], vertexMap[*it])) {
+            if (a * euclideanDistance(vertexMap[p_star].vec, vertexMap[*it].vec) <= euclideanDistance(vertexMap[p].vec, vertexMap[*it].vec)) {
                 it = candidateNeighbors.erase(it); // Αφαίρεση των γειτόνων που δεν πληρούν τα κριτήρια
             } else {
                 ++it;
@@ -335,7 +335,7 @@ void Graph<T>::printVectorNeighbors(vector<Edge>& neighbors,ostream& out) {
         for(Edge neighbor : neighbors){
 
             out << "[" << neighbor.destination << "] = ";
-            Utils<T>::printVec(vertexMap[neighbor.destination]);
+            Utils<T>::printVec(vertexMap[neighbor.destination].vec);
             out << "(" << neighbor.weight << ")" << " ";
             out << endl;
         }
@@ -348,16 +348,15 @@ void Graph<T>::printVectorNeighbors(vector<Edge>& neighbors,ostream& out) {
 template<typename T>
 vector<T> Graph<T>::getVertex(unsigned int id) {
     if(id >= vertexMap.size()) return vector<T>();
-    return vertexMap[id];
+    return vertexMap[id].vec;
 }
 
 
 template <typename T>
 void Graph<T>::printGraph(ostream& out){
     out << "Graph with " << vertexMap.size() << " vertices:" << endl;
-    for(const auto& pair : vertexMap){
-    Utils<T>::printVec(pair.second);
-        const int id = pair.first;
+    for(const auto& [id,datapoint] : vertexMap){
+        Utils<T>::printVec(datapoint.vec);
         printVectorNeighbors(g[id]);
     }
 }
@@ -372,10 +371,10 @@ template <typename T>
 const vector<T>& Graph<T>::getVertexData(int id) const {
     auto it = vertexMap.find(id);
     if (it != vertexMap.end()) {
-        return it->second;
-    } else {
-        throw std::out_of_range("Vertex ID not found");
+        return it->second.vec;
     }
+
+    throw std::out_of_range("Vertex ID not found");
 }
 
 template <typename T>
@@ -383,10 +382,10 @@ const vector<Edge>& Graph<T>::getEdges(int id) const {
     auto it = g.find(id);
     if (it != g.end()) {
         return it->second;
-    } else {
-        static const vector<Edge> empty;
-        return empty;
     }
+
+    static const vector<Edge> empty;
+    return empty;
 }
 
 template <typename T>
@@ -415,7 +414,7 @@ void Graph<T>::exportGraph(const string& filename) {
     file.write(reinterpret_cast<const char*>(&R), sizeof(int));
     file.write(reinterpret_cast<const char*>(&k), sizeof(int));
     file.write(reinterpret_cast<const char*>(&a), sizeof(double));
-    const int d = vertexMap[0].size();
+    const int d = vertexMap[0].vec.size();
     file.write(reinterpret_cast<const char*>(&d), sizeof(int));
 
     // persist vector type size
@@ -425,9 +424,9 @@ void Graph<T>::exportGraph(const string& filename) {
     size_t numOfNeighbors;
 
     // persist vectors
-    for(const auto& [id, vector] : vertexMap) {
+    for(const auto& [id, datapoint] : vertexMap) {
         file.write(reinterpret_cast<const char*>(&id), sizeof(int));
-        for(auto& xi : vector) {
+        for(auto& xi : datapoint.vec) {
             file.write(reinterpret_cast<const char*>(&xi), sizeof(typeSize));
         }
 
@@ -484,7 +483,7 @@ void Graph<T>::importGraph(const string& filename) {
             vec.push_back(xi);
         }
 
-        vertexMap[id] = vec;
+        vertexMap[id] = DataPoint<T>(id,-1,-1,vec);
 
         // fetch num of neighbors
         file.read(reinterpret_cast<char*>(&numOfNeighbors), sizeof(size_t));

@@ -20,7 +20,7 @@
 # include "../../main/cpp/utility/DataSet/DataSet.h"
 #include "../../main/cpp/utility/VamanaContainer/VamanaContainer.h"
 #include "../../main/cpp/filterann/FilterGraph/FilterGraph.h"
-#include "../../main/cpp/filterann/DataPoint/DataPoint.h"
+#include "../../main/cpp/utility/DataPoint/DataPoint.h"
 
 void test_filteredRobustPrune() {
     // Arrange

@@ -5,7 +5,7 @@
 #ifndef FILTERDATASET_H
 #define FILTERDATASET_H
 
-#include "../DataPoint/DataPoint.h"
+#include "../../utility/DataPoint/DataPoint.h"
 #include "../Query/Query.h"
 #include "../../utility/Utils/Utils.h"
 

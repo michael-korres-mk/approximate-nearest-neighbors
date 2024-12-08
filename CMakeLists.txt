@@ -19,8 +19,8 @@ add_executable(approximate_nearest_neighbors
         src/main/cpp/utility/VamanaContainer/VamanaContainer.h
         src/main/cpp/filterann/FilterDataset/FilterDataset.h
         src/main/cpp/filterann/FilterDataset/FilterDataset.cpp
-        src/main/cpp/filterann/DataPoint/DataPoint.cpp
-        src/main/cpp/filterann/DataPoint/DataPoint.h
+        src/main/cpp/utility/DataPoint/DataPoint.cpp
+        src/main/cpp/utility/DataPoint/DataPoint.h
         src/main/cpp/filterann/FilterQuerySet/FilterQuerySet.cpp
         src/main/cpp/filterann/FilterQuerySet/FilterQuerySet.h
         src/main/cpp/filterann/Query/Query.cpp
@@ -28,7 +28,6 @@ add_executable(approximate_nearest_neighbors
         src/main/cpp/filterann/FilterGraph/FilterGraph.cpp
         src/main/cpp/filterann/FilterGraph/FilterGraph.h
         src/main/cpp/filterann/FilterDataset/FilterDataset.h
-        src/main/cpp/groundtruthcalc/main.cpp
 )
 
 add_executable(filter_approximate_nearest_neighbors src/main/cpp/filterann/main.cpp
@@ -44,8 +43,8 @@ add_executable(filter_approximate_nearest_neighbors src/main/cpp/filterann/main.
         src/main/cpp/utility/VamanaContainer/VamanaContainer.h
         src/main/cpp/filterann/FilterDataset/FilterDataset.h
         src/main/cpp/filterann/FilterDataset/FilterDataset.cpp
-        src/main/cpp/filterann/DataPoint/DataPoint.cpp
-        src/main/cpp/filterann/DataPoint/DataPoint.h
+        src/main/cpp/utility/DataPoint/DataPoint.cpp
+        src/main/cpp/utility/DataPoint/DataPoint.h
         src/main/cpp/filterann/FilterQuerySet/FilterQuerySet.cpp
         src/main/cpp/filterann/FilterQuerySet/FilterQuerySet.h
         src/main/cpp/filterann/Query/Query.cpp
@@ -63,8 +62,8 @@ add_executable(groundtruthcalc src/main/cpp/groundtruthcalc/main.cpp
         src/main/cpp/utility/VamanaContainer/VamanaContainer.h
         src/main/cpp/filterann/FilterDataset/FilterDataset.h
         src/main/cpp/filterann/FilterDataset/FilterDataset.cpp
-        src/main/cpp/filterann/DataPoint/DataPoint.cpp
-        src/main/cpp/filterann/DataPoint/DataPoint.h
+        src/main/cpp/utility/DataPoint/DataPoint.cpp
+        src/main/cpp/utility/DataPoint/DataPoint.h
         src/main/cpp/filterann/FilterQuerySet/FilterQuerySet.cpp
         src/main/cpp/filterann/FilterQuerySet/FilterQuerySet.h
         src/main/cpp/filterann/Query/Query.cpp

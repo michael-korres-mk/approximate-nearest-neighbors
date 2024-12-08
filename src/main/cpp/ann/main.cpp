@@ -33,7 +33,7 @@ void initializeDatasets(DataSet<float>& dataset, DataSet<float>& querySet, DataS
 		dataset = DataSet<float>(dataFilename);
 	)
 
-	cout << "Num of datapoints: " << dataset.numOfVectors << endl;
+	cout << "Num of datapoints: " << dataset.numOfDatapoints << endl;
 
 	DIVIDER
 
@@ -41,7 +41,7 @@ void initializeDatasets(DataSet<float>& dataset, DataSet<float>& querySet, DataS
 			querySet = DataSet<float>(queriesFileName);
 		)
 
-		cout << "Num of queries: " << querySet.numOfVectors << endl;
+		cout << "Num of queries: " << querySet.numOfDatapoints << endl;
 
 	DIVIDER
 
@@ -54,11 +54,10 @@ template <typename T>
 void runQueries(Graph<T> graph,DataSet<T> qset,DataSet<int>& groundtruthDataSet) {
 	DIVIDER
 
-
 	int medoidId = graph.medoid();
 	vector<float> q;
 	double totalKRecall = 0.0;
-	const int nq = qset.numOfVectors;
+	const int nq = qset.numOfDatapoints;
 
 	if(nq == 0) throw runtime_error("No queries given ...");
 
@@ -67,12 +66,12 @@ void runQueries(Graph<T> graph,DataSet<T> qset,DataSet<int>& groundtruthDataSet)
 
 		if (nq > 10 && i > 0 && i % (nq / 10) == 0) printf("queries completed %d %% ... \n", i * 100 / nq);
 
-		q = qset.vectors[i];
+		q = qset.datapoints[i].vec;
 
 		const auto& [neighbors,v] = graph.greedySearch(medoidId,q,k,L);
-		vector<int> groundTruthNearestNeighbors = groundtruthDataSet.vectors[i];
+		DataPoint<int> groundTruthNearestNeighbors = groundtruthDataSet.datapoints[i];
 
-		const double kRecall = Graph<int>::equals(neighbors,groundTruthNearestNeighbors);
+		const double kRecall = Graph<int>::equals(neighbors,groundTruthNearestNeighbors.vec);
 		totalKRecall += kRecall;
 
 	}
@@ -124,7 +123,7 @@ int main(int argc,char* argv[]) {
 		)
 	}
 	else {
-		graph = Graph<float>(dataset.vectors,L,R,k,a);
+		graph = Graph<float>(dataset.datapoints,L,R,k,a);
 		TIMER_BLOCK("Vamana Index build",
 			graph.vamana();
 		)

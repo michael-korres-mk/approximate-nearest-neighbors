@@ -14,8 +14,9 @@
 #include <map>
 #include <chrono>
 
-#include "../../utility/Edge/Edge.h"
-#include "../../utility/Utils/Utils.h"
+#include "../Edge/Edge.h"
+#include "../Utils/Utils.h"
+#include "../DataPoint/DataPoint.h"
 
 using namespace std;
 
@@ -23,14 +24,16 @@ template <typename T>
 class DataSet {
 public:
     int d;
-    int numOfVectors;
-    vector<vector<T>> vectors;
+    int numOfDatapoints;
+    vector<DataPoint<T>> datapoints;
 
-    // instance
     explicit DataSet();
-    explicit DataSet(const string& dataFileName);
-    static void vecsWrite(const string &filename, const vector<vector<T>> &vectors,int globalDim);
+    explicit DataSet(const string& filename);
+
+    DataPoint<T> readDataPoint(ifstream &file, int id);
+
     void print();
+    static void vecsWrite(const string &filename, const vector<vector<T>> &vectors,int globalDim);
 };
 
 

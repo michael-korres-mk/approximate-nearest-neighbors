@@ -5,7 +5,7 @@
 #ifndef FILTERGRAPH_H
 #define FILTERGRAPH_H
 
-#include "../DataPoint/DataPoint.h"
+#include "../../utility/DataPoint/DataPoint.h"
 #include "../../utility/Utils/Utils.h"
 #include "../../utility/Edge/Edge.h"
 #include "../../utility/VamanaContainer/VamanaContainer.h"
