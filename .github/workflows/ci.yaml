@@ -17,6 +17,7 @@ jobs:
 
       # Step 2: Set up the build environment
       - name: Install dependencies
+        shell: bash
         run: |
           sudo add-apt-repository universe
           sudo apt update
@@ -24,10 +25,17 @@ jobs:
 
       # Step 3: Build the project using `make b` and `make testb`
       - name: Build the project
+        shell: bash
         run: |
+          export TERM=xterm-256color
           make b
           make testb
 
       # Step 4: Run the tests using `make test`
       - name: Run tests
-        run: make test
+        shell: bash
+        run: |
+          export TERM=xterm-256color
+          make test
+
+# NOTE: The $TERM environment variable is used by applications to take advantage of the capabilities of that terminal emulator
