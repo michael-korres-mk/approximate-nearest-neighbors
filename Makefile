@@ -38,13 +38,14 @@ clean:
 
 VALGRIND_FLAGS = --trace-children=yes --leak-check=full --show-leak-kinds=all  --leak-resolution=med --track-origins=yes --vgdb=no
 
+# TODO: checkout running w/ valgrind error messages
 $(addsuffix v, $(TARGETS)):
 	@clear
-	valgrind $(VALGRIND_FLAGS) $(BUILD_DIR)/$(@:v=)/main $($(shell echo "$@" | tr 'a-z' 'A-Z')_CLINE_ARGS)
+	valgrind $(VALGRIND_FLAGS) $(BUILD_DIR)/$(@:v=)/main $($(shell echo "$(@:v=)" | tr 'a-z' 'A-Z')_CLINE_ARGS)
 
-valgrind-tests: $(TEST_EXECUTABLES)
+testv: $(TESTS)
 	@clear
-	@for test in $(TEST_EXECUTABLES); do \
-		echo "Running $$test"; \
+	@for test in $(TESTS); do \
+		echo "------------------------------ Running $$test ------------------------------"; \
 		valgrind $(VALGRIND_FLAGS) $$test; \
 	done
