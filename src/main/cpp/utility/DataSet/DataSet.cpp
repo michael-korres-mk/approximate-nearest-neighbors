@@ -30,7 +30,7 @@ DataSet<T>::DataSet(const string& filename) {
     vector<DataPoint<T>> datapoints;
 
     for (int i = 0; i < n; ++i) {
-        DataPoint<T> dataPoint = readDataPoint(file,i);
+        DataPoint<T> dataPoint = readDataPoint(file,i,globalDim);
         datapoints.push_back(dataPoint);
     }
 
@@ -44,15 +44,15 @@ DataSet<T>::DataSet(const string& filename) {
 }
 
 template<typename T>
-DataPoint<T> DataSet<T>::readDataPoint(ifstream& file,int id) {
-    // Read the vectors
+DataPoint<T> DataSet<T>::readDataPoint(ifstream& file,int id,int& globalDim) {
+
     int dim;
     file.read(reinterpret_cast<char*>(&dim), sizeof(int));
 
     T data;
-    vector<T> vec(dim);
+    vector<T> vec(globalDim);
 
-    for(int j = 0; j < dim; j++) {
+    for(int j = 0; j < globalDim; j++) {
         file.read(reinterpret_cast<char*>(&data),sizeof(T));
         vec[j] = data;
     }

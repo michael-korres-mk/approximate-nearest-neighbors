@@ -30,7 +30,7 @@ public:
     explicit DataSet();
     explicit DataSet(const string& filename);
 
-    DataPoint<T> readDataPoint(ifstream &file, int id);
+    DataPoint<T> readDataPoint(ifstream &file, int id,int& globalDims);
 
     void print();
     static void vecsWrite(const string &filename, const vector<vector<T>> &vectors,int globalDim);
