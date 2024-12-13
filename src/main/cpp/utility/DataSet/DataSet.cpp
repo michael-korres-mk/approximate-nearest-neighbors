@@ -30,7 +30,7 @@ DataSet<T>::DataSet(const string& filename) {
     vector<DataPoint<T>> datapoints;
 
     for (int i = 0; i < n; ++i) {
-        DataPoint<T> dataPoint = readDataPoint(file,i);
+        DataPoint<T> dataPoint = readDataPoint(file,i,globalDim);
         datapoints.push_back(dataPoint);
     }
 
