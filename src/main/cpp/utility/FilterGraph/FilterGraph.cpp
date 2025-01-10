@@ -630,7 +630,7 @@ void FilterGraph<T>::exportGraph(const string& filename) {
         auto& neighbors = g[datapoint.id];
         for(auto& n : neighbors) {
             file.write(reinterpret_cast<const char*>(&n.destination), sizeof(int));
-            file.write(reinterpret_cast<const char*>(&n.weight), sizeof(int));
+            file.write(reinterpret_cast<const char*>(&n.weight), sizeof(double));
         }
     }
 
@@ -689,7 +689,7 @@ void FilterGraph<T>::importGraph(const string& filename) {
         double weight;
         for(unsigned int k = 0; k < numOfNeighbors; k++) {
             file.read(reinterpret_cast<char*>(&destination), sizeof(int));
-            file.read(reinterpret_cast<char*>(&weight), sizeof(int));
+            file.read(reinterpret_cast<char*>(&weight), sizeof(double));
             neighbors.push_back(Edge(destination, weight));
         }
 
