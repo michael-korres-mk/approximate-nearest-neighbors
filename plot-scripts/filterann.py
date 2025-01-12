@@ -4,7 +4,7 @@ def main():
     columns = ['SERIAL_ALGORITHM_TIME', 'PARALLEL_ALGORITHM_TIME']
     labels = dict(zip(columns, ['Serial', 'Parallel']))  # Mapping columns to labels
     colors = dict(zip(columns, ['blue', 'orange']))  # Mapping columns to colors
-    outputTitle = "ann_mean_execution_times"
+    outputTitle = "stitched_vamana_mean_execution_times"
     csv_mean_file_path = "experiment-results/filterann_mean.xlsx"
 
     template.plot_no_groupby(filePath, columns, labels, colors,outputTitle,csv_mean_file_path)

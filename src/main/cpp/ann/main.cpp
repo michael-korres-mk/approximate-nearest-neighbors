@@ -105,6 +105,7 @@ int main(int argc,char* argv[]) {
 	PRINT_VAR(L)
 	PRINT_VAR(R)
 	PRINT_VAR(a)
+	PRINT_VAR(numOfThreads)
 
 	DIVIDER
 
@@ -120,13 +121,13 @@ int main(int argc,char* argv[]) {
 	FILE* file = Utils<char>::fileopen("experiment-results/ann.csv","NUM_OF_THREADS,SERIAL_ALGORITHM_TIME,PARALLEL_ALGORITHM_TIME\n");
 
 	if(filesystem::path filePath(RESOURCES_P + vamanaFilename); exists(filePath)) {
-		graph = FilterGraph<float>({},L,R,k,a,-1);
+		graph = FilterGraph<float>({},L,R,k,a,-1,numOfThreads);
 		TIMER_BLOCK("Filtered Vamana Index Import",
 			graph.importGraph(vamanaFilename);
 		)
 	}
 	else {
-		graph = FilterGraph<float>(dataset.datapoints,L,R,k,a,-1);
+		graph = FilterGraph<float>(dataset.datapoints,L,R,k,a,-1,numOfThreads);
 		auto start = chrono::high_resolution_clock::now();
 			graph.vamana();
 		auto finish = chrono::high_resolution_clock::now();
@@ -142,12 +143,12 @@ int main(int argc,char* argv[]) {
 		}
 		fclose(file);
 
-		graph.exportGraph(vamanaFilename);
+		// graph.exportGraph(vamanaFilename);
 	}
 
-	TIMER_BLOCK("Filter Queries Computation",
-		runQueries<float>(graph,querySet,groundtruthSet);
-	)
+	// TIMER_BLOCK("Filter Queries Computation",
+	// 	runQueries<float>(graph,querySet,groundtruthSet);
+	// )
 
 	DIVIDER
 
