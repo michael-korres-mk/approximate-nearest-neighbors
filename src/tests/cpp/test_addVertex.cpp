@@ -8,7 +8,7 @@ void test_additionIsSuccess() {
     vector<int> vec = {1, 2, 3};
     DataPoint<int> data = DataPoint(0,-1,-1,vec);
 
-    FilterGraph<int> graph({}, 1, 5, 3, 1.2,-1);
+    FilterGraph<int> graph({}, 1, 5, 3, 1.2,-1,0);
 
     // Act
     graph.addVertex(data);
@@ -24,7 +24,7 @@ void test_invalidIdIsNullptr() {
     // Arrange
     vector<int> vec = {1, 2, 3};
     DataPoint<int> data = DataPoint(0,-1,-1,vec);
-    FilterGraph<int> graph({}, 1, 5, 3, 1.2,-1);
+    FilterGraph<int> graph({}, 1, 5, 3, 1.2,-1,0);
 
     // Act
     graph.addVertex(data);

@@ -29,7 +29,7 @@ void test_vamana() {
     double a = 1.5;  // Παράμετρος για το pruning
 
     // Δημιουργία του γράφου με τα δεδομένα και τις παραμέτρους
-    FilterGraph<int> graph(data, L, R, k, a,-1);
+    FilterGraph<int> graph(data, L, R, k, a,-1,0);
 
     // Εκτέλεση του αλγορίθμου Vamana
     graph.vamana();
@@ -48,7 +48,7 @@ void test_vamana() {
         for (const Edge& edge : neighbors) {
             int neighborId = edge.destination;
             double dist = edge.weight;
-            double expectedDist = FilterGraph<int>::euclideanDistance(graph.getVertex(nodeId).vec, graph.getVertex(neighborId).vec);
+            double expectedDist = graph.euclideanDistance(graph.getVertex(nodeId).vec, graph.getVertex(neighborId).vec);
             TEST_CHECK(abs(dist - expectedDist) < epsilon);
         }
     }

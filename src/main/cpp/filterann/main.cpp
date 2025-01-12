@@ -28,6 +28,10 @@ double a;
 
 int filteredVamana;
 
+int numOfThreads;
+string filteredVamanaFilename;
+string stitchedVamanaFilename;
+
 void initializeDatasets(FilterDataset<float>& dataset, FilterQuerySet<float>& querySet,DataSet<int>& groundtruthSet) {
 
 	cout << "Base Dataset: " << dataFilename << endl;
@@ -142,11 +146,15 @@ int main(int argc,char* argv[]) {
 		GET_INT_ARG("-k", k)
 		GET_INT_ARG("-L", L)
 		GET_INT_ARG("-R", R)
+		GET_INT_ARG("-n", numOfThreads)
 		GET_DOUBLE_ARG("-a", a)
 		GET_STRING_ARG("-bv", dataFilename)
 		GET_STRING_ARG("-qv", queriesFileName)
 		GET_STRING_ARG("-gv", groundtruthFileName)
+		GET_STRING_ARG("-fgf", filteredVamanaFilename)
+		GET_STRING_ARG("-sgf", stitchedVamanaFilename)
 		GET_INT_ARG("-fvamana", filteredVamana)
+
 	}
 
 
@@ -154,6 +162,7 @@ int main(int argc,char* argv[]) {
 	PRINT_VAR(L)
 	PRINT_VAR(R)
 	PRINT_VAR(a)
+	PRINT_VAR(numOfThreads)
 
 	DIVIDER
 
@@ -165,21 +174,17 @@ int main(int argc,char* argv[]) {
 
 	DIVIDER
 
-	const string filteredVamanaFilename = "filtered_vamana_graph.bin";
-
-	const string stitchedVamanaFilename = "stitched_vamana_graph.bin";
-
 	FilterGraph<float> filteredGraph;
 
 	if(filteredVamana) {
 		if(filesystem::path filePath(RESOURCES_P + filteredVamanaFilename); exists(filePath)) {
-			filteredGraph = FilterGraph<float>({},L,R,k,a, 10);
+			filteredGraph = FilterGraph<float>({},L,R,k,a, 10,numOfThreads);
 			TIMER_BLOCK("Filtered Vamana Index Import",
 				filteredGraph.importGraph(filteredVamanaFilename);
 			)
 		}
 		else {
-			filteredGraph = FilterGraph<float>(dataset.datapoints,L,R,k,a, 10);
+			filteredGraph = FilterGraph<float>(dataset.datapoints,L,R,k,a, 10,numOfThreads);
 			TIMER_BLOCK("Filtered Vamana Index build",
 				filteredGraph.filteredVamana();
 			)
@@ -188,23 +193,38 @@ int main(int argc,char* argv[]) {
 	}
 	else {
 		if(filesystem::path filePath(RESOURCES_P + stitchedVamanaFilename); exists(filePath)) {
-			filteredGraph = FilterGraph<float>({},L,R,k,a, 10);
+			filteredGraph = FilterGraph<float>({},L,R,k,a, 10,numOfThreads);
 			TIMER_BLOCK("Stitched Vamana Index Import",
 				filteredGraph.importGraph(stitchedVamanaFilename);
 			)
 		}
 		else {
-			filteredGraph = FilterGraph<float>(dataset.datapoints,L,R,k,a, 10);
-			TIMER_BLOCK("Stitched Vamana Index build",
-				filteredGraph.stitchedVamana();
-			)
-			filteredGraph.exportGraph(stitchedVamanaFilename);
+			FILE* file = Utils<char>::fileopen("experiment-results/stitched_filterann.csv","NUM_OF_THREADS,SERIAL_ALGORITHM_TIME,PARALLEL_ALGORITHM_TIME\n");
+
+			filteredGraph = FilterGraph<float>(dataset.datapoints,L,R,k,a, 10,numOfThreads);
+			auto start = chrono::high_resolution_clock::now();
+			filteredGraph.stitchedVamana();
+			auto finish = chrono::high_resolution_clock::now();
+			auto elapsed = chrono::duration_cast<chrono::seconds>(finish - start).count();
+
+			cout << "Stitched Vamana Index build" << ": " << elapsed << " sec" << endl;
+
+			if(numOfThreads > 0){
+				fprintf(file,"%d,%ld,%ld\n",numOfThreads,0L,elapsed);
+			}
+			else{
+				fprintf(file,"%d,%ld,%ld\n",numOfThreads,elapsed,0L);
+			}
+			fclose(file);
+
+			// filteredGraph.exportGraph(stitchedVamanaFilename);
+
 		}
 	}
 
-	TIMER_BLOCK("Filter Queries Computation",
-		runQueries<float>(filteredGraph,querySet,groundtruthSet);
-	)
+	// TIMER_BLOCK("Filter Queries Computation",
+	// 	runQueries<float>(filteredGraph,querySet,groundtruthSet);
+	// )
 
 	DIVIDER
 }

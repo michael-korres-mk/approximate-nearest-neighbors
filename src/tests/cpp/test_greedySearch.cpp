@@ -25,11 +25,11 @@ void test_greedySearch() {
 
     vector<DataPoint<int>> data = {data0,data1,data2,data3,data4,data5,data6,data7,data8,data9};
 
-    FilterGraph<int> graph(data, 1, 5, 3,3,-1);
+    FilterGraph<int> graph(data, 1, 5, 3,3,-1,0);
 
     for (unsigned int i = 0; i < data.size(); ++i) {
         for (unsigned int j = i + 1; j < data.size(); ++j) {
-            graph.addEdge(i, j,FilterGraph<int>::euclideanDistance(graph.getVertex(i).vec,graph.getVertex(j).vec)); // Adding edges between all vertices
+            graph.addEdge(i, j,graph.euclideanDistance(graph.getVertex(i).vec,graph.getVertex(j).vec)); // Adding edges between all vertices
         }
     }
     int startVertex = 0;

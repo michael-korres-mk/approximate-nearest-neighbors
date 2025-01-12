@@ -1,7 +1,7 @@
 include $(INCLUDE)
 
 CXX = g++
-CXXFLAGS = -O3 -Wall -Wextra -Werror -pedantic -std=c++17 -g
+CXXFLAGS = -O3 -Wall -Wextra -Werror -pedantic -std=c++17 -g -fopenmp
 
 # Source file directory
 SRC_DIR = src/main/cpp

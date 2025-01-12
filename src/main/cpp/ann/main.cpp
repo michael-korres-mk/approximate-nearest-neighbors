@@ -20,6 +20,8 @@ int L;
 int R;
 double a;
 
+int numOfThreads;
+string vamanaFilename;
 
 void initializeDatasets(DataSet<float>& dataset, DataSet<float>& querySet, DataSet<int>& groundtruthSet)  {
 
@@ -91,17 +93,19 @@ int main(int argc,char* argv[]) {
 		GET_INT_ARG("-k", k)
 		GET_INT_ARG("-L", L)
 		GET_INT_ARG("-R", R)
+		GET_INT_ARG("-n", numOfThreads)
 		GET_DOUBLE_ARG("-a", a)
 		GET_STRING_ARG("-bv", dataFilename)
 		GET_STRING_ARG("-qv", queriesFileName)
 		GET_STRING_ARG("-gv", groundtruthFileName)
+		GET_STRING_ARG("-gf", vamanaFilename)
 	}
-
 
 	PRINT_VAR(k)
 	PRINT_VAR(L)
 	PRINT_VAR(R)
 	PRINT_VAR(a)
+	PRINT_VAR(numOfThreads)
 
 	DIVIDER
 
@@ -114,25 +118,37 @@ int main(int argc,char* argv[]) {
 
 	DIVIDER
 
-	const string vamanaFilename = "vamana_graph.bin";
+	FILE* file = Utils<char>::fileopen("experiment-results/ann.csv","NUM_OF_THREADS,SERIAL_ALGORITHM_TIME,PARALLEL_ALGORITHM_TIME\n");
 
 	if(filesystem::path filePath(RESOURCES_P + vamanaFilename); exists(filePath)) {
-		graph = FilterGraph<float>({},L,R,k,a,-1);
+		graph = FilterGraph<float>({},L,R,k,a,-1,numOfThreads);
 		TIMER_BLOCK("Filtered Vamana Index Import",
 			graph.importGraph(vamanaFilename);
 		)
 	}
 	else {
-		graph = FilterGraph<float>(dataset.datapoints,L,R,k,a,-1);
-		TIMER_BLOCK("Vamana Index build",
+		graph = FilterGraph<float>(dataset.datapoints,L,R,k,a,-1,numOfThreads);
+		auto start = chrono::high_resolution_clock::now();
 			graph.vamana();
-		)
-		graph.exportGraph(vamanaFilename);
+		auto finish = chrono::high_resolution_clock::now();
+		auto elapsed = chrono::duration_cast<chrono::seconds>(finish - start).count();
+
+		cout << "Vamana Index build" << ": " << elapsed << " sec" << endl;
+
+		if(numOfThreads > 0){
+			fprintf(file,"%d,%ld,%ld\n",numOfThreads,0L,elapsed);
+		}
+		else{
+			fprintf(file,"%d,%ld,%ld\n",numOfThreads,elapsed,0L);
+		}
+		fclose(file);
+
+		// graph.exportGraph(vamanaFilename);
 	}
 
-	TIMER_BLOCK("Filter Queries Computation",
-		runQueries<float>(graph,querySet,groundtruthSet);
-	)
+	// TIMER_BLOCK("Filter Queries Computation",
+	// 	runQueries<float>(graph,querySet,groundtruthSet);
+	// )
 
 	DIVIDER
 

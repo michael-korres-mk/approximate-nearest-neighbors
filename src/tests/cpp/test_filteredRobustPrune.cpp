@@ -48,7 +48,7 @@ void test_filteredRobustPrune() {
         DataPoint<int>(9,0, -1, data9)  // ID 9
     };
 
-    FilterGraph<int> graph(data, 1, 5, 3, 3, 3);
+    FilterGraph<int> graph(data, 1, 5, 3, 3, 3,0);
 
     // Ενημερώνουμε τον γράφο με κάποιες ακμές
     graph.addEdge(0, 1, 1.0);
@@ -68,7 +68,7 @@ void test_filteredRobustPrune() {
 
 
     // Arrange2
-    FilterGraph<int> graph2(data, 1, 5, 3, 3.0, 3);
+    FilterGraph<int> graph2(data, 1, 5, 3, 3.0, 3,0);
 
     // Act2
     int p = 0;
