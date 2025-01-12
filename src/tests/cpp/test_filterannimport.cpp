@@ -54,14 +54,14 @@ void test_filterannimport() {
         DataPoint<int>(9,0,-1,data9)
     };
 
-    FilterGraph<int> graph(data, 1, 5, 3, 3, 3);
+    FilterGraph<int> graph(data, 1, 5, 3, 3, 3,0);
 
     string filename = "imextest_graph.bin";
 
     // Act
     graph.exportGraph(filename);
 
-    FilterGraph<int> importedGraph({}, 1, 5, 3, 3, 3);
+    FilterGraph<int> importedGraph({}, 1, 5, 3, 3, 3,0);
     importedGraph.importGraph(filename);
 
     // Assert

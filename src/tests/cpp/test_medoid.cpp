@@ -6,7 +6,7 @@
 #include <random>
 
 void test_medoid() {
-    FilterGraph<int> graph({}, 2, 5, 3, 0.5,-1);
+    FilterGraph<int> graph({}, 2, 5, 3, 0.5,-1,0);
     int num_points = 10000; // Αριθμός σημείων (μεγαλύτερο από 1000)
     mt19937 rng(42); // Σταθερός seed για αναπαραγωγή
     uniform_int_distribution<int> dist(-100, 100);

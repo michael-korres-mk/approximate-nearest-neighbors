@@ -10,24 +10,30 @@ template <typename T>
 FilterGraph<T>::FilterGraph(){}
 
 template <typename T>
-FilterGraph<T>::FilterGraph(vector<DataPoint<T>> dataPoints, const int L,const int R,const int k,double a, int tau):numOfDatapoints(0),L(L),R(R),k(k),a(a),tau(tau){
+FilterGraph<T>::FilterGraph(vector<DataPoint<T>> dataPoints, const int L,const int R,const int k,double a, int tau, const int numOfThreads):numOfThreads(numOfThreads),numOfDatapoints(0),L(L),R(R),k(k),a(a),tau(tau){
     numOfDatapoints = dataPoints.size();
+    set<int> filtersSet;
     for(unsigned int i = 0; i < numOfDatapoints ; i++ ) {
-        vertexMap.insert({dataPoints[i].id,dataPoints[i]});
-        filters.insert(dataPoints[i].C);
+        vertexMap[dataPoints[i].id] = dataPoints[i];
+        filtersSet.insert(dataPoints[i].C);
     }
 
-    for (const auto& [id, _] : vertexMap) ids.push_back(id);
+    filters = vector(filtersSet.begin(), filtersSet.end());
+    numOfFilters = filters.size();
+
+    ids = vector<int>(numOfDatapoints);
+    int i = 0;
+    for (const auto& [id, _] : vertexMap){ ids[i] = id; i++;}
 }
 
 template <typename T>
 void FilterGraph<T>::initializeRandomEdges(){
-    TIMER_BLOCK("Graph initialization",
+    // TIMER_BLOCK("Graph initialization",
         for(const auto& [id, _] : vertexMap) {
             vector<Edge> neighbors = randomNeighbors(id);
             g.insert({id,neighbors});
         }
-    )
+    // )
 }
 
 template <typename T>
@@ -93,6 +99,7 @@ map<int, int> FilterGraph<T>::findMedoid() {
     // Δημιουργία των χάρτων M και medoidCount
     map<int, int> M;             // Χάρτης που αντιστοιχίζει κάθε φίλτρο στο medoid του
     map<int, int> medoidCount;   // Χάρτης που μετράει πόσες φορές κάθε σημείο είναι medoid
+
     // Αρχικοποίηση όλων των σημείων στο medoidCount με μηδενικές τιμές
     for (const auto& [id, dataPoint] : vertexMap) {
         medoidCount[id] = 0; // Όλα τα IDs ξεκινούν με μετρητή 0
@@ -234,31 +241,40 @@ map<int,int> FilterGraph<T>::getStartNodes(){
 template <typename T>
 void FilterGraph<T>::stitchedVamana() {
 
-    vector<FilterGraph> graphs(filters.size());
+    vector<FilterGraph> graphs(numOfFilters);
 
-    for (const int f: filters) {
+    auto nt = this->numOfThreads;
+    auto nf = this->numOfFilters;
+    auto fs = this->filters;
+    auto vmap = this->vertexMap;
+
+    # pragma omp parallel for if(numOfThreads > 0) num_threads(nt) shared(nf,fs,vmap,graphs)
+    for (int i = 0; i < nf;i++) {
+
+        int f = fs[i];
 
         vector<DataPoint<T>> fvertices;
-        for (const auto& [id, dp] : vertexMap) if (dp.C == f) fvertices.push_back(dp);
+        for (const auto& [id, dp] : vmap) if (dp.C == f) fvertices.push_back(dp);
 
-        if(fvertices.size() == 0) cout << "No filter graph found" << endl;
+        if(fvertices.empty()) cout << "No filter graph found" << endl;
 
-        graphs[f] = FilterGraph<T>(fvertices,L,(R+4)/4,k,a,tau); // Rsmall = floor(R/4) + 1
+        graphs[f] = FilterGraph<T>(fvertices,L,(R+4)/4,k,a,tau,nt); // Rsmall = floor(R/4) + 1
 
         if(graphs[f].numOfDatapoints > 1) {
-            printf("-------- Vamana on graph[f],f = %d\n",f);
+            // printf("-------- Vamana on graph[f],f = %d\n",f);
             graphs[f].vamana();
         }
         else {
-            printf("-------- Single-node graph[f],f = %d\n",f);
+            // printf("-------- Single-node graph[f],f = %d\n",f);
         }
 
         DIVIDER
 
     }
 
-    for (const auto& graph : graphs) {
-        for (const auto& [id, edges] : graph.g) {
+    for (int i = 0; i < numOfFilters;i++) {
+        int f = filters[i];
+        for (const auto& [id, edges] : graphs[f].g) {
             for (const auto& edge : edges) {
                 addEdge(id, edge.destination, edge.weight);
             }
@@ -472,6 +488,7 @@ float FilterGraph<T>::euclideanDistance(const vector<T>& v1,const vector<T>& v2)
     const unsigned int dim = v1.size();
     float dist = 0;
 
+    # pragma omp parallel for if(numOfThreads > 0) num_threads(numOfThreads) shared(v1,v2,dim) reduction(+:dist)
     for(unsigned int j = 0; j < dim; j++) {
         dist += (v2[j] - v1[j]) * (v2[j] - v1[j]);
     }
@@ -630,7 +647,7 @@ void FilterGraph<T>::exportGraph(const string& filename) {
         auto& neighbors = g[datapoint.id];
         for(auto& n : neighbors) {
             file.write(reinterpret_cast<const char*>(&n.destination), sizeof(int));
-            file.write(reinterpret_cast<const char*>(&n.weight), sizeof(int));
+            file.write(reinterpret_cast<const char*>(&n.weight), sizeof(double));
         }
     }
 
@@ -689,7 +706,7 @@ void FilterGraph<T>::importGraph(const string& filename) {
         double weight;
         for(unsigned int k = 0; k < numOfNeighbors; k++) {
             file.read(reinterpret_cast<char*>(&destination), sizeof(int));
-            file.read(reinterpret_cast<char*>(&weight), sizeof(int));
+            file.read(reinterpret_cast<char*>(&weight), sizeof(double));
             neighbors.push_back(Edge(destination, weight));
         }
 

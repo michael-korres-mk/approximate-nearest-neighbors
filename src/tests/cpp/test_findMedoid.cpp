@@ -48,7 +48,7 @@ void test_findMedoid() {
         DataPoint<int>(9,0, -1, data9)  // ID 9
     };
 
-    FilterGraph<int> graph(data, 1, 5, 3, 3, 3);
+    FilterGraph<int> graph(data, 1, 5, 3, 3, 3,0);
 
     // Act
     std::map<int, int> M = graph.findMedoid();

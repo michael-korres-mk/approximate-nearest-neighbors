@@ -37,6 +37,10 @@
     cout << MSG << ": " << datasetDuration << " ms" << endl; \
 }
 
+#define GET_TIME(now){ \
+    now = chrono::high_resolution_clock::now(); \
+}
+
 #define PRINT_VAR(var) cout << #var << " = " << var << endl;
 
 #define GET_INT_ARG(arg_name, variable)   \
@@ -64,6 +68,7 @@ public:
     static int random(int a,int b);
     static void printDivider();
     static void printVec(vector<K> v);
+    static FILE* fileopen(const char* filename,const char* columns);
 };
 
 #define DIVIDER Utils<char>::printDivider();

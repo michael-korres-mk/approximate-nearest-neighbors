@@ -19,6 +19,7 @@
 template <typename T>
 class FilterGraph{
 public:
+    int numOfThreads;
     unsigned int numOfDatapoints;
     map<int, DataPoint<T>> vertexMap;
     map<int,vector<Edge>> g;
@@ -28,11 +29,14 @@ public:
     // int d;
     double a;                       // Παράμετρος για το RobustPrune (κατώφλι απόστασης)
     unsigned int tau;                        // Παράμετρος για τη δειγματοληψία
-    set<int> filters;
+    vector<int> filters;
+    int numOfFilters;
     vector<int> ids;
 
     FilterGraph();
-    FilterGraph(vector<DataPoint<T>> dataPoints,int L,int R,int k,double a, int tau);
+
+    FilterGraph(vector<DataPoint<T>> dataPoints, int L, int R, int k, double a, int tau, int numOfThreads);
+
     void initializeRandomEdges();
     vector<Edge> randomNeighbors(int pId);
     void addVertex(DataPoint<T> vertex);
@@ -73,7 +77,7 @@ public:
     }
 
     // static
-    static float euclideanDistance(const vector<T>& v1,const vector<T>& v2);
+    float euclideanDistance(const vector<T>& v1,const vector<T>& v2);
     static double equals(const vector<T> &v1, vector<T> &v2);
 
     // import-export graph
