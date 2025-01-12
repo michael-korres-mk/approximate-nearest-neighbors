@@ -183,8 +183,28 @@ pair<vector<int>,vector<int>> FilterGraph<T>::filteredGreedySearch(const vector<
 
 template <typename T>
 void FilterGraph<T>::filteredVamana() {
+    // Αρχικοποίηση κενού συνόλου γειτόνων
+    for (int x : ids) {
+        g[x] = vector<Edge>();
+    }
 
-    map<int, int> st = getStartNodes();
+    // Προσθήκη τυχαίων ακμών
+    for (size_t i = 0; i < ids.size(); ++i) {
+        int x = ids[i];
+        for (unsigned int j = 0; j < R; ++j) {
+            int randomNeighbor = ids[rand() % ids.size()];
+            if (randomNeighbor != x) {
+                addEdge(x, randomNeighbor, euclideanDistance(vertexMap[x].vec, vertexMap[randomNeighbor].vec));
+            }
+        }
+    }
+
+    // Δημιουργία τυχαίων κόμβων εκκίνησης
+    vector<int> randomStartNodes;
+    int numStartNodes = std::min(static_cast<int>(ids.size()), 10); // π.χ., μέχρι 10 start nodes
+    for (int i = 0; i < numStartNodes; ++i) {
+        randomStartNodes.push_back(ids[rand() % ids.size()]);
+    }
 
     set<int> done;
     vector<int> givenIds = getVerticesIds();
@@ -197,7 +217,9 @@ void FilterGraph<T>::filteredVamana() {
 
         DataPoint<T>& dp = vertexMap[x];
 
-        const auto& [_,Vx] = filteredGreedySearch({st[dp.C]}, dp.vec, k, L, dp.C); // x.C = x's filter
+        // Χρήση τυχαίων κόμβων εκκίνησης
+        const auto& [_, Vx] = filteredGreedySearch(randomStartNodes, dp.vec, k, L, dp.C);
+
 
         g[x] = filteredRobustPrune(x, Vx, a, R);
 
