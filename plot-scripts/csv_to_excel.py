@@ -1,9 +1,9 @@
 def main():
 
     import utils
-    for filename in ['filterann','ann']:
-        csv_file = f"experiment-results/{filename}.csv"
-        excel_file = f'experiment-results/{filename}.xlsx'
+    for i in ['filterann','ann']:
+        csv_file = f"experiment-results/{i}.csv"
+        excel_file = f'experiment-results/{i}.xlsx'
         utils.csv_to_excel(csv_file, excel_file)
 
 # Entry point of the program

@@ -21,7 +21,7 @@ void test_robustPrune() {
 
     vector<DataPoint<int>> data = {data0,data1,data2,data3,data4,data5,data6,data7,data8,data9};
 
-    FilterGraph<int> graph(data, 1, 5, 3,3,-1);
+    FilterGraph<int> graph(data, 1, 5, 3,3,-1,0);
 
     int p = 0;
     std::vector<int> V = graph.getVerticesIds();
@@ -51,7 +51,7 @@ void test_robustPrune2() {
     vector<DataPoint<int>> data = {data0,data1,data2,data3,data4,data5,data6};
 
     int R = 3;
-    FilterGraph<int> graph({}, 1, R, 4, 1.2,-1);
+    FilterGraph<int> graph({}, 1, R, 4, 1.2,-1,0);
     for (auto d : data) graph.addVertex(d);
 
     graph.addEdge(0, 5, graph.euclideanDistance(data[0].vec, data[5].vec));

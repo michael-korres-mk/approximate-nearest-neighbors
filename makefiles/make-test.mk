@@ -1,6 +1,6 @@
 # Compiler
 CXX = g++
-CXXFLAGS = -O3 -std=c++17 -g # acutest does not work with: -Wall -Wextra -Werror -pedantic
+CXXFLAGS = -O3 -std=c++17 -g -fopenmp # acutest does not work with: -Wall -Wextra -Werror -pedantic
 
 SRC_DIR = src/main/cpp
 TEST_DIR = src/tests/cpp

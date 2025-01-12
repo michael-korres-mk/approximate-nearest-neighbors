@@ -10,7 +10,7 @@ void test_additionIsSuccess() {
     DataPoint<int> data1 = DataPoint(0,-1,-1,vec1);
     DataPoint<int> data2 = DataPoint(1,-1,-1,vec2);
 
-    FilterGraph<int> graph({data1,data2}, 1, 5, 3, 1.2,-1);
+    FilterGraph<int> graph({data1,data2}, 1, 5, 3, 1.2,-1,0);
 
     // Act
     graph.addEdge(0, 1, graph.euclideanDistance(data1.vec, data2.vec));
@@ -30,7 +30,7 @@ void test_weightAddedProperly() {
     vector<int> vec2 = {4, 5, 6};
     DataPoint<int> data1 = DataPoint(0,-1,-1,vec1);
     DataPoint<int> data2 = DataPoint(1,-1,-1,vec2);
-    FilterGraph<int> graph({data1,data2}, 1, 5, 3, 1.2,-1);
+    FilterGraph<int> graph({data1,data2}, 1, 5, 3, 1.2,-1,0);
 
     // Act
     graph.addEdge(0, 1, graph.euclideanDistance(data1.vec, data2.vec));
