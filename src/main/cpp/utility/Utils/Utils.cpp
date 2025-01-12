@@ -63,6 +63,33 @@ void Utils<K>::printVec(vector<K> v) {
     cout << endl;
 }
 
+template<typename K>
+FILE* Utils<K>::fileopen(const char* filename, const char* columns) {
+
+    FILE* file = fopen(filename, "r");
+
+    if (file != NULL) {
+        fclose(file);
+
+        file = fopen(filename, "a");
+
+        fseek(file, 0, SEEK_END);
+        if(ftell(file) == 0) fprintf(file,"%s", columns);
+
+    } else {
+        printf("File just created.\n");
+        file = fopen(filename, "a");
+        if (file == NULL) {
+            perror("Error opening file");
+            exit(1);
+        }
+        fprintf(file,"%s", columns);
+    }
+
+    return file;
+}
+
+
 template class Utils<float>;
 template class Utils<int>;
 template class Utils<char>;
